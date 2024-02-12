@@ -1,8 +1,11 @@
 import { View } from 'react-native';
-
+import { TamaguiProvider } from 'tamagui'
 export default function App() {
   return (
-    <View>
-    </View>
+      <TamaguiProvider>
+        <View>
+          Hello
+        </View>
+      </TamaguiProvider>
   );
 }
