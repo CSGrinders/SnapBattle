@@ -13,12 +13,13 @@ import Profile from "./Pages/Profile";
 import ProfileSettings from "./Pages/ProfileSettings";
 import SignIn from "./Pages/SignIn";
 import SignUp from "./Pages/SignUp";
+import Testing from "./Pages/Testing"
 
 export default function App() {
   return (
   <NavigationContainer>
     <Stack.Navigator>
-      <Stack.Screen name="SignIn" component={SignIn} />
+      <Stack.Screen name="Testing" component={Testing} />
     </Stack.Navigator>
   </NavigationContainer>
   );
