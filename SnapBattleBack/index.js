@@ -36,3 +36,7 @@ app.use(
 
 //parses json data from request body and makes it available in req.body
 app.use(express.json())
+
+// Routes
+const groupsRouter = require('./Routes/User/Groups/Groups')
+app.use('/groups', groupsRouter)
