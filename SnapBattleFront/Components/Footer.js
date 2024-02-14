@@ -1,0 +1,17 @@
+import React from 'react';
+import { View } from 'react-native';
+import { Text } from '@rneui/themed';
+import {FooterStyle} from "../Theme/Theme";
+
+const Footer = () => {
+    return (
+        <View style={FooterStyle.footerContainer}>
+            <Text style={FooterStyle.footerText}>
+                With <Text style={FooterStyle.loveEmoji}>❤️</Text> CSGrinders, © 2024
+            </Text>
+        </View>
+    );
+};
+
+
+export default Footer;

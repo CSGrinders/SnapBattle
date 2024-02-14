@@ -7,11 +7,12 @@ import Testing from "./Pages/Testing"
 import {ThemeProvider} from "@rneui/themed";
 import {theme} from "./Theme/Theme.js"
 
+
 export default function App() {
     return (
         <ThemeProvider theme={theme}>
             <NavigationContainer>
-                <Stack.Navigator>
+                <Stack.Navigator screenOptions={{headerShown: false}}>
                     <Stack.Screen name="Testing" component={Testing}/>
                 </Stack.Navigator>
             </NavigationContainer>
