@@ -4,7 +4,7 @@
  * This file defines the schema for Prompt
  * information in the MongoDB database.
  *
- * @SnapBattle, 2023
+ * @SnapBattle, 2024
  */
 
 const mongoose = require("mongoose")

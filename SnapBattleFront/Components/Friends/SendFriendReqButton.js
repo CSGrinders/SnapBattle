@@ -3,7 +3,7 @@ function SendFriendReq() {
 
     //API call when send friend request button is clicked
     function pressSendFriendReq() {
-        console.log("test")
+        console.log("test");
     }
 
 
@@ -14,4 +14,4 @@ function SendFriendReq() {
     )
 }
 
-export default SendFriendReq
+export default SendFriendReq;

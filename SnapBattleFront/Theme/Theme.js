@@ -37,7 +37,7 @@ export const theme = createTheme({
                 borderColor: '#252323',
                 borderRadius: 8,
             },
-        }
+        },
     },
 });
 

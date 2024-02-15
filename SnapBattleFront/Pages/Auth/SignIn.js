@@ -1,4 +1,4 @@
-import {KeyboardAvoidingView, Platform, View, Dimensions} from "react-native";
+import {KeyboardAvoidingView, Platform, View, Dimensions, SafeAreaView} from "react-native";
 import {Image} from 'expo-image';
 import Logo from '../../assets/logo.webp'
 import {Button, Input, Text} from "@rneui/themed";
@@ -8,8 +8,8 @@ function SignIn({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-                              enabled={false}>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
+                                  enabled={false}>
                 <View style={{
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -19,7 +19,7 @@ function SignIn({navigation}) {
                     <View style={{
                         width: 400,
                         height: 400,
-                        marginLeft: 5,
+                        marginLeft: 5
                     }}>
                         <Image
                             style={{width: '100%', height: '100%'}}
@@ -52,8 +52,8 @@ function SignIn({navigation}) {
                         <Button>Sign Up</Button>
                     </View>
                 </View>
-                <View style={{width: width, height: 90}}><Footer/></View>
-        </KeyboardAvoidingView>
+                <View style={{width: width, height: 80}}><Footer/></View>
+            </KeyboardAvoidingView>
     )
 }
 
