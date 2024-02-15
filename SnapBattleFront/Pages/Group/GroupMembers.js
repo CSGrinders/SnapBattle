@@ -16,7 +16,7 @@ function GroupMembers({navigation}) {
     function inviteUser() {
         console.log(`${EXPO_PUBLIC_API_URL}`)
         axios.post(
-            `${EXPO_PUBLIC_API_URL}/groups/invite`,
+            `${EXPO_PUBLIC_API_URL}/user/groups/invite`,
             {
                 username: userInput
             }

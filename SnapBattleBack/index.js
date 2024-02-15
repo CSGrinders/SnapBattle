@@ -38,5 +38,5 @@ app.use(
 app.use(express.json())
 
 // Routes
-const groupsRouter = require('./Routes/Groups/Groups')
-app.use('/groups', groupsRouter)
+const groupsRouter = require('./Routes/User/Groups/Groups')
+app.use('/user/groups', groupsRouter)
