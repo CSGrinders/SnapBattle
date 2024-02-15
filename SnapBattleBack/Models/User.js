@@ -32,7 +32,6 @@ const User = new mongoose.Schema({
     },
     profilePicture: {
         type: String,
-        default: '' //Change for default location
     },
     friends: [{
         type: mongoose.Types.ObjectId,
@@ -72,4 +71,4 @@ User.pre("save", async function () {
 })
 
 module.exports = mongoose.model("User", User)
-module.exports = mongoose.model("Sesion", session)
+module.exports = mongoose.model("Session", session)
