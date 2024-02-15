@@ -11,6 +11,8 @@ const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
 const app = express()
+const groupsRouter = require('./Routes/User/Groups/Groups')
+const authRouter = require('./Routes/Auth')
 require("dotenv").config()
 const {MONGO_URL, PORT} = process.env
 
@@ -38,5 +40,4 @@ app.use(
 app.use(express.json())
 
 // Routes
-const groupsRouter = require('./Routes/User/Groups/Groups')
-app.use('/user/groups', groupsRouter)
+app.use("/", authRouter)

@@ -14,8 +14,34 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "plugins": [
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            {
+              "name": "OpenSans-Regular",
+              "file": "./assets/fonts/OpenSansRegular.ttf"
+            },
+            {
+              "name": "OpenSans-Bold",
+              "file": "./assets/fonts/OpenSansExtraBold.ttf"
+            }
+          ]
+        }
+      ]
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

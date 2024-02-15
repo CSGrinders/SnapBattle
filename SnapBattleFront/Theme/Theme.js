@@ -18,6 +18,7 @@ export const theme = createTheme({
                 borderRadius: 8
             },
             titleStyle: {
+                fontFamily: 'OpenSansRegular',
                 fontSize: 20,
             }
         },
@@ -33,11 +34,17 @@ export const theme = createTheme({
                 height: 60,
                 fontSize: 22,
                 color: '#000000',
+                fontFamily: 'OpenSansRegular',
                 borderWidth: 2,
                 borderColor: '#252323',
                 borderRadius: 8,
             },
         },
+        Text: {
+            style: {
+                fontFamily: 'OpenSansRegular',
+            }
+        }
     },
 });
 
@@ -52,6 +59,7 @@ export const FooterStyle = StyleSheet.create({
     },
     footerText: {
         fontSize: 15,
+        fontFamily: 'OpenSansRegular',
         textAlign: 'center',
         justifyContent: 'center',
     },
