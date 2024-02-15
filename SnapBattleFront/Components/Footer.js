@@ -7,7 +7,7 @@ const Footer = () => {
     return (
         <View style={FooterStyle.footerContainer}>
             <Text style={FooterStyle.footerText}>
-                With <Text style={FooterStyle.loveEmoji}>❤️</Text> CSGrinders, © 2024
+               Made with <Text style={FooterStyle.loveEmoji}>❤️</Text> CSGrinders, © 2024
             </Text>
         </View>
     );

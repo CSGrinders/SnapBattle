@@ -4,7 +4,7 @@
  * Defines the schema for Group information
  * in the MongoDB database,
  *
- * @SnapBattle, 2023
+ * @SnapBattle, 2024
  */
 
 const mongoose = require("mongoose")

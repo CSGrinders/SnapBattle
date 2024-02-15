@@ -1,7 +1,8 @@
-import {Alert, Modal, Pressable, SafeAreaView, Text, View, Image} from "react-native";
+import {Alert, Modal, Pressable, SafeAreaView, Text, View} from "react-native";
+import {Image} from "expo-image";
 import {Button, Input} from "@rneui/themed";
 import {useState} from "react";
-import CloseButton from "../../assets/close.png"
+import CloseButton from "../../assets/close.webp"
 import axios from "axios";
 const {EXPO_PUBLIC_API_URL} = process.env
 
@@ -56,6 +57,8 @@ function GroupMembers({navigation}) {
                                         height: 30,
                                         marginLeft: 'auto',
                                     }}
+                                    rcontentFit="cover"
+                                    transition={500}
                                 />
                             </Pressable>
                             <View style={{

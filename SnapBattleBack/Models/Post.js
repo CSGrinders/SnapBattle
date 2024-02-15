@@ -4,7 +4,7 @@
  * Defines the schema for Post and Comment information
  * in the MongoDB database,
  *
- * @SnapBattle, 2023
+ * @SnapBattle, 2024
  */
 
 const mongoose = require("mongoose")

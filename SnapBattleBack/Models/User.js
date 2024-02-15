@@ -1,8 +1,9 @@
 /*
  * User.js
  *
- * This file defines the schema for User information in the MongoDB database
- * @SnapBattle, 2023
+ * This file defines the schema for User information in the MongoDB database.
+ *
+ * @SnapBattle, 2024
  */
 
 const mongoose = require("mongoose")
@@ -54,6 +55,16 @@ const User = new mongoose.Schema({
     }
 })
 
+const session = new mongoose.Schema({
+    userID: {
+        type: mongoose.Types.ObjectId,
+        ref: 'User'
+    },
+    token: {
+        type: String,
+    }
+})
+
 
 //Encrypt password before saving it to database
 User.pre("save", async function () {
@@ -61,3 +72,4 @@ User.pre("save", async function () {
 })
 
 module.exports = mongoose.model("User", User)
+module.exports = mongoose.model("Sesion", session)
