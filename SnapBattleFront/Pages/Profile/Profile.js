@@ -1,9 +1,24 @@
-import {Dimensions, SafeAreaView, View} from "react-native";
+import {Dimensions, Pressable, SafeAreaView, View} from "react-native";
 import {Button, Text} from "@rneui/themed";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
+import SettingIcon from '../../assets/profile-setting-icon.webp'
+import BackIcon from '../../assets/back-icon.webp'
+import {Image} from 'expo-image';
+import {useState} from "react";
+import ProfileSettings from "./ProfileSettings";
 
 function Profile({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
+
+
+    const backPressed = () => {
+    }
+
+    const settingPressed = () => {
+    }
+
+    const pfPressed = () => {
+    }
 
     return (
         <SafeAreaView style={{
@@ -16,7 +31,23 @@ function Profile({navigation}) {
                 justifyContent: 'center',
                 height: height * 0.3
             }}>
-                <ProfilePicture size={150}/>
+                <View style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: width * 0.9,
+                    height: 5
+                }}>
+                    <Pressable onPress={backPressed}>
+                        <Image source={BackIcon} style={{width:50, height:50}}></Image>
+                    </Pressable>
+                    <Pressable onPress={settingPressed}>
+                        <Image source={SettingIcon} style={{width:50, height:50}}></Image>
+                    </Pressable>
+                </View>
+                <Pressable onPress={pfPressed}>
+                    <ProfilePicture size={150}/>
+                </Pressable>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>Name</Text>
                 <Text>@username</Text>
             </View>
