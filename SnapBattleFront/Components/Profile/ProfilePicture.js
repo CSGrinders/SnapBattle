@@ -1,6 +1,6 @@
 import {View} from "react-native";
 import {Image} from 'expo-image';
-import default_image_source from '../../assets/default-profile-picture.png'
+import default_image_source from '../../assets/default-profile-picture.webp'
 
 
 const ProfilePicture = ({source, size}) => {
