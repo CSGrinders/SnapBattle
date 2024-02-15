@@ -6,6 +6,7 @@ const Stack = createNativeStackNavigator()
 import Testing from "./Pages/Testing"
 import {ThemeProvider} from "@rneui/themed";
 import {theme} from "./Theme/Theme.js"
+import Profile from "./Pages/Profile/Profile";
 
 
 export default function App() {
@@ -13,7 +14,7 @@ export default function App() {
         <ThemeProvider theme={theme}>
             <NavigationContainer>
                 <Stack.Navigator screenOptions={{headerShown: false}}>
-                    <Stack.Screen name="Testing" component={Testing}/>
+                    <Stack.Screen name="Profile" component={Profile}/>
                 </Stack.Navigator>
             </NavigationContainer>
         </ThemeProvider>
