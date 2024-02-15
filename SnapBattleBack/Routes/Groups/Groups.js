@@ -1,7 +1,11 @@
 const router = require("express").Router();
 const { AsyncLocalStorage } = require("async_hooks");
-const Group = require('../../../Models/Group')
-const User = require('../../../Models/User')
+const Group = require('../../Models/Group')
+const User = require('../../Models/User')
+
+const {
+    inviteToGroup
+} = require("../../Controllers/Groups/GroupController")
 
 /**
   * /groups/
@@ -9,7 +13,7 @@ const User = require('../../../Models/User')
   * @returns list of all groups
   **/
 
- router.route('/').get((req, res) => {
+router.route('/').get((req, res) => {
     Group.find()
         .then(groups => res.json(groups))
         .catch(err => res.status(400).json('Error: ' + err))
@@ -26,7 +30,7 @@ const User = require('../../../Models/User')
   *  @returns 200 for success, 404 for not found, 500 for server errs
   **/
 
- router.route('/create').post(async(req, res) => {
+router.route('/create').post(async(req, res) => {
     try {
         const username = req.body.username;
         const groupName = req.body.groupName;
@@ -72,7 +76,7 @@ const User = require('../../../Models/User')
 })
 
 /**
-  * /groups/users
+  * /groups/users/:groupID
   *  @params groupID
   * 
   *  @returns list of users
@@ -92,5 +96,7 @@ router.route('/users/:groupID').get(async(req, res) => {
         res.status(500).json("Error: " + error)
     }
 })
+
+router.post('/invite', inviteToGroup)
 
 module.exports = router
