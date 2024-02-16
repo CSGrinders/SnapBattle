@@ -5,7 +5,7 @@ import {Button, Input, Text} from "@rneui/themed";
 import Footer from "../../Components/Footer";
 
 function SignIn({navigation}) {
-    let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
+    let {width, height} = Dimensions.get('window')
 
     return (
             <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -14,7 +14,7 @@ function SignIn({navigation}) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     width: width,
-                    height: height - 100,
+                    height: height - 200,
                 }}>
                     <View style={{
                         width: 400,
