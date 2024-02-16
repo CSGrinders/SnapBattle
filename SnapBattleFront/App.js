@@ -1,20 +1,32 @@
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-
+import OpenSansRegular from './assets/fonts/OpenSansRegular.ttf';
+import OpenSansBold from './assets/fonts/OpenSansExtraBold.ttf';
 const Stack = createNativeStackNavigator()
-
 import Testing from "./Pages/Testing"
 import {ThemeProvider} from "@rneui/themed";
 import {theme} from "./Theme/Theme.js"
-import Profile from "./Pages/Profile/Profile";
+import {useFonts} from "expo-font";
+import SignUp from "./Pages/Auth/SignUp";
+import SignIn from "./Pages/Auth/SignIn";
 
 
 export default function App() {
+
+    const [fontsLoaded, fontError] = useFonts({ //Load fonts
+        'OpenSansRegular': OpenSansRegular,
+        'OpenSansBold': OpenSansBold,
+    });
+
+    if (!fontsLoaded && !fontError) {
+        return null;
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <NavigationContainer>
                 <Stack.Navigator screenOptions={{headerShown: false}}>
-                    <Stack.Screen name="Profile" component={Profile}/>
+                    <Stack.Screen name="Testing" component={SignIn}/>
                 </Stack.Navigator>
             </NavigationContainer>
         </ThemeProvider>
