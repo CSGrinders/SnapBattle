@@ -4,14 +4,9 @@ import default_image_source from '../../assets/default-profile-picture.webp'
 
 
 const ProfilePicture = ({source, size}) => {
-    if (source == null) {
-
-    } else {
-
-    }
     return (
         <View>
-            {source ? (<Image source={source}
+            {source ? (<Image source={{uri: source}}
                               style={{
                                   width: size,
                                   height: size,

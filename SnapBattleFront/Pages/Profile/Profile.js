@@ -1,31 +1,51 @@
-import {Dimensions, Pressable, SafeAreaView, View} from "react-native";
+import {Dimensions, Pressable, SafeAreaView, TouchableOpacity, View} from "react-native";
 import {Button, Text} from "@rneui/themed";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
+import BackButton from "../../Components/Button/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp'
 import BackIcon from '../../assets/back-icon.webp'
 import {Image} from 'expo-image';
 import {useState} from "react";
-import ProfileSettings from "./ProfileSettings";
-
+import * as ImagePicker from 'react-native-image-picker';
+import IoniconsIcon from 'react-native-vector-icons/Ionicons'
 function Profile({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
 
-    const backPressed = () => {
-    }
-
+    const [image, setImage] = useState('');
     const settingPressed = () => {
+        navigation.navigate('ProfileSettings', {navigation: navigation})
     }
 
     const pfPressed = () => {
+        imagePicker();
     }
 
+    const imagePicker = () => {
+        const options = {
+            mediaType: 'photo',
+            includeBase64: false,
+            maxHeight: 2000,
+            maxWidth: 2000,
+        };
+
+        launchImageLibrary(options, (response) => {
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.error) {
+                console.log('Image picker error: ', response.error);
+            } else {
+                let imageUri = response.uri || response.assets?.[0]?.uri;
+                setImage(imageUri);
+            }
+        });
+    }
     return (
         <SafeAreaView style={{
             alignItems: 'center',
-            justifyContent: 'flex-start',
+            justifyContent: 'center',
             width: width,
-            height: height - 50}}>
+            height: height}}>
             <View style={{
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -38,15 +58,13 @@ function Profile({navigation}) {
                     width: width * 0.9,
                     height: 5
                 }}>
-                    <Pressable onPress={backPressed}>
-                        <Image source={BackIcon} style={{width:50, height:50}}></Image>
-                    </Pressable>
-                    <Pressable onPress={settingPressed}>
+                    <BackButton size={50}/>
+                    <TouchableOpacity onPress={settingPressed}>
                         <Image source={SettingIcon} style={{width:50, height:50}}></Image>
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
                 <Pressable onPress={pfPressed}>
-                    <ProfilePicture size={150}/>
+                    <ProfilePicture size={150} source={image}/>
                 </Pressable>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>Name</Text>
                 <Text>@username</Text>
