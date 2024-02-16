@@ -7,6 +7,8 @@ import Testing from "./Pages/Testing"
 import {ThemeProvider} from "@rneui/themed";
 import {theme} from "./Theme/Theme.js"
 import {useFonts} from "expo-font";
+import SignUp from "./Pages/Auth/SignUp";
+import SignIn from "./Pages/Auth/SignIn";
 
 
 export default function App() {
@@ -24,7 +26,7 @@ export default function App() {
         <ThemeProvider theme={theme}>
             <NavigationContainer>
                 <Stack.Navigator screenOptions={{headerShown: false}}>
-                    <Stack.Screen name="Testing" component={Testing}/>
+                    <Stack.Screen name="Testing" component={SignIn}/>
                 </Stack.Navigator>
             </NavigationContainer>
         </ThemeProvider>
