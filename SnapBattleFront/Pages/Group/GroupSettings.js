@@ -44,10 +44,8 @@ function GroupSettings({navigation}) {
                     alignItems: 'center',
                 }}>
                     <Input placeholder='Enter Group Name'/>
-                    // TODO: add submit buttons for each
                 </View>
             </View>
-
         </KeyboardAvoidingView>
     )
 }
