@@ -2,7 +2,7 @@ import {KeyboardAvoidingView, Dimensions, Text, View, Platform} from "react-nati
 
 import BackButton from '../../Components/Navigation/Back.js'
 import {useState} from "react";
-import {Input} from "@rneui/themed";
+import {Button, Input} from "@rneui/themed";
 
 function GroupSettings({navigation}) {
     let {width, height} = Dimensions.get('window')
@@ -12,7 +12,7 @@ function GroupSettings({navigation}) {
                               enabled={false}>
             <View style={{
                 width: width,
-                height: height - 200,
+                height: height,
                 justifyContent: "center"
             }}>
                 <View style={{
@@ -44,6 +44,55 @@ function GroupSettings({navigation}) {
                     alignItems: 'center',
                 }}>
                     <Input placeholder='Enter Group Name'/>
+                </View>
+                <Text style={{
+                    marginHorizontal: 30,
+                    marginTop: 10,
+                    marginBottom: 10,
+                    fontSize: 25,
+                    fontWeight: 'bold',
+                }}>
+                    New Group Size
+                </Text>
+                <View style={{
+                    alignItems: 'center',
+                }}>
+                    <Input placeholder='Enter Group Size'/>
+                </View>
+                <Text style={{
+                    marginHorizontal: 30,
+                    marginTop: 10,
+                    marginBottom: 10,
+                    fontSize: 25,
+                    fontWeight: 'bold',
+                }}>
+                    New Prompt Time
+                </Text>
+                <View style={{
+                    alignItems: 'center',
+                }}>
+                    <Input placeholder='Select Time'/>
+                </View>
+                <Text style={{
+                    marginHorizontal: 30,
+                    marginTop: 10,
+                    marginBottom: 10,
+                    fontSize: 25,
+                    fontWeight: 'bold',
+                }}>
+                    New Submission Time
+                </Text>
+                <View style={{
+                    alignItems: 'center',
+                    marginBottom: 40,
+                }}>
+                    <Input placeholder='Select Time'/>
+                </View>
+                <View style={{
+                    alignItems: 'center',
+                    width: width,
+                }}>
+                    <Button>Delete Group</Button>
                 </View>
             </View>
         </KeyboardAvoidingView>
