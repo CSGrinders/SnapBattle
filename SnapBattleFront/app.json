@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "",
+      "image": "./assets/logo.webp",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
