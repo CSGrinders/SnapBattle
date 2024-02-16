@@ -3,22 +3,24 @@ import {Button, Text} from "@rneui/themed";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import BackButton from "../../Components/Button/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp'
-import BackIcon from '../../assets/back-icon.webp'
 import {Image} from 'expo-image';
 import {useState} from "react";
-import * as ImagePicker from 'react-native-image-picker';
-import IoniconsIcon from 'react-native-vector-icons/Ionicons'
 function Profile({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
 
     const [image, setImage] = useState('');
     const settingPressed = () => {
-        navigation.navigate('ProfileSettings', {navigation: navigation})
+        // navigation.navigate('ProfileSettings', {navigation: navigation})
+        console.log("navigate to settings")
     }
 
     const pfPressed = () => {
         imagePicker();
+    }
+
+    const backPressed = () => {
+        console.log("navigate to previous screen");
     }
 
     const imagePicker = () => {
@@ -58,7 +60,7 @@ function Profile({navigation}) {
                     width: width * 0.9,
                     height: 5
                 }}>
-                    <BackButton size={50}/>
+                    <BackButton size={50} backPressed={backPressed}/>
                     <TouchableOpacity onPress={settingPressed}>
                         <Image source={SettingIcon} style={{width:50, height:50}}></Image>
                     </TouchableOpacity>
@@ -100,7 +102,8 @@ function Profile({navigation}) {
                 <Button style={{
                     alignContent: 'flex-end',
                     alignItems: 'center',
-                    justifyContent: 'center'}}>
+                    justifyContent: 'center'}}
+                >
                     Friends
                 </Button>
             </View>
