@@ -11,6 +11,7 @@ const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
 const app = express()
+const bodyParser = require('body-parser');
 const groupsRouter = require('./Routes/User/Groups/Groups')
 const authRouter = require('./Routes/Auth')
 const profileRouter = require('./Routes/User/Profile/Profile')
@@ -36,6 +37,10 @@ app.use(
         credentials: true,
     })
 )
+
+//trust chatgpt
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 //parses json data from request body and makes it available in req.body
 app.use(express.json())

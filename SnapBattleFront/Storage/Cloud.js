@@ -26,40 +26,27 @@ const {
 import axios from "axios";
 
 export const saveImageToCloud = async (userID, imageUri) => {
-    console.log(`${EXPO_PUBLIC_API_URL}`)
-    console.log(imageUri)
     //const image = await fetch(imageUri)
-    const blob = await fetch(imageUri)
-        .then((image) => {
-            return image.blob()
-        })
-    console.log(blob)
+    const image = await fetch(imageUri)
+    const blob = await image.blob()
 
-    // {
-    //     headers: {
-    //         'Content-Type': `multipart/form-data`,
-    //     },
-    // }
+    const reader = new FileReader()
+    reader.readAsDataURL(blob)
+    reader.onloadend = () => {
+        const base64data = reader.result.split(',')[1]
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/profile/upload-photo`,
+            {
+                base64data: base64data
+            }
+        ).then(
+            (res) => {
 
-    axios.post(
-        `${EXPO_PUBLIC_API_URL}/user/profile/upload-photo`,
-        {
-            userID: userID,
-            blob: blob
-        }
-        // /*,{
-        //     headers: {
-        //         'Content-Type': `multipart/form-data`,
-        //     },
-        // }
-        //  */
-    ).then(
-        (res) => {
+            }
+        ).catch(
+            (error) => {
 
-        }
-    ).catch(
-        (error) => {
-
-        }
-    )
+            }
+        )
+    }
 };

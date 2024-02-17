@@ -6,20 +6,17 @@ const {
 
 const storage = require("../../Firebase/Firebase")
 
-const multer = require('multer');
-const upload = multer();
-
 
 module.exports.uploadPhoto = async(req, res)=> {
     try {
-        console.log("what")
-        const userID = req.body.userID;
-        const blob2 = req.body.blob;
-        console.log(blob2)
 
-        const fileName = userID + "idk";
+        const base64data = req.body.base64data;
+        const buffer = Buffer.from(base64data, 'base64');
+        const blob = new Blob([buffer], { type: 'image/jpeg' })
+
+        const fileName = "idk.jpeg";
         const imageRef = ref(storage, `profileImage/${fileName}`);
-        await uploadBytesResumable(imageRef, blob2);
+        await uploadBytesResumable(imageRef, blob);
 
         // const storageRef = storage.ref().child("/")
         // storageRef.put(blob)
