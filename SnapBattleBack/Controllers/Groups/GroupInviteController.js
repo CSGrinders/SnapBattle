@@ -12,7 +12,6 @@ module.exports.inviteToGroup = async(req, res)=> {
     console.log(friends)
 
     //iterate through friends to see if any have matching username as inviteUsername
-    return res.status(200).json("Group invite sent successfully!")
     let found = false
     for (let i = 0; i < friends.length; i++) {
         if (friends[i].username === inviteUsername) {
