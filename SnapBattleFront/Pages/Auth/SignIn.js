@@ -144,7 +144,7 @@ function SignIn({navigation}) {
                             //setTimeout(null, 3000
                             setTimeout(() => {
                                 setLoading(false);
-                            }, 2000);
+                            }, 1000);
                             console.log(error)
                             if (status === 500) {
                                 setErrorMessageServer("Something went wrong...")
