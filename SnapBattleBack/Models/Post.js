@@ -75,3 +75,11 @@ const Comment = new mongoose.Schema({
 
 module.exports = mongoose.model("Post", Post)
 module.exports = mongoose.model("Comment", Comment)
+
+const PostModel = mongoose.model("Post", Post)
+const CommentModel = mongoose.model("Comment", Comment)
+
+module.exports = {
+    Post: PostModel,
+    Comment: CommentModel
+};

@@ -1,9 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {Alert, Modal, Pressable, View} from 'react-native';
-import {Button, Input, Text} from '@rneui/themed';
-import {FooterStyle} from "../Theme/Theme";
+import {Modal, Pressable, View} from 'react-native';
+import {Button, Text} from '@rneui/themed';
 import {Image} from "expo-image";
 import CloseButton from "../assets/close.webp";
+
+
+/**
+ * @returns {JSX.Element} - Error prompt
+ */
 
 const ErrorPrompt = ({ Message, state, setError }) => {
     const [invBoxVisible, setInvBoxVisibility] = useState(false);

@@ -3,15 +3,20 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import OpenSansRegular from './assets/fonts/OpenSansRegular.ttf';
 import OpenSansBold from './assets/fonts/OpenSansExtraBold.ttf';
 const Stack = createNativeStackNavigator()
-import Testing from "./Pages/Testing"
 import {ThemeProvider} from "@rneui/themed";
 import {theme} from "./Theme/Theme.js"
 import {useFonts} from "expo-font";
 import SignUp from "./Pages/Auth/SignUp";
 import SignIn from "./Pages/Auth/SignIn";
+import Main from "./Pages/Main";
+import Profile from "./Pages/Profile/Profile";
+import GroupSettings from "./Pages/Group/GroupSettings";
+import createNewGroup from "./Pages/Group/CreateNewGroup";
+import GroupMembers from "./Pages/Group/GroupMembers";
+import ProfileSettings from "./Pages/Profile/ProfileSettings";
 
 
-export default function App() {
+function App() {
 
     const [fontsLoaded, fontError] = useFonts({ //Load fonts
         'OpenSansRegular': OpenSansRegular,
@@ -22,13 +27,23 @@ export default function App() {
         return null;
     }
 
+    //Don't touch unless you want add a page
     return (
         <ThemeProvider theme={theme}>
             <NavigationContainer>
-                <Stack.Navigator screenOptions={{headerShown: false}}>
-                    <Stack.Screen name="Testing" component={SignIn}/>
+                <Stack.Navigator screenOptions={{headerShown: false, animation: 'none'}} initialRouteName="SignIn" >
+                    <Stack.Screen name="SignIn" component={SignIn}/>
+                    <Stack.Screen name="SignUp" component={SignUp}/>
+                    <Stack.Screen name="Main" component={Main}/>
+                    <Stack.Screen name="Profile" component={Profile}/>
+                    <Stack.Screen name="ProfileSettings" component={ProfileSettings}/>
+                    <Stack.Screen name="GroupSettings" component={GroupSettings}/>
+                    <Stack.Screen name="CreateGroup" component={createNewGroup}/>
+                    <Stack.Screen name="GroupMembers" component={GroupMembers}/>
                 </Stack.Navigator>
             </NavigationContainer>
         </ThemeProvider>
     );
 }
+
+export default App;

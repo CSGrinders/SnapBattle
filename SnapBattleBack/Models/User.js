@@ -54,7 +54,7 @@ const User = new mongoose.Schema({
     }
 })
 
-const session = new mongoose.Schema({
+const Session = new mongoose.Schema({
     userID: {
         type: mongoose.Types.ObjectId,
         ref: 'User'
@@ -70,5 +70,10 @@ User.pre("save", async function () {
     this.password = await bcrypt.hash(this.password, 12)
 })
 
-module.exports = mongoose.model("User", User)
-module.exports = mongoose.model("Session", session)
+const UserModel = mongoose.model("User", User);
+const SessionModel = mongoose.model("Session", Session);
+
+module.exports = {
+    User: UserModel,
+    Session: SessionModel
+};
