@@ -13,6 +13,6 @@ const router = require("express").Router();
 /**
  * Handle user signup and login routes.
  */
-router.post("/auth/", AuthenticateOrSignUp);
+router.post("/", AuthenticateOrSignUp);
 
 module.exports = router
