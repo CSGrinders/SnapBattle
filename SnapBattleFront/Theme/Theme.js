@@ -44,7 +44,13 @@ export const theme = createTheme({
             style: {
                 fontFamily: 'OpenSansRegular',
             }
-        }
+        },
+        CheckBox: {
+            containerStyle: {
+                backgroundColor: 'transparent',
+                borderWidth: 0,
+            },
+        },
     },
 });
 

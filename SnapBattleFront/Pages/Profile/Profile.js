@@ -5,6 +5,8 @@ import BackButton from "../../Components/Button/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp'
 import {Image} from 'expo-image';
 import {useState} from "react";
+import {launchImageLibrary} from "react-native-image-picker";
+
 function Profile({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
@@ -40,7 +42,7 @@ function Profile({navigation}) {
                 let imageUri = response.uri || response.assets?.[0]?.uri;
                 setImage(imageUri);
             }
-        });
+        }).then(() => {});
     }
     return (
         <SafeAreaView style={{
