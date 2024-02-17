@@ -10,11 +10,13 @@ const ProfilePicture = ({source, size}) => {
                               style={{
                                   width: size,
                                   height: size,
+                                  borderRadius: size/2,
                               }}
             />) : (<Image source={default_image_source}
                           style={{
                               width: size,
                               height: size,
+                              borderRadius: size/2,
                           }}
             />)}
 

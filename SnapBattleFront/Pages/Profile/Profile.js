@@ -4,7 +4,9 @@ import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import BackButton from "../../Components/Button/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp'
 import {Image} from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import {useState} from "react";
+import {saveImageToCloud} from "../../Storage/Cloud";
 function Profile({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
@@ -12,7 +14,7 @@ function Profile({navigation}) {
     const [image, setImage] = useState('');
     const settingPressed = () => {
         // navigation.navigate('ProfileSettings', {navigation: navigation})
-        console.log("navigate to settings")
+        alert("setting")
     }
 
     const pfPressed = () => {
@@ -23,24 +25,21 @@ function Profile({navigation}) {
         console.log("navigate to previous screen");
     }
 
-    const imagePicker = () => {
-        const options = {
-            mediaType: 'photo',
-            includeBase64: false,
-            maxHeight: 2000,
-            maxWidth: 2000,
-        };
-
-        launchImageLibrary(options, (response) => {
-            if (response.didCancel) {
-                console.log('User cancelled image picker');
-            } else if (response.error) {
-                console.log('Image picker error: ', response.error);
-            } else {
-                let imageUri = response.uri || response.assets?.[0]?.uri;
-                setImage(imageUri);
-            }
-        });
+    const imagePicker = async () => {
+        try {
+            let selectedImage = null;
+            selectedImage = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 4],
+                quality: 1,
+            });
+            console.log(selectedImage.assets[0].uri)
+            await saveImageToCloud(selectedImage.assets[0].uri);
+            await setImage(selectedImage.assets[0].uri);
+        } catch (e) {
+            console.log(e);
+        }
     }
     return (
         <SafeAreaView style={{
