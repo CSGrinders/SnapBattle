@@ -44,7 +44,13 @@ export const theme = createTheme({
             style: {
                 fontFamily: 'OpenSansRegular',
             }
-        }
+        },
+        CheckBox: {
+            containerStyle: {
+                backgroundColor: 'transparent',
+                borderWidth: 0,
+            },
+        },
     },
 });
 
@@ -67,3 +73,14 @@ export const FooterStyle = StyleSheet.create({
         fontSize: 15,
     },
 });
+
+export const HeaderTheme = StyleSheet.create({
+    h1Style: {
+        fontFamily: 'OpenSansBold',
+        fontSize: 40
+    },
+    h2Style: {
+        fontFamily: 'OpenSansBold',
+        fontSize: 20
+    }
+})
