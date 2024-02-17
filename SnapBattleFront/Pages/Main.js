@@ -38,6 +38,7 @@ function Main({navigation}) {
             <Button onPress={() => navigation.navigate('CreateGroup')}>CreateGroup</Button>
             <Button onPress={() => navigation.navigate('GroupMembers')}>GroupMembers</Button>
             <Button onPress={() => navigation.navigate('ProfileSettings')}>ProfileSettings</Button>
+            <Button onPress={() => navigation.navigate('Friends')}>Friends</Button>
             <View style={{ paddingTop: 20 }}>
                 <Text>Name: {name}</Text>
                 <Text>Email: {email}</Text>
