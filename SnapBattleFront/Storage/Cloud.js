@@ -1,38 +1,65 @@
-import { initializeApp } from "firebase/app";
-import { getStorage, uploadBytes, ref} from "firebase/storage";
+// import { initializeApp } from "firebase/app";
+// import { getStorage, uploadBytes, ref} from "firebase/storage";
+//
+// const app = initializeApp(firebaseConfig);
+//
+// const storage = getStorage(app);
+//
 const {
+    EXPO_PUBLIC_API_URL,
     EXPO_PUBLIC_KEY,
     EXPO_PUBLIC_DOMAIN,
     EXPO_PUBLIC_PROJECT_ID,
     EXPO_PUBLIC_BUCKET,
     EXPO_PUBLIC_MESSAGING_SENDER_ID,
     EXPO_PUBLIC_APPID} = process.env
+//
+// const firebaseConfig = {
+//     apiKey: EXPO_PUBLIC_KEY,
+//     authDomain: EXPO_PUBLIC_DOMAIN,
+//     projectId: EXPO_PUBLIC_PROJECT_ID,
+//     storageBucket: EXPO_PUBLIC_BUCKET,
+//     messagingSenderId: EXPO_PUBLIC_MESSAGING_SENDER_ID,
+//     appId: EXPO_PUBLIC_APPID,
+// };
 
-const firebaseConfig = {
-    EXPO_PUBLIC_KEY,
-    apiKey: EXPO_PUBLIC_KEY,
-    authDomain: EXPO_PUBLIC_DOMAIN,
-    projectId: EXPO_PUBLIC_PROJECT_ID,
-    storageBucket: EXPO_PUBLIC_BUCKET,
-    messagingSenderId: EXPO_PUBLIC_MESSAGING_SENDER_ID,
-    appId: EXPO_PUBLIC_APPID,
-};
+import axios from "axios";
 
-const app = initializeApp(firebaseConfig);
+export const saveImageToCloud = async (userID, imageUri) => {
+    console.log(`${EXPO_PUBLIC_API_URL}`)
+    console.log(imageUri)
+    //const image = await fetch(imageUri)
+    const blob = await fetch(imageUri)
+        .then((image) => {
+            return image.blob()
+        })
+    console.log(blob)
 
-const storage = getStorage(app);
+    // {
+    //     headers: {
+    //         'Content-Type': `multipart/form-data`,
+    //     },
+    // }
 
-export const saveImageToCloud = async (imageUri) => {
-    try {
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
-        const fileName = imageUri.substring(imageUri.lastIndexOf('/')+1);
-        const imageRef = await ref(storage, `profileImage/${fileName}`);
-        console.log(imageRef, blob);
-        await uploadBytes(imageRef, blob);
+    axios.post(
+        `${EXPO_PUBLIC_API_URL}/user/profile/upload-photo`,
+        {
+            userID: userID,
+            blob: blob
+        }
+        // /*,{
+        //     headers: {
+        //         'Content-Type': `multipart/form-data`,
+        //     },
+        // }
+        //  */
+    ).then(
+        (res) => {
 
-        alert('Image uploaded successfully.');
-    } catch (error) {
-        alert('Error uploading image: ' + error.message);
-    }
+        }
+    ).catch(
+        (error) => {
+
+        }
+    )
 };

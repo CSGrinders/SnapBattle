@@ -5,16 +5,39 @@ import BackButton from "../../Components/Button/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp'
 import {Image} from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {saveImageToCloud} from "../../Storage/Cloud";
+import {getUserInfo} from "../../Storage/Storage";
 function Profile({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
+    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [userID, setUserID] = useState('');
+    const [token, setToken] = useState('');
+
+    useEffect(() => {
+        getUserInfo(process.env.EXPO_PUBLIC_USER_INFO).then((info) => {
+            if (info) {
+                const userData = JSON.parse(info);
+                if (userData.name) setName(userData.name);
+                if (userData.username) setUsername(userData.username);
+                if (userData.email) setEmail(userData.email);
+                if (userData.id) setUserID(userData.id);
+                if (userData.username) setUsername(userData.username);
+            }
+        });
+        getUserInfo(process.env.EXPO_PUBLIC_USER_TOKEN).then((info) => {
+            if (info) {
+                setToken(info);
+            }
+        });
+    }, []);
 
     const [image, setImage] = useState('');
     const settingPressed = () => {
-        // navigation.navigate('ProfileSettings', {navigation: navigation})
-        alert("setting")
+        navigation.navigate('ProfileSettings')
     }
 
     const pfPressed = () => {
@@ -22,7 +45,7 @@ function Profile({navigation}) {
     }
 
     const backPressed = () => {
-        console.log("navigate to previous screen");
+        navigation.navigate('Main')
     }
 
     const imagePicker = async () => {
@@ -34,8 +57,8 @@ function Profile({navigation}) {
                 aspect: [4, 4],
                 quality: 1,
             });
-            console.log(selectedImage.assets[0].uri)
-            await saveImageToCloud(selectedImage.assets[0].uri);
+            console.log(selectedImage.assets[0].uri);
+            await saveImageToCloud(userID, selectedImage.assets[0].uri);
             await setImage(selectedImage.assets[0].uri);
         } catch (e) {
             console.log(e);
@@ -64,11 +87,11 @@ function Profile({navigation}) {
                         <Image source={SettingIcon} style={{width:50, height:50}}></Image>
                     </TouchableOpacity>
                 </View>
-                <Pressable onPress={pfPressed}>
+                <TouchableOpacity onPress={pfPressed}>
                     <ProfilePicture size={150} source={image}/>
-                </Pressable>
-                <Text style={{fontWeight: 'bold', fontSize: 20}}>Name</Text>
-                <Text>@username</Text>
+                </TouchableOpacity>
+                <Text style={{fontWeight: 'bold', fontSize: 20}}>{name}</Text>
+                <Text>@{username}</Text>
             </View>
 
             <View style={{
@@ -81,7 +104,7 @@ function Profile({navigation}) {
                     fontSize: 20,
                     marginBottom: 5
                 }}>Bio</Text>
-                <Text>Hello World!</Text>
+                <Text>{email}</Text>
             </View>
 
             <View style={{
