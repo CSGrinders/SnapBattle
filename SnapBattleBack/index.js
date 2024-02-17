@@ -40,4 +40,5 @@ app.use(
 app.use(express.json())
 
 // Routes
-app.use("/", authRouter)
+app.use("/auth", authRouter)
+app.use("/user/groups", groupsRouter)

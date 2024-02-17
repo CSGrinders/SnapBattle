@@ -10,7 +10,6 @@
 const jwt = require('jsonwebtoken');
 const {User, Session} = require("../../Models/User");
 const {compare} = require("bcrypt");
-const {TOKEN_KEY, TOKEN_EXPIRE} = process.env
 const validator = require('validator');
 /**
  * Handle user signup.
@@ -22,110 +21,95 @@ const validator = require('validator');
 module.exports.SignUp = async (req, res) => {
     try {
         const {name, username, email, password} = req.body;
+
         if (name === null || username === null || email === null || password === null || name === '' || username === '' || email === '' || password === '') {
             //Check for null fields or empty fields.
             return res.status(400).json({
-                error: true,
                 errorMessage: "Fields missing.",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
         if (name.length < 2 || name.length > 10) {
             return res.status(400).json({
-                error: true,
                 errorMessage: "Invalid name length. Max (2-15 Chars).",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
         if (username.length < 2 || username.length > 8) {
             return res.status(400).json({
-                error: true,
                 errorMessage: "Invalid username length. Max (2-8 Chars).",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
         if (password.length < 4 || password.length > 20) {
             return res.status(400).json({
-                error: true,
                 errorMessage: "Invalid password length. Max (4-20 Chars).",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
 
         if (!validator.isEmail(email)) {
             return res.status(400).json({
-                error: true,
                 errorMessage: "Invalid email.",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
-        const userExists = await User.findOne({ //Check if username, or email exist
-            $or: [{ username: username }, { email: email }]
+
+        const userExists = await User.findOne({
+            $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() }]
         })
-        if (userExists) {
+
+        if (userExists != null) {
             let errorMessage = "Account already exists.";
             if (userExists.username === username) {
                 errorMessage = "Username already exists.";
             } else if (userExists.email === email) {
                 errorMessage = "Email already exists.";
             }
+            console.log(errorMessage)
             return res.status(409).json({
-                error: true,
                 errorMessage: errorMessage,
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
+
         const newUser = await User.create({ //Create new user in the MongoDb
-            username: username,
-            name: name,
-            email: email,
+            username: username.toLowerCase(),
+            name: name.toLowerCase(),
+            email: email.toLowerCase(),
             password: password,
         });
 
+        const TOKEN_EXPIRE = 3 * 24 * 60 * 60;
         const token = await signToken(
-            { userId: newUser._id }, TOKEN_KEY,
+            { userId: newUser._id.toString() }, process.env.TOKEN_KEY,
             {expiresIn: parseInt(TOKEN_EXPIRE, 10)}
         );
 
         await Session.create({ // Create session
-            userID: newUser._id,
+            userID: newUser._id.toString(),
             token: token,
         })
 
+        //Return object to client
+        const objUser = {
+            id: newUser._id.toString(),
+            name: newUser.name.toLowerCase(),
+            email: newUser.email.toLowerCase(),
+            username: newUser.username.toLowerCase(),
+        }
+
         return res.status(200).json({ //User Created.
-            error: false,
-            errorMessage: "",
             isAuthenticated: true,
             token: token,
-            user: null
+            user: objUser
         });
 
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
-            error: true,
             errorMessage: "Something went wrong...",
-            isAuthenticated: false,
-            token: null,
-            user: null
         });
     }
 }
@@ -143,23 +127,15 @@ module.exports.SignIn = async (req, res) => {
         if (username === null || password === null || username === '' || password === '') {
             //Check for null fields or empty fields.
             return res.status(400).json({
-                error: true,
                 errorMessage: "Fields missing.",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
-        const findUser = await User.findOne({username: username}); //Find username in the database
+        const findUser = await User.findOne({ username: username.toLowerCase() }); //Find username in the database
 
         if (findUser === null) { //User does not exist.
             return res.status(401).json({
-                error: true,
                 errorMessage: "Invalid credentials.",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
@@ -168,17 +144,14 @@ module.exports.SignIn = async (req, res) => {
 
         if (!verifyPassword) {
             return res.status(401).json({
-                error: true,
                 errorMessage: "Invalid credentials.",
-                isAuthenticated: false,
-                token: null,
-                user: null,
             });
         }
 
         // Create token
+        const TOKEN_EXPIRE = 3 * 24 * 60 * 60;
         const token = await signToken(
-            { userId: findUser._id }, TOKEN_KEY,
+            { userId: findUser._id }, process.env.TOKEN_KEY,
             {expiresIn: parseInt(TOKEN_EXPIRE, 10)}
         );
 
@@ -188,33 +161,28 @@ module.exports.SignIn = async (req, res) => {
             await Session.findOneAndUpdate({ userID: findUser._id }, { token: token }, { new: true });
         } else {
             await Session.create({ // Create session
-                userID: findUser._id,
+                userID: findUser._id.toString(),
                 token: token,
             })
         }
 
         //Return object to client
         const objUser = {
-            id: findUser._id,
-            name: findUser.name,
-            email: findUser.email,
+            id: findUser._id.toString(),
+            name: findUser.name.toLowerCase(),
+            email: findUser.email.toLowerCase(),
+            username: findUser.username.toLowerCase(),
         }
 
         return res.status(200).json({ //Use found.
-            error: false,
-            errorMessage: "",
             isAuthenticated: true,
-            token: user_session.token,
+            token: token,
             user: objUser
         });
 
     } catch (error) {
         res.status(500).json({
-            error: true,
             errorMessage: "Something went wrong...",
-            isAuthenticated: false,
-            token: null,
-            user: null
         });
     }
 
@@ -229,63 +197,58 @@ module.exports.SignIn = async (req, res) => {
 
 module.exports.Auth = async (req, res) => {
     try {
-        const {token_req} = req.body;
-        if (!token_req) { //Token required, return null
+        const { token } = req.body;
+        console.log(token)
+        if (!token) { //Token required, return null
             return res.status(400).json({
-                error: true,
-                errorMessage: "Token required. Something went wrong...",
-                isAuthenticated: false,
-                token: null,
-                user: null
+                errorMessage: "Something went wrong...",
             });
         }
-        const user_session = await Session.findOne({token: token_req});
+        const user_session = await Session.findOne({token: token});
         if (!user_session) { //User session not found, return null
+            console.log("test")
             return res.status(401).json({
-                error: true,
-                errorMessage: "User account expired. Try sign in again.",
-                isAuthenticated: false,
-                token: null,
-                user: null
+                errorMessage: "Something went wrong...",
             });
         }
         const findUser = await User.findOne({ _id: user_session.userID});
         if (!findUser) { //User not found by ID, return null
             return res.status(500).json({
-                error: true,
                 errorMessage: "Something went wrong...",
-                isAuthenticated: false,
-                token: null,
-                user: null
             });
         }
 
-        //Return object to client
-        const userObj = {
-            id: findUser._id,
-            name: findUser.name,
-            email: findUser.email,
-        }
-
-        await verifyToken(token_req, TOKEN_KEY)
+        await verifyToken(token, process.env.TOKEN_KEY)
+        console.log("Verify token")
         return res.status(200).json({ //Use found.
-            error: false,
-            errorMessage: "",
             isAuthenticated: true,
-            token: user_session.token,
-            user: userObj
         });
     } catch (error) {
-        res.status(500).json({
-            error: true,
-            errorMessage: "Something went wrong...",
-            isAuthenticated: false,
-            token: null,
-            user: null
-        });
         console.error(error);
+        return res.status(500).json({
+            errorMessage: "Something went wrong...",
+        });
     }
 }
+
+
+module.exports.AuthenticateOrSignUp = async (req, res) => {
+    const { isLogin, token, ...userData } = req.body;
+    if (token) { //Check for token
+        await module.exports.Auth(req, res);
+        return
+    }
+
+    //Routing to Sign up or Sign in
+    if (isLogin) { //SignIn
+        req.body = userData; // Prepare the request body for SignIn
+        await module.exports.SignIn(req, res);
+    } else { //SignUp
+        req.body = userData; // Prepare the request body for SignUp
+        await module.exports.SignUp(req, res);
+    }
+};
+
 
 
 const signToken = (payload, secret, options) => {

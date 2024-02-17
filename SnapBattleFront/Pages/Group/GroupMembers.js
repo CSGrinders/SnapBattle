@@ -1,17 +1,34 @@
 import {Alert, Modal, Pressable, SafeAreaView, Text, View} from "react-native";
 import {Image} from "expo-image";
 import {Button, Input} from "@rneui/themed";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
+import {getUserInfo} from "../../Storage/Storage";
 const {EXPO_PUBLIC_API_URL} = process.env
 
 function GroupMembers({navigation}) {
+
+    //get current user's ID from storage
+    const [userID, setUserID] = useState("")
+    useEffect(() => {
+        getUserInfo(process.env.EXPO_PUBLIC_USER_INFO).then((info) => {
+            if (info) {
+                const userData = JSON.parse(info);
+                if (userData.id) setUserID(userData.id)
+            }
+        })
+    }, [])
+
     //state for whether the invite box is open or not
     const [invBoxVisible, setInvBoxVisibility] = useState(false)
 
     //state for the username to be invited to the group
-    const [userInput, setUserInput] = useState("")
+    const [invUser, setInvUser] = useState("")
+
+    //state for group invite status message
+    const [invStatusMsg, setInvStatusMsg] = useState("")
+    const [invStatusColor, setInvStatusColor] = useState("green")
 
     //API call to check if user is a friend -> invites the friend to the group
     function inviteUser() {
@@ -19,15 +36,27 @@ function GroupMembers({navigation}) {
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/groups/invite`,
             {
-                username: userInput
+                groupID: "test",
+                userID: userID,
+                inviteUsername: invUser
             }
         ).then(
-            (res) => {console.log(res.status)}
+            (res) => {
+                setInvStatusMsg(res.data)
+                setInvStatusColor("green")
+            }
         ).catch(
-            (err) => console.log(err)
+            (error) => {
+                setInvStatusMsg(error.response.data)
+                setInvStatusColor("red")
+            }
         )
     }
 
+    function closeInviteBox() {
+        setInvStatusMsg("")
+        setInvBoxVisibility(false)
+    }
     return (
         <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'space-between'}} >
                 <Modal
@@ -37,6 +66,7 @@ function GroupMembers({navigation}) {
                     onRequestClose={() => {
                         Alert.alert('Modal has been closed.')
                         setInvBoxVisibility(false)
+                        setInvStatusMsg("")
                     }}>
                     <View style={{
                         flex: 1,
@@ -49,7 +79,7 @@ function GroupMembers({navigation}) {
                             borderWidth: 2,
                             padding: 10,
                         }}>
-                            <Pressable onPress={() => setInvBoxVisibility(false)}>
+                            <Pressable onPress={closeInviteBox}>
                                 <Image
                                     source={CloseButton}
                                     style={{
@@ -66,7 +96,12 @@ function GroupMembers({navigation}) {
                                 alignItems: 'center'
                             }}>
                                 <Text>Enter the username of the friend you would like to invite</Text>
-                                <Input placeholder='username' onChangeText={username => setUserInput(username)}/>
+                                <Input
+                                    placeholder='username'
+                                    onChangeText={username => setInvUser(username)}
+                                    errorStyle={{color: invStatusColor}}
+                                    errorMessage={invStatusMsg}
+                                />
                                 <Button onPress={inviteUser}>Confirm</Button>
                             </View>
                         </View>

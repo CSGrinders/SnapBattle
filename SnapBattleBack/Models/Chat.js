@@ -41,5 +41,10 @@ const Messages = new mongoose.Schema({
 })
 
 
-module.exports = mongoose.model("Chat", Chat)
-module.exports = mongoose.model("Messages", Messages)
+const ChatModel = mongoose.model("Chat", Chat)
+const MessageModel = mongoose.model("Messages", Messages)
+
+module.exports = {
+    Chat: ChatModel,
+    Messages: MessageModel
+};
