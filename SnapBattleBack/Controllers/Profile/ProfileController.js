@@ -11,10 +11,11 @@ module.exports.uploadPhoto = async(req, res)=> {
     try {
 
         const base64data = req.body.base64data;
+        const userID = req.body.userID;
         const buffer = Buffer.from(base64data, 'base64');
         const blob = new Blob([buffer], { type: 'image/jpeg' })
 
-        const fileName = "idk.jpeg";
+        const fileName = userID + ".jpeg";
         const imageRef = ref(storage, `profileImage/${fileName}`);
         await uploadBytesResumable(imageRef, blob);
 
