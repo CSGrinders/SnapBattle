@@ -2,6 +2,7 @@ import {Text, View} from "react-native";
 import {useEffect, useState} from "react";
 import {getUserInfo} from "../Storage/Storage";
 import {Button} from "@rneui/themed";
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
 function Main({navigation}) {
     const [name, setName] = useState('');
@@ -12,7 +13,7 @@ function Main({navigation}) {
 
     //Example on how to pull data from the storage
     useEffect(() => {
-        getUserInfo(process.env.EXPO_PUBLIC_USER_INFO).then((info) => {
+        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
             if (info) {
                 const userData = JSON.parse(info);
                 if (userData.name) setName(userData.name);
@@ -22,7 +23,7 @@ function Main({navigation}) {
                 if (userData.username) setUsername(userData.username)
             }
         });
-        getUserInfo(process.env.EXPO_PUBLIC_USER_TOKEN).then((info) => {
+        getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
             if (info) {
                 setToken(info);
             }

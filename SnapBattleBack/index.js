@@ -49,5 +49,5 @@ app.use(express.json())
 // Routes
 app.use("/auth", authRouter)
 app.use("/user", userVerification)
-app.use("/user/groups", groupsRouter)
-app.use("/user/profile", profileRouter)
+app.use("/user/:userID/groups", groupsRouter)
+app.use("/user/:userID/profile", profileRouter)

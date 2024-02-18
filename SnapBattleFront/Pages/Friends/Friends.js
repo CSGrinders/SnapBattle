@@ -7,15 +7,11 @@ import {Input} from "@rneui/themed";
 
 function Friends({navigation}) {
 
-    //navigate to previous screen
-    function backPressed() {
-        console.log("back pressed")
-    }
 
     return (
         <SafeAreaView style={{ flex: 1, flexDirection: "column", justifyContent: 'flex-start'}}>
             <View style={{flex: 0, flexDirection: 'row', justifyContent: 'space-between', padding: 10}}>
-                <BackButton size={50} backPressed={backPressed}/>
+                <BackButton size={50} navigation={navigation} destination="Main"/>
                 <Text style={HeaderTheme.h1Style}>Friends</Text>
                 <Image
                     source={BlockedFriendsIcon}

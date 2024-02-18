@@ -35,10 +35,9 @@ export const saveImageToCloud = async (userID, imageUri) => {
     reader.onloadend = () => {
         const base64data = reader.result.split(',')[1]
         axios.post(
-            `${EXPO_PUBLIC_API_URL}/user/profile/upload-photo`,
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/upload-photo`,
             {
                 base64data: base64data,
-                userID: userID
             }
         ).then(
             (res) => {
