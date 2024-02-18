@@ -1,12 +1,16 @@
 import {KeyboardAvoidingView, Dimensions, Text, View, Platform} from "react-native";
-
-import BackButton from '../../Components/Navigation/Back.js'
-import {useState} from "react";
+import BackButton from "../../Components/Navigation/BackButton.js";
+import SubmitButton from "../../Components/Group/SubmitSettingsButton.js"
 import {Button, Input} from "@rneui/themed";
 
 function GroupSettings({navigation}) {
-    let {width, height} = Dimensions.get('window')
-    const [page, setPage] = useState("")
+    let {width, height} = Dimensions.get('window');
+    function backPressed() {
+        console.log("back pressed")
+    }
+    function submitPressed() {
+        console.log("submit pressed")
+    }
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                               enabled={false}>
@@ -20,7 +24,7 @@ function GroupSettings({navigation}) {
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}>
-                    <BackButton setPage={setPage} pageName={"Groups Page"} />
+                    <BackButton size={50} backPressed={backPressed}/>
                     <Text style={{
                         marginHorizontal: 30,
                         marginTop: 10,
@@ -42,8 +46,13 @@ function GroupSettings({navigation}) {
                 </Text>
                 <View style={{
                     alignItems: 'center',
+                    flexDirection: "row",
+                    justifyContent: "center",
                 }}>
-                    <Input placeholder='Enter Group Name'/>
+                    <Input placeholder='Enter Group Name' containerStyle={{
+                        width: width * 0.8
+                    }}/>
+                    <SubmitButton size={50} submitPressed={submitPressed}/>
                 </View>
                 <Text style={{
                     marginHorizontal: 30,
@@ -56,8 +65,13 @@ function GroupSettings({navigation}) {
                 </Text>
                 <View style={{
                     alignItems: 'center',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
                 }}>
-                    <Input placeholder='Enter Group Size'/>
+                    <Input placeholder='Enter Group Size' containerStyle={{
+                        width: width * 0.8
+                    }}/>
+                    <SubmitButton size={50} submitPressed={submitPressed}/>
                 </View>
                 <Text style={{
                     marginHorizontal: 30,
@@ -70,8 +84,13 @@ function GroupSettings({navigation}) {
                 </Text>
                 <View style={{
                     alignItems: 'center',
+                    flexDirection: "row",
+                    justifyContent: "center",
                 }}>
-                    <Input placeholder='Select Time'/>
+                    <Input placeholder='Select Time' containerStyle={{
+                        width: width * 0.8
+                    }}/>
+                    <SubmitButton size={50} submitPressed={submitPressed}/>
                 </View>
                 <Text style={{
                     marginHorizontal: 30,
@@ -84,15 +103,20 @@ function GroupSettings({navigation}) {
                 </Text>
                 <View style={{
                     alignItems: 'center',
+                    flexDirection: "row",
+                    justifyContent: "center",
                     marginBottom: 40,
                 }}>
-                    <Input placeholder='Select Time'/>
+                    <Input placeholder='Select Time' containerStyle={{
+                        width: width * 0.8
+                    }}/>
+                    <SubmitButton size={50} submitPressed={submitPressed}/>
                 </View>
                 <View style={{
                     alignItems: 'center',
                     width: width,
                 }}>
-                    <Button>Delete Group</Button>
+                    <Button color='red'>Delete Group</Button>
                 </View>
             </View>
         </KeyboardAvoidingView>

@@ -1,5 +1,5 @@
 import {View, Image, SafeAreaView, Text} from "react-native";
-import BackButton from "../../Components/Button/BackButton";
+import BackButton from "../../Components/Navigation/BackButton";
 import BlockedFriendsIcon from "../../assets/blocked.webp"
 import SearchIcon from "../../assets/search-icon.webp"
 import {HeaderTheme} from "../../Theme/Theme";

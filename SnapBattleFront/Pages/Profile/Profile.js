@@ -1,7 +1,7 @@
 import {Dimensions, Pressable, SafeAreaView, TouchableOpacity, View} from "react-native";
 import {Button, Text} from "@rneui/themed";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
-import BackButton from "../../Components/Button/BackButton";
+import BackButton from "../../Components/Navigation/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp'
 import {Image} from 'expo-image';
 import {useState} from "react";
