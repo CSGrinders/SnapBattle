@@ -19,12 +19,10 @@ const Group = new mongoose.Schema({
         type: Number
     },
     timeStart: {
-        type: Date,
-        default: new Date(), //Change for default
+        type: String,
     },
     timeEnd: {
-        type: Date,
-        default: new Date(), //Change for default
+        type: String,
     },
     userList: [{
         type: mongoose.Types.ObjectId,
@@ -35,7 +33,7 @@ const Group = new mongoose.Schema({
         ref: 'User'
     },
     timeToVote: {
-        type: Number
+        type: String
     },
     prompts: [{
         type: mongoose.Types.ObjectId,
