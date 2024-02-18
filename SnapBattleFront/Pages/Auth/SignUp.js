@@ -191,6 +191,7 @@ function SignUp({navigation}) {
                 <Input
                     placeholder='Enter name'
                     value={name}
+                    autoCapitalize="none"
                     onChangeText={(text) => {
                         setName(text);
                         setErrorMessageName('');
@@ -200,6 +201,7 @@ function SignUp({navigation}) {
                 <Input
                     placeholder='Enter username'
                     value={username}
+                    autoCapitalize="none"
                     onChangeText={(text) => {
                         setUsername(text);
                         setErrorMessageUsername('');
@@ -209,6 +211,7 @@ function SignUp({navigation}) {
                 <Input
                     placeholder='Enter email'
                     value={email}
+                    autoCapitalize="none"
                     onChangeText={(text) => {
                         setEmail(text);
                         setErrorMessageEmail('');
@@ -219,6 +222,8 @@ function SignUp({navigation}) {
                     placeholder='Enter password'
                     secureTextEntry={!showPassword}
                     value={password}
+                    textContentType="password"
+                    autoCompleteType="password"
                     onChangeText={(text) => {
                         setPassword(text);
                         setErrorMessagePassword('');
@@ -229,6 +234,9 @@ function SignUp({navigation}) {
                     placeholder='Confirm password'
                     secureTextEntry={!showPassword}
                     value={passwordCon}
+                    textContentType="password"
+                    autoCompleteType="password"
+                    autoCapitalize="none"
                     onChangeText={(text) => {
                         setPasswordCon(text);
                         setErrorMessagePasswordCon('');

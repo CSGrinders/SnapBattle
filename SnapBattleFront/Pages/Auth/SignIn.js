@@ -50,11 +50,11 @@ function SignIn({navigation}) {
         //Check for empty field
         if (!username) {
             setErrorMessageUsername('Field empty.');
-            error = false
+            error = true
         }
         if (!password) {
             setErrorMessagePassword('Field empty.');
-            error = false
+            error = true
         }
         if (!error) {
             axios.post(
@@ -205,6 +205,7 @@ function SignIn({navigation}) {
                     <Input
                         placeholder='Enter username'
                         value={username}
+                        autoCapitalize="none"
                         onChangeText={(text) => {
                             setUsername(text);
                             setErrorMessageUsername('');
@@ -215,6 +216,8 @@ function SignIn({navigation}) {
                         placeholder='Enter password'
                         secureTextEntry={!showPassword}
                         value={password}
+                        autoCapitalize="none"
+                        textContentType="password"
                         onChangeText={(text) => {
                             setPassword(text);
                             setErrorMessagePassword('');
