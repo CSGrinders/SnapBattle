@@ -263,8 +263,28 @@ const signToken = (payload, secret, options) => {
 const verifyToken = (token, secret) => {
     return new Promise((resolve, reject) => {
         jwt.verify(token, secret, (error, decoded) => {
-            if(error) return reject(error);
+            if (error) return reject(error);
             resolve(decoded);
         })
     })
 }
+
+//Verify user
+module.exports.userVerification = (req, res, next) => {
+    let token;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        try {
+            // Extract token from header
+            token = req.headers.authorization.split(' ')[1];
+            console.log(token)
+            // Verify token
+            req.user = jwt.verify(token, process.env.TOKEN_KEY);
+            next();
+        } catch (error) {
+            res.status(401).json({ errorMessage: "Something went wrong..." });
+        }
+    }
+    if (!token) {
+        res.status(401).json({ errorMessage: "Something went wrong..." });
+    }
+};
