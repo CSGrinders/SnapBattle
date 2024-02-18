@@ -5,7 +5,7 @@ import {Button, CheckBox, Input, Text} from "@rneui/themed";
 import Footer from "../../Components/Footer";
 import {useEffect, useState} from "react";
 import axios from "axios";
-import {deleteUserInfo, getUserInfo, saveUserInfo} from "../../Storage/Storage";
+import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import LoadingScreen from "../../Components/Auth/LoadingScreen";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env
@@ -96,6 +96,7 @@ function SignIn({navigation}) {
                                 }
                             );
                     }
+                    setAuthToken(token).then(() => {});
                     navigation.navigate('Main'); //Success and navigating to main screen
                 }
             }).catch((error) => {
@@ -133,6 +134,7 @@ function SignIn({navigation}) {
                         const {isAuthenticated} = response.data;
                         if (isAuthenticated) { //No error, but checking if user is authenticated
                             console.log("User verified with token,")
+                            setAuthToken(token).then(() => {});
                             setTimeout(() => {
                                 navigation.navigate('Main'); //Success and navigating to main screen after 3 seconds
                             }, 2000);

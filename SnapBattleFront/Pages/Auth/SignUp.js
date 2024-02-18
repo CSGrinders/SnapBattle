@@ -6,7 +6,7 @@ import BackIcon from '../../assets/back-icon.webp'
 import {Image} from 'expo-image';
 import axios from "axios";
 import ErrorPrompt from "../../Components/ErrorPrompt";
-import {deleteUserInfo, saveUserInfo} from "../../Storage/Storage";
+import {deleteUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env
 
@@ -128,6 +128,7 @@ function SignUp({navigation}) {
                                     }
                                 );
                         }
+                        setAuthToken(token).then(() => {});
                         navigation.navigate('Main'); //Success and navigating to main screen
                     }
                 }

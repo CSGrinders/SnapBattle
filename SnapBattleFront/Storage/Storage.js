@@ -1,4 +1,5 @@
 import * as SecureStore from "expo-secure-store";
+import axios from "axios";
 
 /**
  * These methods will allow to retrieve data from the device
@@ -24,5 +25,14 @@ export async function deleteUserInfo(key) {
         await SecureStore.deleteItemAsync(key);
     } catch (error) {
         console.log(error);
+    }
+}
+
+//Set User Header Verification
+export async function setAuthToken(token) {
+    if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+        delete axios.defaults.headers.common['Authorization'];
     }
 }
