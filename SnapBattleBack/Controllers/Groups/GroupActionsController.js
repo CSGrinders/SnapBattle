@@ -24,16 +24,23 @@ module.exports.getGroups = async(req, res)=> {
   **/
 
 module.exports.createGroup = async(req, res) => {
+    console.log("hello")
     try {
-        const username = req.body.username;
+        const userID = req.body.userID;
         const groupName = req.body.groupName;
         const maxUsers = req.body.maxUsers;
         const timeStart = req.body.timeStart;
         const timeEnd = req.body.timeEnd;
         const timeToVote = req.body.timeToVote;
+
+        console.log("bruh")
+
+        console.log(userID, groupName, maxUsers, timeStart, timeEnd, timeToVote)
         
-        const user = await User.findOne({username: username});
+        const user = await User.User.findById(userID);
         
+        console.log("user:", user)
+
         if (user) {
             const userList = []
             userList.push(user._id)
