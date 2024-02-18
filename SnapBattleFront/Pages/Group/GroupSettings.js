@@ -1,36 +1,33 @@
 import {KeyboardAvoidingView, Dimensions, Text, View, Platform} from "react-native";
 
-import BackButton from '../../Components/Navigation/Back.js'
 import {useState} from "react";
 import {Button, Input} from "@rneui/themed";
+import BackButton from "../../Components/Button/BackButton";
 
 function GroupSettings({navigation}) {
     let {width, height} = Dimensions.get('window')
-    const [page, setPage] = useState("")
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                               enabled={false}>
             <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                height: height * 0.2,
+                width: width * 0.9,
+            }}>
+                <View style={{paddingLeft: 20, alignItems: 'flex-start'}}>
+                    <BackButton size={50} navigation={navigation} destination="Main"/>
+                </View>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
+                    <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Group Settings</Text>
+                </View>
+            </View>
+            <View style={{
                 width: width,
-                height: height,
+                height: height * 0.6,
                 justifyContent: "center"
             }}>
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <BackButton setPage={setPage} pageName={"Groups Page"} />
-                    <Text style={{
-                        marginHorizontal: 30,
-                        marginTop: 10,
-                        marginBottom: 10,
-                        fontSize: 30,
-                        fontWeight: 'bold',
-                    }}>
-                        Group Settings
-                    </Text>
-                </View>
                 <Text style={{
                     marginHorizontal: 30,
                     marginTop: 20,

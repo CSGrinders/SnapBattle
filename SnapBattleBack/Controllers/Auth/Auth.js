@@ -66,7 +66,6 @@ module.exports.SignUp = async (req, res) => {
             } else if (userExists.email === email) {
                 errorMessage = "Email already exists.";
             }
-            console.log(errorMessage)
             return res.status(409).json({
                 errorMessage: errorMessage,
             });
@@ -198,7 +197,6 @@ module.exports.SignIn = async (req, res) => {
 module.exports.Auth = async (req, res) => {
     try {
         const { token } = req.body;
-        console.log(token)
         if (!token) { //Token required, return null
             return res.status(400).json({
                 errorMessage: "Something went wrong...",
@@ -206,7 +204,6 @@ module.exports.Auth = async (req, res) => {
         }
         const user_session = await Session.findOne({token: token});
         if (!user_session) { //User session not found, return null
-            console.log("test")
             return res.status(401).json({
                 errorMessage: "Something went wrong...",
             });
@@ -219,7 +216,6 @@ module.exports.Auth = async (req, res) => {
         }
 
         await verifyToken(token, process.env.TOKEN_KEY)
-        console.log("Verify token")
         return res.status(200).json({ //Use found.
             isAuthenticated: true,
         });
@@ -250,6 +246,33 @@ module.exports.AuthenticateOrSignUp = async (req, res) => {
 };
 
 
+module.exports.signOut = async(req, res)=> {
+    try {
+        const { user_id } = req.params.userID;
+
+        const session = Session.findOne({ userID: user_id}); //Find session
+        if (!session) {
+            return res.status(400).json({
+                errorMessage: "Something went wrong...",
+            });
+        }
+
+        Session.deleteOne(session); //Remove session
+
+        return res.status(200).json({
+            isSignedOut: true,
+        });
+
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            errorMessage: "Something went wrong...",
+        });
+    }
+}
+
+
 
 const signToken = (payload, secret, options) => {
     return new Promise((resolve, reject) => {
@@ -276,7 +299,6 @@ module.exports.userVerification = (req, res, next) => {
         try {
             // Extract token from header
             token = req.headers.authorization.split(' ')[1];
-            console.log(token)
             // Verify token
             req.user = jwt.verify(token, process.env.TOKEN_KEY);
             next();

@@ -5,14 +5,14 @@ import {useEffect, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
 import {getUserInfo} from "../../Storage/Storage";
-const {EXPO_PUBLIC_API_URL} = process.env
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
 
 function GroupMembers({navigation}) {
 
     //get current user's ID from storage
     const [userID, setUserID] = useState("")
     useEffect(() => {
-        getUserInfo(process.env.EXPO_PUBLIC_USER_INFO).then((info) => {
+        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
             if (info) {
                 const userData = JSON.parse(info);
                 if (userData.id) setUserID(userData.id)
@@ -33,11 +33,10 @@ function GroupMembers({navigation}) {
     //API call to check if user is a friend -> invites the friend to the group
     function inviteUser() {
         console.log(`${EXPO_PUBLIC_API_URL}`)
+        const groupID = "random"
         axios.post(
-            `${EXPO_PUBLIC_API_URL}/user/groups/invite`,
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/invite`,
             {
-                groupID: "test",
-                userID: userID,
                 inviteUsername: invUser
             }
         ).then(
@@ -47,6 +46,7 @@ function GroupMembers({navigation}) {
             }
         ).catch(
             (error) => {
+                // Check for error.response if its null, also you can use //error.response.status
                 setInvStatusMsg(error.response.data)
                 setInvStatusColor("red")
             }

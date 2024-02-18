@@ -11,7 +11,7 @@ module.exports.uploadPhoto = async(req, res)=> {
     try {
 
         const base64data = req.body.base64data;
-        const userID = req.body.userID;
+        const userID = req.params.userID;
         const buffer = Buffer.from(base64data, 'base64');
         const blob = new Blob([buffer], { type: 'image/jpeg' })
 

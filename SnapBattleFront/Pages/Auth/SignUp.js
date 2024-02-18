@@ -7,6 +7,7 @@ import {Image} from 'expo-image';
 import axios from "axios";
 import ErrorPrompt from "../../Components/ErrorPrompt";
 import {deleteUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
+import BackButton from "../../Components/Button/BackButton";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env
 
@@ -156,8 +157,11 @@ function SignUp({navigation}) {
                         setErrorMessageServer("Something went wrong...")
                         setErrorServer(true);
                     }
+                } else { //No server connection
+                    console.log(error)
+                    setErrorMessageServer("Something went wrong...")
+                    setErrorServer(true);
                 }
-                console.log("Error in sign up" + error)
             })
         }
     }
@@ -173,12 +177,11 @@ function SignUp({navigation}) {
                 height: height * 0.2,
                 width: width * 0.9,
             }}>
-                <Pressable style={{paddingLeft: 20, alignItems: 'flex-start'}}
-                           onPress={() => navigation.navigate('SignIn')}>
-                    <Image source={BackIcon} style={{width: 50, height: 50}}></Image>
-                </Pressable>
+                <View style={{paddingLeft: 20, alignItems: 'flex-start'}}>
+                    <BackButton size={50} navigation={navigation} destination="SignIn"/>
+                </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
-                    <Text style={{fontSize: 36}}>Sign up</Text>
+                    <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Sign up</Text>
                     <Text style={{fontSize: 24}}>Create your account</Text>
                 </View>
             </View>
@@ -263,7 +266,7 @@ function SignUp({navigation}) {
                 <Button onPress={handleSignUp}>Sign Up</Button>
             </View>
             <View
-                style={{width: width, height: Platform.OS === "ios" ? height * 0.08 : height * 0.045}}><Footer/>
+                style={{width: width, height: Platform.OS === "ios" ? height * 0.055 : height * 0.045}}><Footer/>
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
         </KeyboardAvoidingView>

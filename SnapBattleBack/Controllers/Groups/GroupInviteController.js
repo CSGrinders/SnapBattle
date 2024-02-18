@@ -2,7 +2,11 @@ const {User} = require("../../Models/User")
 
 module.exports.inviteToGroup = async(req, res)=> {
     console.log(req.body)
-    const {groupID, userID, inviteUsername} = req.body
+    console.log(req.params)
+    console.log(req.url)
+    const userID = req.params.userID;
+    const groupID = req.params.groupID;
+    const {inviteUsername} = req.body
 
     //user that sent the request
     const user = await User.findById(userID).populate('friends')

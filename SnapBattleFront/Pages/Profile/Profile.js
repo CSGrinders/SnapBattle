@@ -8,6 +8,8 @@ import * as ImagePicker from 'expo-image-picker';
 import {useEffect, useState} from "react";
 import {saveImageToCloud} from "../../Storage/Cloud";
 import {getUserInfo} from "../../Storage/Storage";
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
+
 function Profile({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
@@ -15,10 +17,9 @@ function Profile({navigation}) {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [userID, setUserID] = useState('');
-    const [token, setToken] = useState('');
 
     useEffect(() => {
-        getUserInfo(process.env.EXPO_PUBLIC_USER_INFO).then((info) => {
+        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
             if (info) {
                 const userData = JSON.parse(info);
                 if (userData.name) setName(userData.name);
@@ -28,25 +29,15 @@ function Profile({navigation}) {
                 if (userData.username) setUsername(userData.username);
             }
         });
-        getUserInfo(process.env.EXPO_PUBLIC_USER_TOKEN).then((info) => {
-            if (info) {
-                setToken(info);
-            }
-        });
     }, []);
 
     const [image, setImage] = useState('');
-    const settingPressed = () => {
-        navigation.navigate('ProfileSettings')
-    }
+
 
     const pfPressed = () => {
         imagePicker();
     }
 
-    const backPressed = () => {
-        navigation.navigate('Main')
-    }
 
     const imagePicker = async () => {
         try {
@@ -82,8 +73,8 @@ function Profile({navigation}) {
                     width: width * 0.9,
                     height: 5
                 }}>
-                    <BackButton size={50} backPressed={backPressed}/>
-                    <TouchableOpacity onPress={settingPressed}>
+                    <BackButton size={50} navigation={navigation} destination="Main"/>
+                    <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings')}>
                         <Image source={SettingIcon} style={{width:50, height:50}}></Image>
                     </TouchableOpacity>
                 </View>
