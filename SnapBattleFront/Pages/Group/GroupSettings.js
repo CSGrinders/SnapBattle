@@ -1,5 +1,5 @@
 import {KeyboardAvoidingView, Dimensions, Text, View, Platform} from "react-native";
-import SubmitButton from "../../Components/Group/SubmitSettingsButton.js"
+import SubmitIcon from "../../Components/Group/SubmitSettingsIcon.js"
 import {Button, Input} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 
@@ -11,6 +11,7 @@ function GroupSettings({navigation}) {
     function submitPressed() {
         console.log("submit pressed")
     }
+
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                               enabled={false}>
@@ -24,113 +25,94 @@ function GroupSettings({navigation}) {
                 <View style={{paddingLeft: 20, alignItems: 'flex-start'}}>
                     <BackButton size={50} navigation={navigation} destination="Main"/>
                 </View>
-                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Group Settings</Text>
                 </View>
             </View>
             <View style={{
                 width: width,
-                height: height * 0.6,
+                height: Platform.OS === "ios" ? height * 0.6 : height * 0.7,
                 justifyContent: "center"
             }}>
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <BackButton size={50} backPressed={backPressed}/>
-                    <Text style={{
-                        marginHorizontal: 30,
-                        marginTop: 10,
-                        marginBottom: 10,
-                        fontSize: 30,
-                        fontWeight: 'bold',
-                    }}>
-                        Group Settings
-                    </Text>
-                </View>
                 <Text style={{
                     marginHorizontal: 30,
                     marginTop: 20,
                     marginBottom: 10,
-                    fontSize: 25,
+                    fontSize: 22,
                     fontWeight: 'bold',
                 }}>
                     New Group Name
                 </Text>
                 <View style={{
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     flexDirection: "row",
-                    justifyContent: "center",
+                    justifyContent: "flex-start",
+                    marginLeft: 20,
                 }}>
-                    <Input placeholder='Enter Group Name' containerStyle={{
-                        width: width * 0.8
-                    }}/>
-                    <SubmitButton size={50} submitPressed={submitPressed}/>
+                    <Input placeholder='Enter Group Name' containerStyle={{width: width * 0.8}}></Input>
+                    <SubmitIcon size={50} submitPressed={submitPressed}/>
                 </View>
                 <Text style={{
                     marginHorizontal: 30,
                     marginTop: 10,
                     marginBottom: 10,
-                    fontSize: 25,
+                    fontSize: 22,
                     fontWeight: 'bold',
                 }}>
                     New Group Size
                 </Text>
                 <View style={{
-                    alignItems: 'center',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
+                    alignItems: 'flex-start',
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    marginLeft: 20,
                 }}>
-                    <Input placeholder='Enter Group Size' containerStyle={{
-                        width: width * 0.8
-                    }}/>
-                    <SubmitButton size={50} submitPressed={submitPressed}/>
+                    <Input placeholder='Enter Group Size' containerStyle={{width: width * 0.8}}></Input>
+                    <SubmitIcon size={50} submitPressed={submitPressed}/>
                 </View>
                 <Text style={{
                     marginHorizontal: 30,
                     marginTop: 10,
                     marginBottom: 10,
-                    fontSize: 25,
+                    fontSize: 22,
                     fontWeight: 'bold',
                 }}>
                     New Prompt Time
                 </Text>
                 <View style={{
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     flexDirection: "row",
-                    justifyContent: "center",
+                    justifyContent: "flex-start",
+                    marginLeft: 20,
                 }}>
-                    <Input placeholder='Select Time' containerStyle={{
-                        width: width * 0.8
-                    }}/>
-                    <SubmitButton size={50} submitPressed={submitPressed}/>
+                    <Input placeholder='Select Time' containerStyle={{width: width * 0.8}}></Input>
+                    <SubmitIcon size={50} submitPressed={submitPressed}/>
                 </View>
                 <Text style={{
                     marginHorizontal: 30,
                     marginTop: 10,
                     marginBottom: 10,
-                    fontSize: 25,
+                    fontSize: 22,
                     fontWeight: 'bold',
                 }}>
                     New Submission Time
                 </Text>
                 <View style={{
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     flexDirection: "row",
-                    justifyContent: "center",
-                    marginBottom: 40,
+                    justifyContent: "flex-start",
+                    marginLeft: 20,
                 }}>
-                    <Input placeholder='Select Time' containerStyle={{
-                        width: width * 0.8
-                    }}/>
-                    <SubmitButton size={50} submitPressed={submitPressed}/>
+                    <Input placeholder='Select Time' containerStyle={{width: width * 0.8}}></Input>
+                    <SubmitIcon size={50} submitPressed={submitPressed}/>
                 </View>
                 <View style={{
                     alignItems: 'center',
+                    marginTop: 30,
                     width: width,
+                    height: height * 0.01,
                 }}>
-                    <Button color='red'>Delete Group</Button>
+                    <Button color='#A90808FF'>Delete Group</Button>
                 </View>
             </View>
         </KeyboardAvoidingView>

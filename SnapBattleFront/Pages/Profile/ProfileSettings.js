@@ -1,14 +1,20 @@
-import {Text, View} from "react-native";
+import {Dimensions, KeyboardAvoidingView, Platform, Text, TouchableOpacity, View} from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import axios from "axios";
 import {useEffect, useState} from "react";
 import {deleteUserInfo, getUserInfo} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/ErrorPrompt";
-import {Button} from "@rneui/themed";
+import {Button, Input} from "@rneui/themed";
 import InfoPrompt from "../../Components/InfoPrompt";
+import ProfilePicture from "../../Components/Profile/ProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
 function ProfileSettings({navigation}) {
+
+    let {width, height} = Dimensions.get('window'); //Get screen size
+
+    //Image avatar
+    const [image, setImage] = useState('');
 
     //Fields
     const [name, setName] = useState('');
@@ -57,14 +63,76 @@ function ProfileSettings({navigation}) {
         });
     }
 
+
     return (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <Text>Profile Settings Screen</Text>
-            <BackButton size={50} navigation={navigation} destination="Main"/>
-            <Button onPress={() => {handleSignOut()}}>Sign out</Button>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
+                              enabled={false}>
+            <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                height: height * 0.2,
+                width: width * 0.9,
+            }}>
+                <View style={{paddingLeft: 15, alignItems: 'flex-start'}}>
+                    <BackButton size={50} navigation={navigation} destination="Main"/>
+                </View>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                    <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Settings</Text>
+                </View>
+            </View>
+            <View style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: height * 0.1,
+            }}>
+                <TouchableOpacity onPress={() => {}}>
+                    <ProfilePicture size={150} source={image}/>
+                </TouchableOpacity>
+            </View>
+            <View>
+                <Text style={{
+                    marginHorizontal: 30,
+                    marginTop: 20,
+                    marginBottom: 10,
+                    fontSize: 25,
+                    fontWeight: 'bold',
+                }}>
+                    New Name
+                </Text>
+                <View style={{
+                    alignItems: 'center',
+                }}>
+                    <Input placeholder='Enter your name'/>
+                </View>
+            </View>
+            <View>
+                <Text style={{
+                    marginHorizontal: 30,
+                    marginTop: 20,
+                    marginBottom: 10,
+                    fontSize: 25,
+                    fontWeight: 'bold',
+                }}>
+                    Biography
+                </Text>
+                <View style={{
+                    alignItems: 'center',
+                }}>
+                    <Input placeholder='Enter your new bio'/>
+                </View>
+            </View>
+            <View style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: width,
+                height: height * 0.5
+            }}>
+                <Button onPress={() => {handleSignOut()}}>Sign out</Button>
+            </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}></InfoPrompt>
-        </View>
+        </KeyboardAvoidingView>
     )
 }
 
