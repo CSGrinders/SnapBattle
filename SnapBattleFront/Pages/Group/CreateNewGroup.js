@@ -19,8 +19,9 @@ import {getUserInfo} from "../../Storage/Storage";
 const { EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO } =
   process.env;
 
-function CreateNewGroup({ navigation }) {
-  let { width, height } = Dimensions.get("window");
+function CreateNewGroup({ route, navigation }) {
+  const {userID} = route.params
+  const { width, height } = Dimensions.get("window");
 
   // input fields
   const [groupName, setGroupName] = useState("");
@@ -109,12 +110,6 @@ function CreateNewGroup({ navigation }) {
     }
 
     if (!error) {
-        getUserInfo(process.env.EXPO_PUBLIC_USER_INFO).then((info) => {
-            if (info) {
-                const userData = JSON.parse(info);
-                console.log(userData)
-                if (userData.id) {
-                    const userID = userData.id
                     axios.post(
                         `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/create`,
                         {
@@ -126,18 +121,13 @@ function CreateNewGroup({ navigation }) {
                             timeToVote: submissionTime
                         }
                     ).then((response) => {
-                        const group = response.data.group
-                        navigation.navigate('Main')
+                        navigation.navigate("Groups", {userID: userID})
 
                     }).catch((error) => {
                         console.log(error)
                     })
                 }
-            }
-        });
-        
     }
-  };
 
   return (
     <SafeAreaView>

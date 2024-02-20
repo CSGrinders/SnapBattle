@@ -35,11 +35,9 @@ function Main({navigation}) {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center'}}>
             <Text>Test your components on this screen :)</Text>
             <Button onPress={() => navigation.navigate('Profile')}>Profile</Button>
-            <Button onPress={() => navigation.navigate('GroupSettings')}>GroupSettings</Button>
-            <Button onPress={() => navigation.navigate('CreateGroup')}>CreateGroup</Button>
-            <Button onPress={() => navigation.navigate('GroupMembers')}>GroupMembers</Button>
             <Button onPress={() => navigation.navigate('ProfileSettings')}>ProfileSettings</Button>
             <Button onPress={() => navigation.navigate('Friends')}>Friends</Button>
+            <Button onPress={() => navigation.navigate('Groups', {userID: userID})}>Groups</Button>
             <View style={{ paddingTop: 20 }}>
                 <Text>Name: {name}</Text>
                 <Text>Email: {email}</Text>

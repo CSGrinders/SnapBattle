@@ -1,50 +1,21 @@
-import { Header, Icon } from "@rneui/base";
-import { useState } from "react";
-import {Dimensions, KeyboardAvoidingView, Platform, SafeAreaView, Text, View} from "react-native";
+import {View, Text} from "react-native";
+import {Button} from "@rneui/themed";
 
-function GroupHome({navigation}) {
-    let {width, height} = Dimensions.get('window') 
-    const [groups, setGroups] = useState(["test1", "test2", "test3", "test4"])
+function GroupHome({route, navigation}) {
+    const {userID, groupID} = route.params
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-                                  enabled={false} style={{
-                                    width: width,
-                                    height: height - 100,
-                                  }}>
-                <View style={{
-                    alignItems: "flex-start",
-                    width: width - 30,
-                    paddingEnd: '100'
-                }}>
-                    <Text>Put header here</Text>
-                </View>
-                <View style={{
-                    alignItems: "flex-end",
-                    width: width - 30,
-                    paddingEnd: '100'
-                }}>
-                    <Text> Put profile Icon here</Text>
-                </View>
-                <View style={{
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: width,
-                    height: height - 100,
-                }}>
-                    <View style={{
-                        flexDirection: 'column'
-                    }}>
-                        {groups.map((group) => {
-                            return (
-                                <Text>{group}</Text>
-                            )
-                        })}
-                    </View>
-                </View>
-            </KeyboardAvoidingView>
-            
-        </SafeAreaView>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Text>GROUP HOME</Text>
+            <Text>Group ID: {groupID}</Text>
+            <Button
+                onPress={() => navigation.navigate("GroupMembers", {userID: userID, groupID: groupID})}
+            >
+                Group Members
+            </Button>
+            <Button onPress={() => navigation.navigate('GroupSettings', {userID: userID, groupID: groupID})}>
+                GroupSettings
+            </Button>
+        </View>
     )
 }
 
