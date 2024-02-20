@@ -1,6 +1,6 @@
 import { Header, Icon } from "@rneui/base";
 import {useCallback, useEffect, useState} from "react";
-import {Dimensions, Pressable, SafeAreaView, Text, View, Image} from "react-native";
+import {Dimensions, Pressable, SafeAreaView, Text, View, Image, ScrollView} from "react-native";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import PlusButton from "../../assets/plus.png"
 import LeaveButton from "../../assets/leave.png"
@@ -77,31 +77,33 @@ function Groups({route, navigation}) {
                 flex: 1
             }}>
                 <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Groups</Text>
-                {groups.map((group) => {
-                    return (
-                        <View key={uuid.v4()} style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginVertical: 5}}
-                        >
-                            <Button
-                                buttonStyle={{width: 200}}
-                                onPress={() => navigation.navigate("GroupHome", {userID: userID, groupID: group.groupID})}
+                <ScrollView>
+                    {groups.map((group) => {
+                        return (
+                            <View key={uuid.v4()} style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                marginVertical: 5}}
                             >
-                                {group.name}
-                            </Button>
-                            <Pressable>
-                                <Image
-                                    source={LeaveButton}
-                                    style={{
-                                        width: 50,
-                                        height: 50
-                                    }}
-                                />
-                            </Pressable>
-                        </View>
-                    )
-                })}
+                                <Button
+                                    buttonStyle={{width: 200}}
+                                    onPress={() => navigation.navigate("GroupHome", {userID: userID, groupID: group.groupID})}
+                                >
+                                    {group.name}
+                                </Button>
+                                <Pressable>
+                                    <Image
+                                        source={LeaveButton}
+                                        style={{
+                                            width: 50,
+                                            height: 50
+                                        }}
+                                    />
+                                </Pressable>
+                            </View>
+                        )
+                    })}
+                </ScrollView>
             </View>
 
 
