@@ -15,6 +15,8 @@ import createNewGroup from "./Pages/Group/CreateNewGroup";
 import GroupMembers from "./Pages/Group/GroupMembers";
 import ProfileSettings from "./Pages/Profile/ProfileSettings";
 import Friends from "./Pages/Friends/Friends";
+import Groups from "./Pages/Group/Groups";
+import GroupHome from "./Pages/Group/GroupHome";
 
 
 function App() {
@@ -42,6 +44,8 @@ function App() {
                     <Stack.Screen name="CreateGroup" component={createNewGroup}/>
                     <Stack.Screen name="GroupMembers" component={GroupMembers}/>
                     <Stack.Screen name="Friends" component={Friends}/>
+                    <Stack.Screen name="Groups" component={Groups} />
+                    <Stack.Screen name="GroupHome" component={GroupHome} />
                 </Stack.Navigator>
             </NavigationContainer>
         </ThemeProvider>

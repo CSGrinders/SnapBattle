@@ -1,20 +1,36 @@
 const Group = require('../../Models/Group')
-const User = require('../../Models/User')
+const {User} = require("../../Models/User")
 
 /**
-  * /groups/
-  * @params none
-  * @returns list of all groups
+  * /user/:userID/groups/
+  * @params userID
+  * @returns list of all groups (groupID, name) that the user is in
   **/
 
 module.exports.getGroups = async(req, res)=> {
-    Group.find()
-        .then(groups => res.json(groups))
-        .catch(err => res.status(400).json('Error: ' + err))
+    try {
+        console.log("?")
+        const {userID} = req.params
+
+        //get user's groups as an array of {_id, name}
+        const findGroups = await User.findById(userID, 'groups -_id').populate('groups', 'name')
+        if (findGroups) {
+            let groups = findGroups.groups
+            groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name}))
+            console.log(groups)
+            res.status(200).json(groups)
+        }
+        else {
+            res.status(404).json({errorMessage: "Groups could not be found"})
+        }
+    }
+    catch {
+        res.status(500).json({errorMessage: "Internal server error"})
+    }
 }
 
 /** 
-  *  /groups/create
+  *  /user/:userID/groups/create
   *  @params username, groupName, maxUsers, 
   *          timeStart, timeEnd, timeToVote,
   *  
@@ -24,7 +40,6 @@ module.exports.getGroups = async(req, res)=> {
   **/
 
 module.exports.createGroup = async(req, res) => {
-    console.log("hello")
     try {
         const userID = req.body.userID;
         const groupName = req.body.groupName;
@@ -33,11 +48,9 @@ module.exports.createGroup = async(req, res) => {
         const timeEnd = req.body.timeEnd;
         const timeToVote = req.body.timeToVote;
 
-        console.log("bruh")
-
         console.log(userID, groupName, maxUsers, timeStart, timeEnd, timeToVote)
         
-        const user = await User.User.findById(userID);
+        const user = await User.findById(userID);
         
         console.log("user:", user)
 
@@ -76,8 +89,8 @@ module.exports.createGroup = async(req, res) => {
 }
 
 /**
-  * /groups/users/:groupID
-  *  @params groupID
+  * /user/:userID/groups/:groupID
+  *  @params userID, groupID
   * 
   *  @returns list of users
   **/

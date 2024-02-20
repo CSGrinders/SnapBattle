@@ -39,12 +39,10 @@ app.use(
     })
 )
 
-//trust chatgpt
+//parses json data from request body and makes it available in req.body
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-//parses json data from request body and makes it available in req.body
-app.use(express.json())
 
 // Routes
 app.use("/auth", authRouter)

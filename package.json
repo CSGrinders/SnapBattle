@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@eva-design/eva": "^2.2.0",
-    "@react-native-community/datetimepicker": "^7.6.2",
-    "@ui-kitten/components": "^5.3.1",
-    "react-native-modal-datetime-picker": "^17.1.0",
-    "react-native-svg": "^14.1.0"
-  }
-}

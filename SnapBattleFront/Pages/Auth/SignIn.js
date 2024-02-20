@@ -7,6 +7,7 @@ import {useEffect, useState} from "react";
 import axios from "axios";
 import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import LoadingScreen from "../../Components/Auth/LoadingScreen";
+import ErrorPrompt from "../../Components/ErrorPrompt";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env
 
@@ -111,8 +112,12 @@ function SignIn({navigation}) {
                         setErrorServer(true);
                         return
                     }
+                } else { //No server connection
+                    console.log(error)
+                    setErrorMessageServer("Something went wrong...")
+                    setErrorServer(true);
                 }
-                console.log(error);
+                console.log("?")
             });
         }
     }
@@ -158,8 +163,12 @@ function SignIn({navigation}) {
                                 deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => {
                                 });
                             }
+                        } else { //No server connection
+                            console.log(error)
+                            setLoading(false);
+                            setErrorMessageServer("Something went wrong...")
+                            setErrorServer(true);
                         }
-                        console.log(error)
                     });
             } else {
                 setTimeout(() => {
@@ -253,6 +262,7 @@ function SignIn({navigation}) {
                     width: width,
                     height: height * 0.08,
                 }}><Footer/></View>
+                <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             </KeyboardAvoidingView>
         )
     )
