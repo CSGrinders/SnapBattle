@@ -4,8 +4,15 @@ import {Button, Input} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 import SelectTimeButton from "../../Components/Group/SelectTime";
 import {useState} from "react";
+import axios from "axios";
+import InfoPrompt from "../../Components/InfoPrompt";
+import ErrorPrompt from "../../Components/ErrorPrompt";
+const { EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO } =
+    process.env;
 
-function GroupSettings({navigation}) {
+function GroupSettings({route, navigation}) {
+    const {userID} = route.params;
+    const {groupID} = route.params;
     // UI formatting
     let {width, height} = Dimensions.get('window')
     // group name
@@ -25,8 +32,38 @@ function GroupSettings({navigation}) {
     const [groupSizeError, setGroupSizeError] = useState("")
     const [promptTimeError, setPromptTimeError] = useState("")
     const [submissionTimeError, setSubmissionTimeError] = useState("")
+    // success prompts
+    const [successMessage, setSuccessMessage] = useState("")
+    const [successState, setSuccessState] = useState(false)
+    // error prompts
+    const [errorMessage, setErrorMessage] = useState("")
+    const [errorState, setErrorState] = useState(false)
     function submitGroupName() {
-        console.log(groupName)
+        let error = false;
+        if (!groupName) {
+            setGroupNameError("Field cannot be empty!")
+            error = true;
+        }
+        if (!error) {
+            console.log(groupName)
+            axios.post(
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupname`,
+                {
+                    groupName: groupName
+                }
+            ).then((response) => {
+                const {nameChange} = response.data;
+                if (nameChange) {
+                    setSuccessMessage("Group Name Change Success!")
+                    setSuccessState(true);
+                }
+            }).catch((error) => {
+                const {status, data} = error.response;
+                setErrorMessage(data);
+                setErrorState(true);
+            })
+        }
+
     }
     function submitGroupSize() {
         console.log(groupSize)
@@ -58,12 +95,13 @@ function GroupSettings({navigation}) {
             <View style={{
                 width: width,
                 height: Platform.OS === "ios" ? height * 0.6 : height * 0.7,
-                justifyContent: "center"
+                justifyContent: "center",
+                marginHorizontal: 20
             }}>
                 <Text style={{
-                    marginHorizontal: 30,
                     marginTop: 20,
                     marginBottom: 10,
+                    marginLeft: 10,
                     fontSize: 22,
                     fontWeight: 'bold',
                 }}>
@@ -73,7 +111,6 @@ function GroupSettings({navigation}) {
                     alignItems: 'flex-start',
                     flexDirection: "row",
                     justifyContent: "flex-start",
-                    marginLeft: 20,
                 }}>
                     <Input
                         placeholder='Enter Group Name'
@@ -88,9 +125,9 @@ function GroupSettings({navigation}) {
                     <SubmitIcon size={50} submitPressed={submitGroupName}/>
                 </View>
                 <Text style={{
-                    marginHorizontal: 30,
                     marginTop: 10,
                     marginBottom: 10,
+                    marginLeft: 10,
                     fontSize: 22,
                     fontWeight: 'bold',
                 }}>
@@ -100,7 +137,6 @@ function GroupSettings({navigation}) {
                     alignItems: 'flex-start',
                     flexDirection: "row",
                     justifyContent: "flex-start",
-                    marginLeft: 20,
                 }}>
                     <Input
                         placeholder='Enter Group Size'
@@ -115,9 +151,9 @@ function GroupSettings({navigation}) {
                     <SubmitIcon size={50} submitPressed={submitGroupSize}/>
                 </View>
                 <Text style={{
-                    marginHorizontal: 30,
                     marginTop: 10,
                     marginBottom: 10,
+                    marginLeft: 5,
                     fontSize: 22,
                     fontWeight: 'bold'
                 }}>
@@ -127,8 +163,7 @@ function GroupSettings({navigation}) {
                     alignItems: 'flex-start',
                     flexDirection: "row",
                     justifyContent: "flex-start",
-                    marginLeft: 20,
-                    marginBottom: 25
+                    marginBottom: 6
                 }}>
                     <SelectTimeButton
                         width={width}
@@ -141,10 +176,20 @@ function GroupSettings({navigation}) {
                     </SelectTimeButton>
                     <SubmitIcon size={50} submitPressed={submitPromptTime}/>
                 </View>
+                <Text
+                    style={{
+                        marginLeft: 8,
+                        marginBottom: 10,
+                        fontSize: 12,
+                        color: "red",
+                    }}
+                >
+                    {submissionTimeError}
+                </Text>
                 <Text style={{
-                    marginHorizontal: 30,
                     marginTop: 10,
                     marginBottom: 10,
+                    marginLeft: 5,
                     fontSize: 22,
                     fontWeight: 'bold',
                 }}>
@@ -154,8 +199,7 @@ function GroupSettings({navigation}) {
                     alignItems: 'flex-start',
                     flexDirection: "row",
                     justifyContent: "flex-start",
-                    marginLeft: 20,
-                    marginBottom: 20
+                    marginBottom: 6
                 }}>
                     <SelectTimeButton
                         width={width}
@@ -168,15 +212,27 @@ function GroupSettings({navigation}) {
                     </SelectTimeButton>
                     <SubmitIcon size={50} submitPressed={submitSubmissionTime}/>
                 </View>
-                <View style={{
-                    alignItems: 'center',
-                    marginTop: 30,
-                    width: width,
-                    height: height * 0.01,
-                }}>
-                    <Button color='#A90808FF'>Delete Group</Button>
-                </View>
+                <Text
+                    style={{
+                        marginLeft: 8,
+                        marginBottom: 20,
+                        fontSize: 12,
+                        color: "red",
+                    }}
+                >
+                    {submissionTimeError}
+                </Text>
             </View>
+            <View style={{
+                alignItems: 'center',
+                marginTop: 30,
+                width: width,
+                height: height * 0.01,
+            }}>
+                <Button color='#A90808FF'>Delete Group</Button>
+            </View>
+            <ErrorPrompt Message={errorMessage} state={errorState} setError={setErrorState}></ErrorPrompt>
+            <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
         </KeyboardAvoidingView>
     )
 }
