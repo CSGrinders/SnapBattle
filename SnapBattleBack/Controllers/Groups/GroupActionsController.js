@@ -72,7 +72,7 @@ module.exports.createGroup = async(req, res) => {
             })
     
             await newGroup.save()
-    
+
             user.groups.push(newGroup._id)
             await user.save()
     

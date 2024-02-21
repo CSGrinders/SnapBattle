@@ -48,15 +48,13 @@ function Profile({route, navigation}) {
         >
             <View style={{
                 alignItems: 'center',
-                justifyContent: 'center',
-                height: height * 0.3
+                flex: 2
             }}>
                 <View style={{
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
                     width: width * 0.9,
-                    height: 5
                 }}>
                     <BackButton size={50} navigation={navigation} destination={"Groups"}/>
                     <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings', route.params)}>
@@ -74,7 +72,8 @@ function Profile({route, navigation}) {
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.8,
-                height: height * 0.1}}>
+                flex: 1
+            }}>
                 <Text style={{
                     fontWeight: 'bold',
                     fontSize: 20,
@@ -87,7 +86,8 @@ function Profile({route, navigation}) {
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.8,
-                height: height * 0.1}}>
+                flex: 1
+            }}>
                 <Text style={{
                     fontWeight: 'bold',
                     fontSize: 20,
@@ -96,7 +96,7 @@ function Profile({route, navigation}) {
                 <Text>Winner x2</Text>
             </View>
 
-            <View style={{height: height * 0.35, justifyContent: 'flex-end'}}>
+            <View style={{justifyContent: 'flex-end', flex: 2}}>
                 <Button
                     style={{
                         alignContent: 'flex-end',

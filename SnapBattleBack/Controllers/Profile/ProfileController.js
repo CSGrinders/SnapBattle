@@ -27,3 +27,7 @@ module.exports.uploadPhoto = async(req, res)=> {
         return res.status(400).json('Error uploading image: ' + error.message);
     }
 }
+
+module.exports.findUser = async(req, res) => {
+    console.log("request received")
+}
