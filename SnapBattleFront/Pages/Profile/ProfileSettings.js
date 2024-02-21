@@ -9,7 +9,9 @@ import InfoPrompt from "../../Components/InfoPrompt";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
-function ProfileSettings({navigation}) {
+function ProfileSettings({route, navigation}) {
+
+    const {name, username, email, userID} = route.params
 
     let {width, height} = Dimensions.get('window'); //Get screen size
 
@@ -17,9 +19,7 @@ function ProfileSettings({navigation}) {
     const [image, setImage] = useState('');
 
     //Fields
-    const [name, setName] = useState('');
     const [bio, setBio] = useState('');
-    const [userID, setUserID] = useState('');
 
 
     //Server error
@@ -28,16 +28,6 @@ function ProfileSettings({navigation}) {
 
     const [infoMessage, setInfoMessage] = useState('');
     const [infoPrompt, setInfoPrompt] = useState(false);
-
-    useEffect(() => { //Request data from storage
-        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-            if (info) {
-                const userData = JSON.parse(info);
-                if (userData.name) setName(userData.name);
-                if (userData.id) setUserID(userData.id);
-            }
-        });
-    }, []);
 
     function handleSignOut() {
         axios.post(
@@ -75,7 +65,11 @@ function ProfileSettings({navigation}) {
                 width: width * 0.9,
             }}>
                 <View style={{paddingLeft: 15, alignItems: 'flex-start'}}>
-                    <BackButton size={50} navigation={navigation} destination="Main"/>
+                    <BackButton
+                        size={50}
+                        navigation={navigation}
+                        destination={"Profile"}
+                        params={route.params}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Settings</Text>

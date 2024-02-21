@@ -130,7 +130,7 @@ function SignUp({navigation}) {
                                 );
                         }
                         setAuthToken(token).then(() => {});
-                        navigation.navigate('Main'); //Success and navigating to main screen
+                        navigation.navigate('Groups'); //Success and navigating to main screen
                     }
                 }
             ).catch((error) => { //There was an error in fields or server connection

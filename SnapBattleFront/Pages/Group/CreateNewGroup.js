@@ -146,7 +146,7 @@ function CreateNewGroup({ route, navigation }) {
         >
           <Pressable
             style={{ paddingLeft: 20, alignItems: "flex-start" }}
-            onPress={() => navigation.navigate("Main")}
+            onPress={() => navigation.navigate("Groups")}
           >
             <Image source={BackIcon} style={{ width: 50, height: 50 }}></Image>
           </Pressable>

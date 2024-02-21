@@ -3,7 +3,8 @@ import SubmitIcon from "../../Components/Group/SubmitSettingsIcon.js"
 import {Button, Input} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 
-function GroupSettings({navigation}) {
+function GroupSettings({route, navigation}) {
+    const {userID, groupID} = route.params
     let {width, height} = Dimensions.get('window')
     function backPressed() {
         console.log("back pressed")
@@ -23,7 +24,7 @@ function GroupSettings({navigation}) {
                 width: width * 0.9,
             }}>
                 <View style={{paddingLeft: 20, alignItems: 'flex-start'}}>
-                    <BackButton size={50} navigation={navigation} destination="Main"/>
+                    <BackButton size={50} navigation={navigation} destination={"GroupHome"} params={route.params}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Group Settings</Text>

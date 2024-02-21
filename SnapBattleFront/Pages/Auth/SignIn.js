@@ -98,7 +98,7 @@ function SignIn({navigation}) {
                             );
                     }
                     setAuthToken(token).then(() => {});
-                    navigation.navigate('Main'); //Success and navigating to main screen
+                    navigation.navigate('Groups'); //Success and navigating to groups screen
                 }
             }).catch((error) => {
                 const {status, data} = error.response;
@@ -141,7 +141,7 @@ function SignIn({navigation}) {
                             console.log("User verified with token,")
                             setAuthToken(token).then(() => {});
                             setTimeout(() => {
-                                navigation.navigate('Main'); //Success and navigating to main screen after 3 seconds
+                                navigation.navigate('Groups'); //Success and navigating to groups screen after 3 seconds
                             }, 2000);
                         }
                     })
