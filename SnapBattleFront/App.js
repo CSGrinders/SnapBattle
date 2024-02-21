@@ -8,7 +8,6 @@ import {theme} from "./Theme/Theme.js"
 import {useFonts} from "expo-font";
 import SignUp from "./Pages/Auth/SignUp";
 import SignIn from "./Pages/Auth/SignIn";
-import Main from "./Pages/Main";
 import Profile from "./Pages/Profile/Profile";
 import GroupSettings from "./Pages/Group/GroupSettings";
 import createNewGroup from "./Pages/Group/CreateNewGroup";
@@ -37,7 +36,6 @@ function App() {
                 <Stack.Navigator screenOptions={{headerShown: false, animation: 'none'}} initialRouteName="SignIn" >
                     <Stack.Screen name="SignIn" component={SignIn}/>
                     <Stack.Screen name="SignUp" component={SignUp}/>
-                    <Stack.Screen name="Main" component={Main}/>
                     <Stack.Screen name="Profile" component={Profile}/>
                     <Stack.Screen name="ProfileSettings" component={ProfileSettings}/>
                     <Stack.Screen name="GroupSettings" component={GroupSettings}/>

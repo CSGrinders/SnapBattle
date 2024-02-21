@@ -10,26 +10,10 @@ import {saveImageToCloud} from "../../Storage/Cloud";
 import {getUserInfo} from "../../Storage/Storage";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
 
-function Profile({navigation}) {
-    let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
+function Profile({route, navigation}) {
+    const {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
-    const [name, setName] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [userID, setUserID] = useState('');
-
-    useEffect(() => {
-        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-            if (info) {
-                const userData = JSON.parse(info);
-                if (userData.name) setName(userData.name);
-                if (userData.username) setUsername(userData.username);
-                if (userData.email) setEmail(userData.email);
-                if (userData.id) setUserID(userData.id);
-                if (userData.username) setUsername(userData.username);
-            }
-        });
-    }, []);
+    const {name, username, email, userID} = route.params
 
     const [image, setImage] = useState('');
 
@@ -60,7 +44,8 @@ function Profile({navigation}) {
             alignItems: 'center',
             justifyContent: 'center',
             width: width,
-            height: height}}>
+            height: height}}
+        >
             <View style={{
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -73,8 +58,8 @@ function Profile({navigation}) {
                     width: width * 0.9,
                     height: 5
                 }}>
-                    <BackButton size={50} navigation={navigation} destination="Main"/>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings')}>
+                    <BackButton size={50} navigation={navigation} destination={"Groups"}/>
+                    <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings', route.params)}>
                         <Image source={SettingIcon} style={{width:50, height:50}}></Image>
                     </TouchableOpacity>
                 </View>
@@ -112,10 +97,13 @@ function Profile({navigation}) {
             </View>
 
             <View style={{height: height * 0.35, justifyContent: 'flex-end'}}>
-                <Button style={{
-                    alignContent: 'flex-end',
-                    alignItems: 'center',
-                    justifyContent: 'center'}}
+                <Button
+                    style={{
+                        alignContent: 'flex-end',
+                        alignItems: 'center',
+                        justifyContent: 'center'}}
+                    onPress={() => navigation.navigate("Friends", route.params)}
+
                 >
                     Friends
                 </Button>
