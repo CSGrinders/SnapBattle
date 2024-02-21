@@ -66,9 +66,13 @@ const Session = new mongoose.Schema({
 
 
 //Encrypt password before saving it to database
-User.pre("save", async function () {
+User.pre("save", async function (next) {
+    if (!this.isModified('password')) return next();
+
     this.password = await bcrypt.hash(this.password, 12)
+    next();
 })
+
 
 const UserModel = mongoose.model("User", User);
 const SessionModel = mongoose.model("Session", Session);

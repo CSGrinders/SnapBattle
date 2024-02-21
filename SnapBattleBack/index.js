@@ -15,6 +15,7 @@ const bodyParser = require('body-parser');
 const groupsRouter = require('./Routes/User/Groups/Groups')
 const authRouter = require('./Routes/Auth')
 const profileRouter = require('./Routes/User/Profile/Profile')
+const searchRouter = require('./Routes/User/Friends/Search')
 const {userVerification} = require("./Controllers/Auth/Auth");
 require("dotenv").config()
 const {MONGO_URL, PORT} = process.env
@@ -49,3 +50,4 @@ app.use("/auth", authRouter)
 app.use("/user", userVerification)
 app.use("/user/:userID/groups", groupsRouter)
 app.use("/user/:userID/profile", profileRouter)
+app.use("/user/:userID/search", searchRouter)
