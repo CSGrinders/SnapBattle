@@ -1,15 +1,19 @@
-import {Alert, Modal, Pressable, SafeAreaView, Text, View} from "react-native";
+import {ActivityIndicator, Alert, Dimensions, Modal, Pressable, SafeAreaView, ScrollView, Text, View} from "react-native";
 import {Image} from "expo-image";
 import {Button, Input} from "@rneui/themed";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
 import {getUserInfo} from "../../Storage/Storage";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
+import BackIcon from "../../assets/back-icon.webp";
+import {useFocusEffect} from "@react-navigation/native";
+import uuid from 'react-native-uuid'
 
 function GroupMembers({route, navigation}) {
 
-    const {userID, groupID} = route.params
+    const {name, username, email, userID, groupID} = route.params
+    const {width, height} = Dimensions.get('window')
 
     //state for whether the invite box is open or not
     const [invBoxVisible, setInvBoxVisibility] = useState(false)
@@ -20,6 +24,29 @@ function GroupMembers({route, navigation}) {
     //state for group invite status message
     const [invStatusMsg, setInvStatusMsg] = useState("")
     const [invStatusColor, setInvStatusColor] = useState("green")
+
+    //state for group members
+    const [groupMembers, setGroupMembers] = useState([-1])
+
+        //getting information necessary for page display
+     useFocusEffect(
+        useCallback(() => {
+            getGroupMembers()
+        }, [])
+    )
+
+    //get user's list of groups
+    function getGroupMembers() {
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/list-users/${groupID}`
+        )
+        .then((res) => {
+            setGroupMembers(res.data)
+        })
+        .catch((err) => {
+            console.log("bruh", err)
+        })
+    }
 
     //API call to check if user is a friend -> invites the friend to the group
     function inviteUser() {
@@ -101,18 +128,54 @@ function GroupMembers({route, navigation}) {
                 </Modal>
 
 
-                <View>
-                    <Text>
-                        Put header here
-                    </Text>
+                <View style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    height: height * 0.2,
+                    width: width * 0.9,
+                }}>
+                    <Pressable
+                        style={{ paddingLeft: 20, alignItems: "flex-start" }}
+                        onPress={() => navigation.navigate("Groups")}
+                    >
+                        <Image source={BackIcon} style={{ width: 50, height: 50 }}></Image>
+                    </Pressable>
+                    <View style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        paddingRight: 20,
+                    }}
+                    >
+                        <Text style={{ fontSize: 36 }}>Group Members</Text>
+                    </View>
                 </View>
 
 
-                <View>
-                    <Text>
-                        Put group members here
-                    </Text>
-                </View>
+                <View style={{
+                    width: width * 0.8,
+                    flex: 1
+                }}>
+                    <ScrollView>
+                        {(groupMembers[0]!== -1) ? groupMembers.map((member) => {
+                        return (
+                            <View key={uuid.v4()} style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                marginVertical: 5}}
+                            >
+                                <Button
+                                    buttonStyle={{width: 300}}
+                                    onPress={() => navigation.navigate("Profile", {name: member.name, username: member.username, email: member.email, userID: member._id})}
+                                >
+                                    {member.username}
+                                </Button>
+                            </View>
+                        )
+                    }) : <ActivityIndicator size="large" color="#000000"/>}
+                </ScrollView>
+            </View>
 
 
                 <Button onPress={() => setInvBoxVisibility(true)}>Invite +</Button>
