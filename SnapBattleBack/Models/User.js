@@ -41,6 +41,10 @@ const User = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'Group'
     }],
+    requests: [{
+       type: mongoose.Types.ObjectId,
+       ref: 'User'
+    }],
     invites: [{
         type: mongoose.Types.ObjectId,
         ref: 'Group'
