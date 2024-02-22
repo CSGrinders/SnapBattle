@@ -118,7 +118,7 @@ function Groups({navigation}) {
                             >
                                 <Button
                                     buttonStyle={{width: 200}}
-                                    onPress={() => navigation.navigate("GroupHome", {userID: userID, groupID: group.groupID})}
+                                    onPress={() => navigation.navigate("GroupHome", {name: name, username: username, email: email, userID: userID, groupID: group.groupID})}
                                 >
                                     {group.name}
                                 </Button>

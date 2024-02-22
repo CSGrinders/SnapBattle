@@ -97,10 +97,12 @@ module.exports.createGroup = async(req, res) => {
 
 module.exports.listUsers = async(req, res) => {
     try {
+        console.log("bruh")
         const groupID = req.params.groupID
         const group = await Group.findById(groupID).populate('userList')
 
         if (group) {
+            console.log(group.userList)
             res.send(group.userList)
         } else {
             res.status(404).json("Group not found")

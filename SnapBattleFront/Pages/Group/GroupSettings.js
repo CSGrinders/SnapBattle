@@ -4,7 +4,7 @@ import {Button, Input} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 
 function GroupSettings({route, navigation}) {
-    const {userID, groupID} = route.params
+    const {name, username, email, userID, groupID} = route.params
     let {width, height} = Dimensions.get('window')
     function backPressed() {
         console.log("back pressed")
