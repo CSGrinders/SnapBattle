@@ -14,11 +14,8 @@ module.exports.changeBio = async(req, res)=> {}
 module.exports.deleteAccount = async(req, res)=> {
     try {
         const { userID } = req.params;
-        console.log(userID)
         const user = await User.findById(userID); //Find user
-        console.log(user)
         if (user) {
-            console.log(user)
             await User.deleteOne(user);
             const session = await Session.findOne({ userID: userID}); //Find session
             await session.deleteOne(session);

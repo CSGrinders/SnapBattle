@@ -256,13 +256,12 @@ module.exports.AuthenticateOrSignUp = async (req, res) => {
 module.exports.signOut = async(req, res)=> {
     try {
         const { userID } = req.params;
-        const session = Session.findOne({ userID: userID}); //Find session
+        const session = await Session.findOne({ userID: userID}); //Find session
         if (!session) {
             return res.status(400).json({
                 errorMessage: "Something went wrong...",
             });
         }
-
         Session.deleteOne(session); //Remove session
 
         return res.status(200).json({
