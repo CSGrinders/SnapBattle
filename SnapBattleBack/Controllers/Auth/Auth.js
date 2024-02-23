@@ -11,6 +11,8 @@ const jwt = require('jsonwebtoken');
 const {User, Session} = require("../../Models/User");
 const {compare} = require("bcrypt");
 const validator = require('validator');
+
+
 /**
  * Handle user signup.
  *
