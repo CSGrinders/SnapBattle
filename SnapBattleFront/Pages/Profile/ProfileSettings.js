@@ -1,4 +1,14 @@
-import {Dimensions, KeyboardAvoidingView, Platform, Text, TouchableOpacity, View} from "react-native";
+import {
+    Alert,
+    Dimensions,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import axios from "axios";
 import {useEffect, useState} from "react";
@@ -8,6 +18,8 @@ import {Button, Input} from "@rneui/themed";
 import InfoPrompt from "../../Components/InfoPrompt";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
+import {Image} from "expo-image";
+import CloseButton from "../../assets/close.webp";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
 function ProfileSettings({route, navigation}) {
@@ -22,6 +34,10 @@ function ProfileSettings({route, navigation}) {
     //Fields
     const [bio, setBio] = useState('');
 
+    //
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [confirmStatus, setConfirmStatus] = useState('');
+    const [confirmUsername, setConfirmUsername] = useState('');
 
     //Server error
     const [errorMessageServer, setErrorMessageServer] = useState('');
@@ -42,7 +58,11 @@ function ProfileSettings({route, navigation}) {
             if (isSignedOut) { //Success
                 deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User logged out. Deleting user token."));
                 deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User logged out. Deleting user data."));
-                navigation.navigate('SignIn');
+                setInfoPrompt(true);
+                setInfoMessage("You are signing out...");
+                setTimeout(() => {
+                    navigation.navigate('SignIn'); //Success and navigating to main screen after 3 seconds
+                }, 2000);
             }
         }).catch((error) => {
             if (error.response) { //Error
@@ -53,6 +73,13 @@ function ProfileSettings({route, navigation}) {
     }
 
     function handleDeleteAccount() {
+        if (username !== confirmUsername) {
+            setConfirmStatus('Username does not match.');
+            return
+        }
+        setConfirmStatus('');
+        setConfirmUsername('');
+        setConfirmDelete(false);
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/delete`,
         ).then((response) => {
@@ -61,7 +88,11 @@ function ProfileSettings({route, navigation}) {
             if (isDeleted) { //Success
                 deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User deleted. Deleting user token."));
                 deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User deleted. Deleting user data."));
-                navigation.navigate('SignIn');
+                setInfoPrompt(true);
+                setInfoMessage("You are signing out...");
+                setTimeout(() => {
+                    navigation.navigate('SignIn'); //Success and navigating to main screen after 3 seconds
+                }, 2000);
             }
         }).catch((error) => {
             console.log(error)
@@ -71,6 +102,8 @@ function ProfileSettings({route, navigation}) {
             }
         });
     }
+
+
 
     function handleChangeName() {
 
@@ -175,7 +208,11 @@ function ProfileSettings({route, navigation}) {
                 width: width,
                 height: height * 0.1
             }}>
-                <Button onPress={()=> {handleDeleteAccount()}}>Delete Account</Button>
+                <Button onPress={()=> {
+                    setConfirmDelete(true)
+                    setConfirmUsername('')
+                    setConfirmStatus('')
+                }}>Delete Account</Button>
             </View>
             <View style={{
                 justifyContent: 'center',
@@ -187,6 +224,67 @@ function ProfileSettings({route, navigation}) {
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}></InfoPrompt>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={confirmDelete}
+                onRequestClose={() => {
+                    setConfirmDelete(false)
+                    setConfirmStatus('')
+                }}>
+                <View style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
+                    <View style={{
+                        backgroundColor: 'white',
+                        borderColor: 'black',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        padding: 10,
+                    }}>
+                        <Pressable onPress={() => {
+                            setConfirmDelete(false);
+                            setConfirmUsername('');
+                            setConfirmStatus('');
+                        }}>
+                            <Image
+                                source={CloseButton}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    marginLeft: 'auto',
+                                }}
+                                rcontentFit="cover"
+                                transition={500}
+                            />
+                        </Pressable>
+                        <View style={{
+                            flex: 0,
+                            alignItems: 'center'
+
+                        }}>
+                        <View style={{marginBottom: 10}}>
+                            <Text>Enter your username: <Text style={{fontFamily: 'OpenSansBold'}}> {username}</Text> to confirm the action.</Text>
+                        </View>
+                        <Input
+                                placeholder='Confirm action'
+                                onChangeText={username => {
+                                    setConfirmUsername(username)
+                                    setConfirmStatus('');
+                                }}
+                                autoCapitalize="none"
+                                errorMessage={confirmStatus}
+                            />
+                            <View style={{marginTop: 10}}>
+                                <Button onPress={() => {handleDeleteAccount()}}>Confirm</Button>
+
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </KeyboardAvoidingView>
     )
 }
