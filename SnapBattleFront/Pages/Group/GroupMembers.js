@@ -4,7 +4,6 @@ import {Button, Input} from "@rneui/themed";
 import {useCallback, useEffect, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
-import {getUserInfo} from "../../Storage/Storage";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
 import BackIcon from "../../assets/back-icon.webp";
 import {useFocusEffect} from "@react-navigation/native";

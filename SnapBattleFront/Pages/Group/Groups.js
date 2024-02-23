@@ -1,9 +1,8 @@
-import { Header, Icon } from "@rneui/base";
 import {useCallback, useEffect, useState} from "react";
 import {Dimensions, Pressable, SafeAreaView, Text, View, Image, ScrollView, ActivityIndicator} from "react-native";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
-import PlusButton from "../../assets/plus.png"
-import LeaveButton from "../../assets/leave.png"
+import PlusButton from "../../assets/plus.webp"
+import LeaveButton from "../../assets/leave.webp"
 import axios from "axios";
 import uuid from 'react-native-uuid'
 import {Button} from "@rneui/themed";

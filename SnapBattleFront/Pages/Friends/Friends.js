@@ -9,8 +9,8 @@ import axios from "axios";
 import uuid from "react-native-uuid";
 import ErrorPrompt from "../../Components/ErrorPrompt";
 import {useFocusEffect} from "@react-navigation/native";
-import AcceptIcon from "../../assets/check.png"
-import RejectIcon from "../../assets/reject.png"
+import AcceptIcon from "../../assets/check.webp"
+import RejectIcon from "../../assets/reject.webp"
 import SettingIcon from "../../assets/profile-setting-icon.webp";
 
 const {EXPO_PUBLIC_API_URL} = process.env
