@@ -7,6 +7,7 @@ import ErrorPrompt from "../../Components/ErrorPrompt";
 import {Button, Input} from "@rneui/themed";
 import InfoPrompt from "../../Components/InfoPrompt";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
+import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
 function ProfileSettings({route, navigation}) {
@@ -29,6 +30,10 @@ function ProfileSettings({route, navigation}) {
     const [infoMessage, setInfoMessage] = useState('');
     const [infoPrompt, setInfoPrompt] = useState(false);
 
+    function handleSubmit() {
+        console.log("submit pressed")
+    }
+
     function handleSignOut() {
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/signout`,
@@ -37,20 +42,46 @@ function ProfileSettings({route, navigation}) {
             if (isSignedOut) { //Success
                 deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User logged out. Deleting user token."));
                 deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User logged out. Deleting user data."));
-                setInfoPrompt(true);
-                setInfoMessage("You are signing out...");
-                setTimeout(() => {
-                    navigation.navigate('SignIn'); //Success and navigating to main screen after 3 seconds
-                }, 2000);
+                navigation.navigate('SignIn');
             }
         }).catch((error) => {
             if (error.response) { //Error
-                console.log("Logging out")
-                console.log(error);
                 setErrorMessageServer("Something went wrong...");
                 setErrorServer(true);
             }
         });
+    }
+
+    function handleDeleteAccount() {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/delete`,
+        ).then((response) => {
+            console.log("test")
+            const isDeleted = response.data;
+            if (isDeleted) { //Success
+                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User deleted. Deleting user token."));
+                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User deleted. Deleting user data."));
+                navigation.navigate('SignIn');
+            }
+        }).catch((error) => {
+            console.log(error)
+            if (error.response) { //Error
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
+            }
+        });
+    }
+
+    function handleChangeName() {
+
+    }
+
+    function handleChangeBio() {
+
+    }
+
+    function handleChangePassword() {
+
     }
 
 
@@ -84,45 +115,75 @@ function ProfileSettings({route, navigation}) {
                     <ProfilePicture size={150} source={image}/>
                 </TouchableOpacity>
             </View>
-            <View>
-                <Text style={{
-                    marginHorizontal: 30,
-                    marginTop: 20,
-                    marginBottom: 10,
-                    fontSize: 25,
-                    fontWeight: 'bold',
-                }}>
-                    New Name
-                </Text>
-                <View style={{
-                    alignItems: 'center',
-                }}>
-                    <Input placeholder='Enter your name'/>
-                </View>
+            <Text style={{
+                marginHorizontal: 30,
+                marginTop: 20,
+                marginBottom: 10,
+                fontSize: 22,
+                fontWeight: 'bold',
+            }}>
+                Name
+            </Text>
+            <View style={{
+                alignItems: 'flex-start',
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                marginLeft: 20,
+            }}>
+                <Input placeholder='Enter new name' containerStyle={{width: width * 0.8}}></Input>
+                <SubmitIcon size={50} submitPressed={handleSubmit}/>
             </View>
-            <View>
-                <Text style={{
-                    marginHorizontal: 30,
-                    marginTop: 20,
-                    marginBottom: 10,
-                    fontSize: 25,
-                    fontWeight: 'bold',
-                }}>
-                    Biography
-                </Text>
-                <View style={{
-                    alignItems: 'center',
-                }}>
-                    <Input placeholder='Enter your new bio'/>
-                </View>
+            <Text style={{
+                marginHorizontal: 30,
+                marginTop: 10,
+                marginBottom: 10,
+                fontSize: 22,
+                fontWeight: 'bold',
+            }}>
+                Biography
+            </Text>
+            <View style={{
+                alignItems: 'flex-start',
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                marginLeft: 20,
+            }}>
+                <Input placeholder='Enter new bio' containerStyle={{width: width * 0.8}}></Input>
+                <SubmitIcon size={50} submitPressed={handleSubmit}/>
+            </View>
+            <Text style={{
+                marginHorizontal: 30,
+                marginTop: 10,
+                marginBottom: 10,
+                fontSize: 22,
+                fontWeight: 'bold',
+            }}>
+                Password
+            </Text>
+            <View style={{
+                alignItems: 'flex-start',
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                marginLeft: 20,
+            }}>
+                <Input placeholder='Enter your old Password' containerStyle={{width: width * 0.8}}></Input>
+                <SubmitIcon size={50} submitPressed={handleSubmit}/>
             </View>
             <View style={{
                 justifyContent: 'center',
                 alignItems: 'center',
                 width: width,
-                height: height * 0.5
+                height: height * 0.1
             }}>
-                <Button onPress={() => {handleSignOut()}}>Sign out</Button>
+                <Button onPress={()=> {handleDeleteAccount()}}>Delete Account</Button>
+            </View>
+            <View style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: width,
+                height: height * 0.05
+            }}>
+                <Button onPress={()=> {handleSignOut()}}>Sign Out</Button>
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}></InfoPrompt>
