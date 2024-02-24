@@ -19,12 +19,12 @@ module.exports.uploadPhoto = async(req, res)=> {
 
         const fileName = userID + ".jpeg";
         const imageRef = ref(storage, `profileImage/${fileName}`);
-        await uploadBytesResumable(imageRef, blob);
-
+        uploadBytesResumable(imageRef, blob).then(() => {
+            return res.status(200).json('Image uploaded successfully.');
+        })
         // const storageRef = storage.ref().child("/")
         // storageRef.put(blob)
 
-        return res.status(200).json('Image uploaded successfully.');
     } catch (error) {
         return res.status(400).json('Error uploading image: ' + error.message);
     }
@@ -43,7 +43,7 @@ module.exports.getPhoto = async(req, res)=> {
                 console.error('Error downloading image:', error);
             });
     } catch (error) {
-        return res.status(400).json('Error uploading image: ' + error.message);
+        return res.status(400).json('Error getting image: ' + error.message);
     }
 }
 
