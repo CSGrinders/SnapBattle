@@ -1,4 +1,5 @@
 import {
+    ActivityIndicator,
     Alert,
     Dimensions,
     KeyboardAvoidingView,
@@ -11,7 +12,7 @@ import {
 } from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import axios from "axios";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/ErrorPrompt";
 import {Button, Input} from "@rneui/themed";
@@ -20,6 +21,9 @@ import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
 import {Image} from "expo-image";
 import CloseButton from "../../assets/close.webp";
+import * as ImagePicker from "expo-image-picker";
+import {saveImageToCloud} from "../../Storage/Cloud";
+import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
 function ProfileSettings({route, navigation}) {
@@ -53,7 +57,41 @@ function ProfileSettings({route, navigation}) {
     const [infoMessage, setInfoMessage] = useState('');
     const [infoPrompt, setInfoPrompt] = useState(false);
 
+    const [loading, setLoading] = useState(false);
 
+
+    const pfPressed = () => {
+        imagePicker();
+    }
+
+    useFocusEffect(
+        useCallback(() => {
+            setImage('');
+        }, [userID])
+    )
+
+    async function imagePicker() {
+        try {
+            let selectedImage = null;
+            selectedImage = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 4],
+                quality: 1,
+            });
+            // turn on reload pop up and deactivate interactions
+            setLoading(true);
+            const res = await saveImageToCloud(userID, selectedImage.assets[0].uri);
+            // turn off reload
+            setLoading(false);
+            setInfoPrompt(true);
+            setInfoMessage("Image Uploaded");
+            setImage(selectedImage.assets[0].uri);
+            return res;
+        } catch (e) {
+            console.log(e);
+        }
+    }
     // Handle sign out
     function handleSignOut() {
         axios.post(
@@ -249,6 +287,17 @@ function ProfileSettings({route, navigation}) {
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                               enabled={false}>
+            {loading && (
+                <View>
+                    <ActivityIndicator size="large" color="blue" style={{
+                        position: 'absolute',
+                        left: (width / 2) - 10,
+                        top: height / 2,
+                    }} />
+                </View>
+            )}
+
+
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -257,7 +306,7 @@ function ProfileSettings({route, navigation}) {
                 width: width * 0.9,
             }}>
                 <View style={{paddingLeft: 15, alignItems: 'flex-start'}}>
-                    <BackButton
+                    {!loading && <BackButton
                         size={50}
                         navigation={navigation}
                         destination={"Profile"}
@@ -265,7 +314,7 @@ function ProfileSettings({route, navigation}) {
                             ...route.params,
                             name: newName,
                         }}
-                    />
+                    />}
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Settings</Text>
@@ -276,8 +325,8 @@ function ProfileSettings({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.1,
             }}>
-                <TouchableOpacity onPress={() => {}}>
-                    <ProfilePicture size={150}/>
+                <TouchableOpacity onPress={pfPressed} disabled={loading}>
+                    <ProfilePicture size={150} temp_image={image}/>
                 </TouchableOpacity>
             </View>
             <Text style={{
@@ -297,6 +346,7 @@ function ProfileSettings({route, navigation}) {
             }}>
                 <Input
                     placeholder='Enter new name'
+                    disabled={loading}
                     containerStyle={{width: width * 0.8}}
                     onChangeText={newName => {
                         setNewName(newName);
@@ -305,7 +355,7 @@ function ProfileSettings({route, navigation}) {
                     autoCapitalize="none"
                     errorMessage={errorMessageName}
                 ></Input>
-                <SubmitIcon size={50} submitPressed={handleChangeName}/>
+                {!loading && <SubmitIcon size={50} submitPressed={handleChangeName}/>}
             </View>
             <Text style={{
                 marginHorizontal: 30,
@@ -324,6 +374,7 @@ function ProfileSettings({route, navigation}) {
             }}>
                 <Input
                     placeholder='Enter new bio'
+                    disabled={loading}
                     containerStyle={{width: width * 0.8}}
                     onChangeText={newBio => {
                         setNewBio(newBio);
@@ -332,7 +383,7 @@ function ProfileSettings({route, navigation}) {
                     autoCapitalize="none"
                     errorMessage={errorMessageBio}
                 ></Input>
-                <SubmitIcon size={50} submitPressed={handleChangeBio}/>
+                {!loading && <SubmitIcon size={50} submitPressed={handleChangeBio}/>}
             </View>
             <Text style={{
                 marginHorizontal: 30,
@@ -348,10 +399,12 @@ function ProfileSettings({route, navigation}) {
                 flexDirection: "row",
                 justifyContent: "flex-start",
                 marginLeft: 20,
-            }}>
+            }}
+                  disabled={loading}>
                 <Input
                     placeholder='Enter your new Password'
                     containerStyle={{width: width * 0.8}}
+                    disabled={loading}
                     onChangeText={newPassword => {
                         setNewPassword(newPassword);
                         setErrorMessagePassword('');
@@ -359,7 +412,7 @@ function ProfileSettings({route, navigation}) {
                     autoCapitalize="none"
                     errorMessage={errorMessagePassword}
                 ></Input>
-                <SubmitIcon size={50} submitPressed={handleOption}/>
+                {!loading && <SubmitIcon size={50} submitPressed={handleOption}/>}
             </View>
             <View style={{
                 justifyContent: 'center',
@@ -372,7 +425,7 @@ function ProfileSettings({route, navigation}) {
                     setConfirm(true)
                     setConfirmUsername('')
                     setConfirmStatus('')
-                }}>Delete Account</Button>
+                }} disabled={loading} >Delete Account</Button>
             </View>
             <View style={{
                 justifyContent: 'center',
@@ -380,7 +433,7 @@ function ProfileSettings({route, navigation}) {
                 width: width,
                 height: height * 0.05
             }}>
-                <Button onPress={()=> {handleSignOut()}}>Sign Out</Button>
+                <Button disabled={loading} onPress={()=> {handleSignOut()}}>Sign Out</Button>
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}></InfoPrompt>
