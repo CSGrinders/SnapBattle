@@ -145,7 +145,7 @@ function ProfileSettings({route, navigation}) {
                 height: height * 0.1,
             }}>
                 <TouchableOpacity onPress={() => {}}>
-                    <ProfilePicture size={150} source={image}/>
+                    <ProfilePicture size={150}/>
                 </TouchableOpacity>
             </View>
             <Text style={{
