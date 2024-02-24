@@ -34,7 +34,6 @@ function Groups({navigation}) {
                     if (userData.username) setUsername(userData.username);
                     if (userData.email) setEmail(userData.email);
                     if (userData.id) setUserID(userData.id)
-                    if (userData.username) setUsername(userData.username)
                 }
             })
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
