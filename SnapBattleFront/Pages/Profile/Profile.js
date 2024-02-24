@@ -66,7 +66,7 @@ function Profile({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.25,
             }}>
-                <ProfilePicture size={150} temp_image={''}/>
+                    <ProfilePicture size={150} temp_image={''}/>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{name}</Text>
                 <Text>@{username}</Text>
             </View>
