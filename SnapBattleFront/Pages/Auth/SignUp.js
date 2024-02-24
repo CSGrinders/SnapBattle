@@ -84,6 +84,25 @@ function SignUp({navigation}) {
             error = true;
         }
 
+        const usernameTest = /^[a-zA-Z0-9_]+$/;
+        const nameTest = /^[a-zA-Z]+$/;
+        if (name.includes(" ") || !nameTest.test(name)) {
+            setErrorMessageName('Invalid syntax. Only letters are allowed')
+            error = true;
+        }
+
+        if (username.includes(" ") || !usernameTest.test(username)) {
+            if (username !== '') {
+                setErrorMessageUsername('Invalid syntax. Only underscores, numbers and letters are allowed')
+                error = true;
+            }
+        }
+
+        if (password.includes(" ")) {
+            setErrorMessagePassword('Invalid password. (No spaces)');
+            error = true;
+        }
+
         //Send information the server
         if (!error) {
             axios.post(
@@ -130,7 +149,7 @@ function SignUp({navigation}) {
                                 );
                         }
                         setAuthToken(token).then(() => {});
-                        navigation.navigate('Main'); //Success and navigating to main screen
+                        navigation.navigate('Groups'); //Success and navigating to main screen
                     }
                 }
             ).catch((error) => { //There was an error in fields or server connection

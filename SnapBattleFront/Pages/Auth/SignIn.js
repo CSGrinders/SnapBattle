@@ -96,8 +96,9 @@ function SignIn({navigation}) {
                                 }
                             );
                     }
-                    setAuthToken(token).then(() => {});
-                    navigation.navigate('Main'); //Success and navigating to main screen
+                    setAuthToken(token).then((success) => {console.log("Saved token in the anxios header.")});
+                    resetFields()
+                    navigation.navigate('Groups'); //Success and navigating to groups screen
                 }
             }).catch((error) => {
                 const {status, data} = error.response;
@@ -116,15 +117,24 @@ function SignIn({navigation}) {
                     setErrorMessageServer("Something went wrong...")
                     setErrorServer(true);
                 }
-                console.log("?")
+                console.log(error)
             });
         }
+    }
+
+    function resetFields() {
+        setUsername('');
+        setPassword('');
+        setErrorMessageUsername('');
+        setErrorMessagePassword('')
     }
 
 
     //Use effect to send a request to the server while the page is loading to see if the token is valid
     useEffect(() => {
-        setLoading(true)
+        resetFields()
+        setLoading(true);
+        resetFields()
         getUserInfo(process.env.EXPO_PUBLIC_USER_TOKEN).then((token) => {
             if (token) {
                 axios.post(
@@ -135,22 +145,22 @@ function SignIn({navigation}) {
                 ).then(
                     (response) => {
                         //Server response
+                        resetFields()
                         const {isAuthenticated} = response.data;
                         if (isAuthenticated) { //No error, but checking if user is authenticated
                             console.log("User verified with token,")
                             setAuthToken(token).then(() => {});
                             setTimeout(() => {
-                                navigation.navigate('Main'); //Success and navigating to main screen after 3 seconds
+                                navigation.navigate('Groups'); //Success and navigating to groups screen after 3 seconds
                             }, 2000);
                         }
                     })
                     .catch((error) => {
+                        resetFields()
                         if (error.response) {
                             const {status} = error.response;
                             //setTimeout(null, 3000
-                            setTimeout(() => {
-                                setLoading(false);
-                            }, 1000);
+                            setLoading(false);
                             console.log(error)
                             if (status === 500) {
                                 setErrorMessageServer("Something went wrong...")
@@ -163,6 +173,7 @@ function SignIn({navigation}) {
                                 });
                             }
                         } else { //No server connection
+                            resetFields()
                             console.log(error)
                             setLoading(false);
                             setErrorMessageServer("Something went wrong...")
@@ -170,11 +181,12 @@ function SignIn({navigation}) {
                         }
                     });
             } else {
-                setTimeout(() => {
-                    setLoading(false);
-                }, 2000);
+                resetFields()
+                setLoading(false);
             }
         }).catch((error) => {
+            resetFields()
+            setLoading(false);
             console.log(error)
         });
     }, []);

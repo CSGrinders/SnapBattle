@@ -1,28 +1,55 @@
-import { Header, Icon } from "@rneui/base";
 import {useCallback, useEffect, useState} from "react";
-import {Dimensions, Pressable, SafeAreaView, Text, View, Image, ScrollView} from "react-native";
+import {Dimensions, Pressable, SafeAreaView, Text, View, Image, ScrollView, ActivityIndicator} from "react-native";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
-import PlusButton from "../../assets/plus.png"
-import LeaveButton from "../../assets/leave.png"
+import PlusButton from "../../assets/plus.webp"
+import LeaveButton from "../../assets/leave.webp"
 import axios from "axios";
 import uuid from 'react-native-uuid'
 import {Button} from "@rneui/themed";
 import {useFocusEffect} from "@react-navigation/native";
-const {EXPO_PUBLIC_API_URL} = process.env
+import {getUserInfo} from "../../Storage/Storage";
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
-function Groups({route, navigation}) {
-    const { userID } = route.params;
+function Groups({navigation}) {
+
+    //user information
+    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [userID, setUserID] = useState('');
+    const [token, setToken] = useState('');
 
     //groups are in format [{groupID: ?, name: ?}, ...]
-    const [groups, setGroups] = useState([])
+    const [groups, setGroups] = useState([-1])
     const [groupInvites, setGroupInvites] = useState(["test1", "test2", "test3", "test4"])
     const {width, height} = Dimensions.get('window')
 
-    //run on page load
+    //getting user information
+    useFocusEffect(
+        useCallback(() => {
+            getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
+                if (info) {
+                    const userData = JSON.parse(info);
+                    if (userData.name) setName(userData.name);
+                    if (userData.username) setUsername(userData.username);
+                    if (userData.email) setEmail(userData.email);
+                    if (userData.id) setUserID(userData.id)
+                    if (userData.username) setUsername(userData.username)
+                }
+            })
+            getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
+                if (info) {
+                    setToken(info);
+                }
+            })
+        }, [])
+    )
+
+    //getting information necessary for page display
     useFocusEffect(
         useCallback(() => {
             getGroups()
-        }, [])
+        }, [userID])
     )
 
 
@@ -54,7 +81,10 @@ function Groups({route, navigation}) {
                     <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Groups</Text>
                 </View>
                 <View>
-                    <ProfilePicture source={""} size={50}/>
+                    <Pressable onPress={() => navigation.navigate("Profile", {name: name, username: username,
+                                                                                   email: email, userID: userID})}>
+                        <ProfilePicture size={50}/>
+                    </Pressable>
                 </View>
             </View>
 
@@ -78,7 +108,7 @@ function Groups({route, navigation}) {
             }}>
                 <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Groups</Text>
                 <ScrollView>
-                    {groups.map((group) => {
+                    {(groups[0]!== -1) ? groups.map((group) => {
                         return (
                             <View key={uuid.v4()} style={{
                                 flexDirection: 'row',
@@ -87,7 +117,7 @@ function Groups({route, navigation}) {
                             >
                                 <Button
                                     buttonStyle={{width: 200}}
-                                    onPress={() => navigation.navigate("GroupHome", {userID: userID, groupID: group.groupID})}
+                                    onPress={() => navigation.navigate("GroupHome", {name: name, username: username, email: email, userID: userID, groupID: group.groupID})}
                                 >
                                     {group.name}
                                 </Button>
@@ -102,7 +132,7 @@ function Groups({route, navigation}) {
                                 </Pressable>
                             </View>
                         )
-                    })}
+                    }) : <ActivityIndicator size="large" color="#000000"/>}
                 </ScrollView>
             </View>
 

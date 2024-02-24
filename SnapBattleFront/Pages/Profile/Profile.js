@@ -1,35 +1,23 @@
-import {Dimensions, Pressable, SafeAreaView, TouchableOpacity, View} from "react-native";
-import {Button, Text} from "@rneui/themed";
+import {Dimensions, Pressable, SafeAreaView, TouchableOpacity, View, Text} from "react-native";
+import {Button} from "@rneui/themed";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import BackButton from "../../Components/Button/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp'
 import {Image} from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import {useEffect, useState} from "react";
-import {saveImageToCloud} from "../../Storage/Cloud";
+import {useCallback, useEffect, useState} from "react";
+import {getProfilePhoto, saveImageToCloud} from "../../Storage/Cloud";
 import {getUserInfo} from "../../Storage/Storage";
+import axios from "axios";
+import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
 
-function Profile({navigation}) {
-    let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
+function Profile({route, navigation}) {
+    const {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
-    const [name, setName] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [userID, setUserID] = useState('');
-
-    useEffect(() => {
-        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-            if (info) {
-                const userData = JSON.parse(info);
-                if (userData.name) setName(userData.name);
-                if (userData.username) setUsername(userData.username);
-                if (userData.email) setEmail(userData.email);
-                if (userData.id) setUserID(userData.id);
-                if (userData.username) setUsername(userData.username);
-            }
-        });
-    }, []);
+    const {name, username, email, userID} = route.params
+    const [bio, setBio] = useState('');
+    const [achievements, setAchievements] = useState('');
 
     const [image, setImage] = useState('');
 
@@ -38,7 +26,28 @@ function Profile({navigation}) {
         imagePicker();
     }
 
+    useFocusEffect(
+        useCallback(() => {
+            getUserInfo()
+        }, [userID])
+    )
 
+    function getUserInfo() {
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/getProfileInfo`
+        )
+            .then((res) => {
+                setAchievements(res.data.achievements)
+                setBio(res.data.bio)
+            })
+            .catch((err) => {
+                console.log("bruh profee")
+            })
+        getProfilePhoto(userID)
+            .then((data) => {
+                setImage(data.url)
+            });
+    }
     const imagePicker = async () => {
         try {
             let selectedImage = null;
@@ -58,28 +67,31 @@ function Profile({navigation}) {
     return (
         <SafeAreaView style={{
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             width: width,
-            height: height}}>
+            height: height
+        }}
+        >
             <View style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: height * 0.3
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: width * 0.9,
+                height: height * 0.15,
             }}>
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    width: width * 0.9,
-                    height: 5
-                }}>
-                    <BackButton size={50} navigation={navigation} destination="Main"/>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings')}>
-                        <Image source={SettingIcon} style={{width:50, height:50}}></Image>
-                    </TouchableOpacity>
-                </View>
+                <BackButton size={50} navigation={navigation} destination={"Groups"}/>
+                <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Page</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings', route.params)}>
+                    <Image source={SettingIcon} style={{width:50, height:50}}></Image>
+                </TouchableOpacity>
+            </View>
+            <View style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: height * 0.25,
+            }}>
                 <TouchableOpacity onPress={pfPressed}>
-                    <ProfilePicture size={150} source={image}/>
+                    <ProfilePicture size={150}/>
                 </TouchableOpacity>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{name}</Text>
                 <Text>@{username}</Text>
@@ -89,34 +101,39 @@ function Profile({navigation}) {
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.8,
-                height: height * 0.1}}>
+                height: height * 0.1
+            }}>
                 <Text style={{
+                    fontSize: 25,
                     fontWeight: 'bold',
-                    fontSize: 20,
-                    marginBottom: 5
-                }}>Bio</Text>
-                <Text>{email}</Text>
+                }}>
+                    Bio
+                </Text>
+                <Text>{bio}</Text>
             </View>
 
             <View style={{
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.8,
-                height: height * 0.1}}>
+                height: height * 0.1
+            }}>
                 <Text style={{
+                    fontSize: 25,
                     fontWeight: 'bold',
-                    fontSize: 20,
-                    marginBottom: 5
-                }}>Achievements</Text>
-                <Text>Winner x2</Text>
+                }}>
+                    Achievements
+                </Text>
+                <Text>{achievements}</Text>
             </View>
 
-            <View style={{height: height * 0.35, justifyContent: 'flex-end'}}>
-                <Button style={{
-                    alignContent: 'flex-end',
-                    alignItems: 'center',
-                    justifyContent: 'center'}}
-                >
+            <View style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: width,
+                height: height * 0.5
+            }}>
+                <Button onPress={() => navigation.navigate("Friends", route.params)}>
                     Friends
                 </Button>
             </View>

@@ -247,17 +247,22 @@ module.exports.AuthenticateOrSignUp = async (req, res) => {
 };
 
 
+/**
+ * Handle user log out.
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+
 module.exports.signOut = async(req, res)=> {
     try {
-        const { user_id } = req.params.userID;
-
-        const session = Session.findOne({ userID: user_id}); //Find session
+        const { userID } = req.params;
+        const session = await Session.findOne({ userID: userID}); //Find session
         if (!session) {
             return res.status(400).json({
                 errorMessage: "Something went wrong...",
             });
         }
-
         Session.deleteOne(session); //Remove session
 
         return res.status(200).json({
@@ -293,7 +298,13 @@ const verifyToken = (token, secret) => {
     })
 }
 
-//Verify user
+/**
+ * Handle user verification.
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+
 module.exports.userVerification = (req, res, next) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {

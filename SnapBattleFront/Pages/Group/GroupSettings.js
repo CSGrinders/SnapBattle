@@ -11,8 +11,7 @@ const { EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO } =
     process.env;
 
 function GroupSettings({route, navigation}) {
-    const {userID} = route.params;
-    const {groupID} = route.params;
+    const {name, username, email, userID, groupID} = route.params
     // UI formatting
     let {width, height} = Dimensions.get('window')
     // group name
@@ -86,7 +85,7 @@ function GroupSettings({route, navigation}) {
                 width: width * 0.9,
             }}>
                 <View style={{paddingLeft: 20, alignItems: 'flex-start'}}>
-                    <BackButton size={40} navigation={navigation} destination="Main"/>
+                    <BackButton size={40} navigation={navigation} destination={"GroupHome"} params={route.params}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Group Settings</Text>
