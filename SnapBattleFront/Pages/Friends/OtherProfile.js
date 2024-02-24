@@ -58,7 +58,7 @@ function OtherProfile({route, navigation}) {
                 }}>
                     <BackButton size={50} navigation={navigation} destination={"Friends"} params={{name: name, username: username, email: email, userID: userID}}/>
                 </View>
-                <ProfilePicture size={150} source={image}/>
+                <ProfilePicture size={150}/>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{searchName}</Text>
                 <Text>@{searchUsername}</Text>
             </View>

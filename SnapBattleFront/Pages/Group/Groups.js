@@ -83,7 +83,7 @@ function Groups({navigation}) {
                 <View>
                     <Pressable onPress={() => navigation.navigate("Profile", {name: name, username: username,
                                                                                    email: email, userID: userID})}>
-                        <ProfilePicture source={""} size={50}/>
+                        <ProfilePicture size={50}/>
                     </Pressable>
                 </View>
             </View>

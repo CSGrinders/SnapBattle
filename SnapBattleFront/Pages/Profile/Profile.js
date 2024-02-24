@@ -6,7 +6,7 @@ import SettingIcon from '../../assets/profile-setting-icon.webp'
 import {Image} from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import {useCallback, useEffect, useState} from "react";
-import {saveImageToCloud} from "../../Storage/Cloud";
+import {getProfilePhoto, saveImageToCloud} from "../../Storage/Cloud";
 import {getUserInfo} from "../../Storage/Storage";
 import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
@@ -43,6 +43,10 @@ function Profile({route, navigation}) {
             .catch((err) => {
                 console.log("bruh profee")
             })
+        getProfilePhoto(userID)
+            .then((data) => {
+                setImage(data.url)
+            });
     }
     const imagePicker = async () => {
         try {
@@ -73,7 +77,7 @@ function Profile({route, navigation}) {
                 alignItems: "center",
                 justifyContent: "space-between",
                 width: width * 0.9,
-                height: height * 0.1,
+                height: height * 0.15,
             }}>
                 <BackButton size={50} navigation={navigation} destination={"Groups"}/>
                 <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Page</Text>
@@ -87,7 +91,7 @@ function Profile({route, navigation}) {
                 height: height * 0.25,
             }}>
                 <TouchableOpacity onPress={pfPressed}>
-                    <ProfilePicture size={150} source={image}/>
+                    <ProfilePicture size={150}/>
                 </TouchableOpacity>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{name}</Text>
                 <Text>@{username}</Text>

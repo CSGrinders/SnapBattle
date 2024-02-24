@@ -1,7 +1,8 @@
 const {
     ref,
     uploadBytes,
-    uploadBytesResumable
+    uploadBytesResumable,
+    getDownloadURL
 } = require("firebase/storage");
 
 const storage = require("../../Firebase/Firebase")
@@ -24,6 +25,23 @@ module.exports.uploadPhoto = async(req, res)=> {
         // storageRef.put(blob)
 
         return res.status(200).json('Image uploaded successfully.');
+    } catch (error) {
+        return res.status(400).json('Error uploading image: ' + error.message);
+    }
+}
+
+module.exports.getPhoto = async(req, res)=> {
+    try {
+        const userID = req.params.userID;
+        const imageRef = ref(storage, `profileImage/${userID}.jpeg`);
+        getDownloadURL(imageRef)
+            .then((url) => {
+                console.log('Image URL:', url);
+                return res.status(200).json({url: url});
+            })
+            .catch((error) => {
+                console.error('Error downloading image:', error);
+            });
     } catch (error) {
         return res.status(400).json('Error uploading image: ' + error.message);
     }
