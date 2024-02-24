@@ -5,6 +5,7 @@
  * @param {object} res - Express response object.
  */
 const {User, Session} = require("../../Models/User");
+const {compare} = require("bcrypt");
 
 
 /**
@@ -17,7 +18,37 @@ const {User, Session} = require("../../Models/User");
 module.exports.changePassword = async(req, res)=> {
     try {
         const {userID} = req.params;
-        const {newPassword, oldPassword} = req.body;
+        const {newPassword} = req.body;
+
+        if (newPassword === '') {
+            return res.status(400).json({
+                errorMessage: "Invalid password length. Max (4-20 Chars).",
+            });
+        }
+        if (newPassword.length < 4 || newPassword.length > 20) {
+            return res.status(400).json({
+                errorMessage: "Invalid password length. Max (4-20 Chars).",
+            });
+        }
+
+
+        const user = await User.findById(userID); //find user
+        if (user) {
+            // Compares password given by client and decrypted password stored in MongoDB
+            const verifyPassword = await compare(newPassword, user.password);
+            if (verifyPassword) {
+                return res.status(401).json({
+                    errorMessage: "The new password should be different.",
+                });
+            }
+            user.password = newPassword;
+            await user.save();
+            res.status(200).json({passChanged: true});
+        } else {
+            res.status(500).json({
+                errorMessage: "Something went wrong...",
+            });
+        }
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -51,10 +82,12 @@ module.exports.changeName = async(req, res)=> {
             });
         }
 
-        const user = await  User.findById(userID); //find user
-        if (userID) { //User found
-            user.bio = newName;
+        const user = await User.findById(userID); //find user
+        console.log(user);
+        if (user) { //User found
+            user.name = newName;
             await user.save();
+            console.log(user);
             res.status(200).json({nameChanged: true});
         } else { //user not found
             res.status(400).json({
@@ -96,8 +129,13 @@ module.exports.changeBio = async(req, res)=> {
         }
 
         const user = await  User.findById(userID); //Find user
-        if (userID) { //User not found
-            user.bio = newBio;
+        if (user) { //User not found
+            if (user.biography === newBio) { //Check if it is the same bio
+                return res.status(400).json({
+                    errorMessage: "The new biography should be different.",
+                });
+            }
+            user.biography = newBio;
             await user.save();
             res.status(200).json({bioChanged: true});
         } else { //User not found send error

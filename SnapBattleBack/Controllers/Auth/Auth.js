@@ -264,7 +264,9 @@ module.exports.signOut = async(req, res)=> {
                 errorMessage: "Something went wrong...",
             });
         }
-        Session.deleteOne(session); //Remove session
+        console.log(session)
+        await Session.deleteOne(session); //Remove session
+        console.log(session)
 
         return res.status(200).json({
             isSignedOut: true,
