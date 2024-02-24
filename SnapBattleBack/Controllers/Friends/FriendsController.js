@@ -9,7 +9,8 @@ module.exports.searchUser = async(req, res) => {
             res.status(200).json({
                 searchName: searchUser.name,
                 searchUsername: searchUser.username,
-                searchBio: searchUser.biography
+                searchBio: searchUser.biography,
+                searchID: searchUser._id.toString()
             })
         }
         else {

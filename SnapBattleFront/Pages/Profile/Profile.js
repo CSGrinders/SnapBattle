@@ -19,8 +19,10 @@ function Profile({route, navigation}) {
     const [bio, setBio] = useState('');
     const [achievements, setAchievements] = useState('');
 
-    const [image, setImage] = useState('');
-
+    const [pfpSeed, setPfpSeed] = useState(1);
+    const pfpReset = () => {
+        setPfpSeed(Math.random());
+    }
 
     const pfPressed = () => {
         imagePicker();
@@ -43,11 +45,8 @@ function Profile({route, navigation}) {
             .catch((err) => {
                 console.log("bruh profee")
             })
-        getProfilePhoto(userID)
-            .then((data) => {
-                setImage(data.url)
-            });
     }
+
     const imagePicker = async () => {
         try {
             let selectedImage = null;
@@ -57,9 +56,10 @@ function Profile({route, navigation}) {
                 aspect: [4, 4],
                 quality: 1,
             });
-            console.log(selectedImage.assets[0].uri);
-            await saveImageToCloud(userID, selectedImage.assets[0].uri);
-            await setImage(selectedImage.assets[0].uri);
+            // console.log(selectedImage.assets[0].uri);
+            saveImageToCloud(userID, selectedImage.assets[0].uri).then(() => {
+                pfpReset();
+            })
         } catch (e) {
             console.log(e);
         }
@@ -91,7 +91,7 @@ function Profile({route, navigation}) {
                 height: height * 0.25,
             }}>
                 <TouchableOpacity onPress={pfPressed}>
-                    <ProfilePicture size={150}/>
+                    <ProfilePicture size={150} key={pfpSeed}/>
                 </TouchableOpacity>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{name}</Text>
                 <Text>@{username}</Text>

@@ -8,12 +8,13 @@ import {useEffect, useState} from "react";
 import axios from "axios";
 import ErrorPrompt from "../../Components/ErrorPrompt";
 import InfoPrompt from "../../Components/InfoPrompt";
+import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
 
 function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
-    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio} = route.params
+    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID} = route.params
 
     const [image, setImage] = useState('')
 
@@ -58,7 +59,7 @@ function OtherProfile({route, navigation}) {
                 }}>
                     <BackButton size={50} navigation={navigation} destination={"Friends"} params={{name: name, username: username, email: email, userID: userID}}/>
                 </View>
-                <ProfilePicture size={150}/>
+                <OtherProfilePicture size={150} searchID={searchID}/>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{searchName}</Text>
                 <Text>@{searchUsername}</Text>
             </View>
