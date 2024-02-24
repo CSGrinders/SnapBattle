@@ -23,7 +23,6 @@ function SignIn({navigation}) {
     let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
     const [showPassword, setShowPassword] = useState(false); //Show password checkbox field
 
-
     //Input fields
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
