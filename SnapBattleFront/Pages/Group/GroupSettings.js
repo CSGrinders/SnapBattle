@@ -7,11 +7,11 @@ import {useState} from "react";
 import axios from "axios";
 import InfoPrompt from "../../Components/InfoPrompt";
 import ErrorPrompt from "../../Components/ErrorPrompt";
-const { EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO } =
+const { EXPO_PUBLIC_API_URL } =
     process.env;
 
 function GroupSettings({route, navigation}) {
-    const {name, username, email, userID, groupID} = route.params
+    const { userID, groupID } = route.params
     // UI formatting
     let {width, height} = Dimensions.get('window')
     // group name
