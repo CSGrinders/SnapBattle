@@ -20,11 +20,13 @@ function GroupSettings({route, navigation}) {
     const [groupSize, setGroupSize] = useState("")
     // release prompt time
     const [isPromptVisible, setPromptVisible] = useState(false);
-    const [promptTime, setPromptTime] = useState("Select Time");
+    const [promptTitle, setPromptTitle] = useState("Select Time");
+    const [promptTime, setPromptTime] = useState("");
     const [promptDate, setPromptDate] = useState(new Date());
     // submit prompt time
     const [isSubmitVisible, setSubmitVisible] = useState(false);
-    const [submissionTime, setSubmissionTime] = useState("Select Time");
+    const [submissionTitle, setSubmissionTitle] = useState("Select Time");
+    const [submissionTime, setSubmissionTime] = useState("")
     const [submissionDate, setSubmissionDate] = useState(new Date());
     // error messages
     const [groupNameError, setGroupNameError] = useState("")
@@ -58,7 +60,7 @@ function GroupSettings({route, navigation}) {
                 }
             }).catch((error) => {
                 const {status, data} = error.response;
-                setErrorMessage(data);
+                setErrorMessage("Something went wrong... " + data);
                 setErrorState(true);
             })
         }
@@ -168,10 +170,11 @@ function GroupSettings({route, navigation}) {
                         width={width}
                         visibility={isPromptVisible}
                         setVisibility={setPromptVisible}
-                        time={promptTime}
-                        setTime={setPromptTime}
+                        title={promptTitle}
+                        setTitle={setPromptTitle}
                         date={promptDate}
-                        setDate={setPromptDate}>
+                        setDate={setPromptDate}
+                        setTime={setPromptTime}>
                     </SelectTimeButton>
                     <SubmitIcon size={50} submitPressed={submitPromptTime}/>
                 </View>
@@ -204,10 +207,11 @@ function GroupSettings({route, navigation}) {
                         width={width}
                         visibility={isSubmitVisible}
                         setVisibility={setSubmitVisible}
-                        time={submissionTime}
-                        setTime={setSubmissionTime}
+                        title={submissionTitle}
+                        setTitle={setSubmissionTitle}
                         date={submissionDate}
-                        setDate={setSubmissionDate}>
+                        setDate={setSubmissionDate}
+                        setTime={setSubmissionTime}>
                     </SelectTimeButton>
                     <SubmitIcon size={50} submitPressed={submitSubmissionTime}/>
                 </View>
