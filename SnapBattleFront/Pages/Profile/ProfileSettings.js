@@ -1,6 +1,16 @@
+/**
+ * Profile Settings Component
+ *
+ * This component renders the settings page for a user's profile. It
+ * allows users to update their personal information, and also allows to
+ * delete or sign out from the account.
+ *
+ * @component
+ * @return {JSX.Element} User's profile settings.
+ */
+
 import {
     ActivityIndicator,
-    Alert,
     Dimensions,
     KeyboardAvoidingView,
     Modal,
@@ -12,11 +22,11 @@ import {
 } from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import axios from "axios";
-import {useCallback, useEffect, useState} from "react";
-import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
-import ErrorPrompt from "../../Components/ErrorPrompt";
+import {useCallback, useState} from "react";
+import {deleteUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {Button, Input} from "@rneui/themed";
-import InfoPrompt from "../../Components/InfoPrompt";
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
 import {Image} from "expo-image";
@@ -24,7 +34,7 @@ import CloseButton from "../../assets/close.webp";
 import * as ImagePicker from "expo-image-picker";
 import {saveImageToCloud} from "../../Storage/Cloud";
 import {useFocusEffect} from "@react-navigation/native";
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function ProfileSettings({route, navigation}) {
 
@@ -68,7 +78,7 @@ function ProfileSettings({route, navigation}) {
         useCallback(() => {
             setImage('');
         }, [userID])
-    )
+    );
 
     async function imagePicker() {
         try {
@@ -88,8 +98,8 @@ function ProfileSettings({route, navigation}) {
             setInfoMessage("Image Uploaded");
             setImage(selectedImage.assets[0].uri);
             return res;
-        } catch (e) {
-            console.log(e);
+        } catch (error) {
+            console.log("Profile settings page: " + error);
         }
     }
     // Handle sign out
@@ -99,9 +109,9 @@ function ProfileSettings({route, navigation}) {
         ).then((response) => {
             const isSignedOut = response.data;
             if (isSignedOut) { //Success
-                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User logged out. Deleting user token."));
-                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User logged out. Deleting user data."));
-                setAuthToken(null).then(r => {});
+                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("Profile settings page: User logged out. Deleting user token."));
+                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("Profile settings page: User logged out. Deleting user data."));
+                setAuthToken(null).then(null);
                 setInfoPrompt(true);
                 setInfoMessage("You are signing out...");
                 setTimeout(() => {
@@ -109,7 +119,18 @@ function ProfileSettings({route, navigation}) {
                 }, 2000);
             }
         }).catch((error) => {
+            const {status, data} = error.response;
             if (error.response) { //Error
+                if (status !== 500) {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                } else {
+                    console.log("Profile settings page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
+            } else {
+                console.log("Profile settings page: " + error);
                 setErrorMessageServer("Something went wrong...");
                 setErrorServer(true);
             }
@@ -119,7 +140,7 @@ function ProfileSettings({route, navigation}) {
     function handleDeleteAccount() {
         if (username !== confirmUsername) { //Different usernames
             setConfirmStatus('Username does not match.');
-            return
+            return;
         }
         //Reset fields
         setConfirmStatus('');
@@ -132,9 +153,9 @@ function ProfileSettings({route, navigation}) {
         ).then((response) => {
             const isDeleted = response.data;
             if (isDeleted) { //Success
-                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User deleted. Deleting user token."));
-                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User deleted. Deleting user data."));
-                setAuthToken(null).then(r => {});
+                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("Profile settings page: User deleted. Deleting user token."));
+                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("Profile settings page: User deleted. Deleting user data."));
+                setAuthToken(null).then(null);
                 setInfoPrompt(true);
                 setInfoMessage("You are signing out...");
                 setTimeout(() => {
@@ -142,8 +163,18 @@ function ProfileSettings({route, navigation}) {
                 }, 2000);
             }
         }).catch((error) => {
-            console.log(error)
+            const {status, data} = error.response;
             if (error.response) { //Error
+                if (status !== 500) {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                } else {
+                    console.log("Profile settings page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
+            } else {
+                console.log("Profile settings page: " + error);
                 setErrorMessageServer("Something went wrong...");
                 setErrorServer(true);
             }
@@ -156,7 +187,7 @@ function ProfileSettings({route, navigation}) {
         if (newName === '') { //Empty fields
             setErrorMessageName('Empty field.');
         } else if (name === newName) {
-            setErrorMessageName('The new name should be different.')
+            setErrorMessageName('The new name should be different.');
         } else {
             axios.post(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/changename`,
@@ -167,7 +198,6 @@ function ProfileSettings({route, navigation}) {
                 const nameChanged = response.data;
                 if (nameChanged) { //Success
                     //route.params.name = newName;
-                    console.log(route.params.name)
                     const userData = {
                         name: newName,
                         username: username,
@@ -176,23 +206,27 @@ function ProfileSettings({route, navigation}) {
                     }
                     //Save user info again
                     saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(userData))
-                        .then((success) => console.log("Updated user info."))
-                        .catch((error) => console.log(error))
+                        .then((success) => console.log("Profile settings page: Updated user storage info."))
+                        .catch((error) => console.log("Profile settings page: " + error))
                     setInfoPrompt(true);
                     setInfoMessage("You changed your name!");
                     setErrorMessageName('');
                 }
             }).catch((error) => {
                 setNewName(name);
-                console.log(error);
                 const {status, data} = error.response;
                 if (error.response) { //Error
                     if (status !== 500) {
                         setErrorMessageName(data.errorMessage);
                     } else {
+                        console.log("Profile settings page: " + error);
                         setErrorMessageServer("Something went wrong...");
                         setErrorServer(true);
                     }
+                } else {
+                    console.log("Profile settings page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
                 }
             });
         }
@@ -217,31 +251,35 @@ function ProfileSettings({route, navigation}) {
                     setErrorMessageName('');
                 }
             }).catch((error) => {
-                console.log(error);
                 const {status, data} = error.response;
                 if (error.response) { //Error
                     if (status !== 500) {
                         setErrorMessageBio(data.errorMessage);
                     } else {
+                        console.log("Profile settings page: " + error);
                         setErrorMessageServer("Something went wrong...");
                         setErrorServer(true);
                     }
+                } else {
+                    console.log("Profile settings page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
                 }
             });
         }
     }
 
     function handleChangePassword() {
-        setConfirm(false)
+        setConfirm(false);
         setConfirmStatus('');
         setOption('');
         if (newPassword === '') { //Empty field
-            setErrorMessagePassword("Empty field.")
-            return
+            setErrorMessagePassword("Empty field.");
+            return;
         }
         if (newPassword.includes(" ")) { //Check for invalid input
             setErrorMessagePassword('Invalid password. (No spaces)');
-            return
+            return;
         }
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/changepassword`,
@@ -256,15 +294,20 @@ function ProfileSettings({route, navigation}) {
                 setErrorMessageName('');
             }
         }).catch((error) => {
-            console.log(error);
+            console.log("Profile settings page: " + error);
             const {status, data} = error.response;
             if (error.response) { //Error
                 if (status !== 500) {
                     setErrorMessagePassword(data.errorMessage);
                 } else {
+                    console.log("Profile settings page: " + error);
                     setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
                 }
+            } else {
+                console.log("Profile settings page: " + error);
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
             }
         });
     }
@@ -274,7 +317,7 @@ function ProfileSettings({route, navigation}) {
         if (option === "delete") {
             handleDeleteAccount();
         } else {
-            handleChangePassword()
+            handleChangePassword();
         }
     }
 
@@ -303,9 +346,11 @@ function ProfileSettings({route, navigation}) {
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 height: height * 0.2,
-                width: width * 0.9,
             }}>
-                <View style={{paddingLeft: 15, alignItems: 'flex-start'}}>
+                <View style={{
+                    paddingLeft: 15,
+                    alignItems: 'flex-start'
+                }}>
                     {!loading && <BackButton
                         size={50}
                         navigation={navigation}
@@ -316,8 +361,15 @@ function ProfileSettings({route, navigation}) {
                         }}
                     />}
                 </View>
-                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                    <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Settings</Text>
+                <View style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                }}>
+                    <Text style={{
+                        fontSize: 40,
+                        fontFamily: 'OpenSansBold'
+                    }}>Profile Settings</Text>
                 </View>
             </View>
             <View style={{
@@ -422,9 +474,9 @@ function ProfileSettings({route, navigation}) {
             }}>
                 <Button onPress={()=> {
                     setOption("delete");
-                    setConfirm(true)
-                    setConfirmUsername('')
-                    setConfirmStatus('')
+                    setConfirm(true);
+                    setConfirmUsername('');
+                    setConfirmStatus('');
                 }} disabled={loading} >Delete Account</Button>
             </View>
             <View style={{
@@ -442,8 +494,8 @@ function ProfileSettings({route, navigation}) {
                 transparent={true}
                 visible={confirm}
                 onRequestClose={() => {
-                    setConfirm(false)
-                    setConfirmStatus('')
+                    setConfirm(false);
+                    setConfirmStatus('');
                 }}>
                 <View style={{
                     flex: 1,
@@ -484,7 +536,7 @@ function ProfileSettings({route, navigation}) {
                         <Input
                                 placeholder='Confirm action.'
                                 onChangeText={username => {
-                                    setConfirmUsername(username)
+                                    setConfirmUsername(username);
                                     setConfirmStatus('');
                                 }}
                                 autoCapitalize="none"
@@ -502,4 +554,4 @@ function ProfileSettings({route, navigation}) {
     )
 }
 
-export default ProfileSettings
+export default ProfileSettings;

@@ -1,4 +1,5 @@
 import { Button } from '@rneui/themed'
+
 function SendFriendReq() {
 
     //API call when send friend request button is clicked

@@ -19,4 +19,4 @@ function GroupHome({route, navigation}) {
     )
 }
 
-export default GroupHome
+export default GroupHome;

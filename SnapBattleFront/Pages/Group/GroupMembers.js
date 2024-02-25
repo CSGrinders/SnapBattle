@@ -1,36 +1,41 @@
 import {ActivityIndicator, Alert, Dimensions, Modal, Pressable, SafeAreaView, ScrollView, Text, View} from "react-native";
 import {Image} from "expo-image";
 import {Button, Input} from "@rneui/themed";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
+const {EXPO_PUBLIC_API_URL} = process.env
 import BackIcon from "../../assets/back-icon.webp";
 import {useFocusEffect} from "@react-navigation/native";
 import uuid from 'react-native-uuid'
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 
 function GroupMembers({route, navigation}) {
 
-    const {name, username, email, userID, groupID} = route.params
-    const {width, height} = Dimensions.get('window')
+    const {name, username, email, userID, groupID} = route.params;
+    const {width, height} = Dimensions.get('window');
 
     //state for whether the invite box is open or not
-    const [invBoxVisible, setInvBoxVisibility] = useState(false)
+    const [invBoxVisible, setInvBoxVisibility] = useState(false);
 
     //state for the username to be invited to the group
-    const [invUser, setInvUser] = useState("")
+    const [invUser, setInvUser] = useState("");
 
     //state for group invite status message
-    const [invStatusMsg, setInvStatusMsg] = useState("")
-    const [invStatusColor, setInvStatusColor] = useState("green")
+    const [invStatusMsg, setInvStatusMsg] = useState("");
+    const [invStatusColor, setInvStatusColor] = useState("green");
+
+    //Server error messages
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
 
     //state for group members
-    const [groupMembers, setGroupMembers] = useState([-1])
+    const [groupMembers, setGroupMembers] = useState([-1]);
 
         //getting information necessary for page display
      useFocusEffect(
         useCallback(() => {
-            getGroupMembers()
+            getGroupMembers();
         }, [])
     )
 
@@ -40,10 +45,12 @@ function GroupMembers({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/list-users/${groupID}`
         )
         .then((res) => {
-            setGroupMembers(res.data)
+            setGroupMembers(res.data.list);
         })
         .catch((err) => {
-            console.log("bruh", err)
+            setErrorMessageServer("Something went wrong...");
+            setErrorServer(true);
+            console.log("CreateGroup page: " + error);
         })
     }
 
@@ -56,21 +63,34 @@ function GroupMembers({route, navigation}) {
             }
         ).then(
             (res) => {
-                setInvStatusMsg(res.data)
-                setInvStatusColor("green")
+                const message = res.data;
+                if (message) {
+                    setInvStatusMsg(message);
+                    setInvStatusColor("green");
+                }
             }
-        ).catch(
-            (error) => {
-                // Check for error.response if its null, also you can use //error.response.status
-                setInvStatusMsg(error.response.data)
-                setInvStatusColor("red")
+        ).catch((error) => {
+            const {status, data} = error.response;
+            if (error.response) {
+                if (status !== 500) {
+                    setInvStatusMsg(data.errorMessage);
+                    setInvStatusColor("red")
+                } else {
+                    console.log("Group Settings page: " + error);
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                }
+            } else {
+                console.log("Group Settings page: " + error);
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
             }
-        )
+        })
     }
 
     function closeInviteBox() {
-        setInvStatusMsg("")
-        setInvBoxVisibility(false)
+        setInvStatusMsg("");
+        setInvBoxVisibility(false);
     }
 
 
@@ -176,10 +196,10 @@ function GroupMembers({route, navigation}) {
                 </ScrollView>
             </View>
 
-
                 <Button onPress={() => setInvBoxVisibility(true)}>Invite +</Button>
+            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
         </SafeAreaView>
     )
 }
 
-export default GroupMembers
+export default GroupMembers;

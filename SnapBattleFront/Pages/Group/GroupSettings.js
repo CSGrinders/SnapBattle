@@ -1,163 +1,206 @@
+/**
+ * GroupSettings Component
+ *
+ * This component allow administrator modify their group settings.
+ *
+ * @component
+ * @return {JSX.Element} Renders a user page for managing the settings of a group.
+ */
+
 import {KeyboardAvoidingView, Dimensions, Text, View, Platform} from "react-native";
-import SubmitIcon from "../../Components/Group/SubmitSettingsIcon.js"
+import SubmitIcon from "../../Components/Group/SubmitSettingsIcon.js";
 import {Button, Input} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 import SelectTimeButton from "../../Components/Group/SelectTime";
 import {useState} from "react";
 import axios from "axios";
-import InfoPrompt from "../../Components/InfoPrompt";
-import ErrorPrompt from "../../Components/ErrorPrompt";
-const { EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO } =
-    process.env;
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+
+const {EXPO_PUBLIC_API_URL} = process.env;
 
 function GroupSettings({route, navigation}) {
-    const {name, username, email, userID, groupID} = route.params
+    const {name, username, email, userID, groupID} = route.params;
+
     // UI formatting
-    let {width, height} = Dimensions.get('window')
+    let {width, height} = Dimensions.get('window');
+
     // group name
-    const [groupName, setGroupName] = useState("")
+    const [groupName, setGroupName] = useState("");
+
     // group size
-    const [groupSize, setGroupSize] = useState("")
+    const [groupSize, setGroupSize] = useState("");
+
     // release prompt time
     const [isPromptVisible, setPromptVisible] = useState(false);
     const [promptTitle, setPromptTitle] = useState("Select Time");
     const [promptTime, setPromptTime] = useState("");
     const [promptDate, setPromptDate] = useState(new Date());
+
     // submit prompt time
     const [isSubmitVisible, setSubmitVisible] = useState(false);
     const [submissionTitle, setSubmissionTitle] = useState("Select Time");
-    const [submissionTime, setSubmissionTime] = useState("")
+    const [submissionTime, setSubmissionTime] = useState("");
     const [submissionDate, setSubmissionDate] = useState(new Date());
+
     // error messages
-    const [groupNameError, setGroupNameError] = useState("")
-    const [groupSizeError, setGroupSizeError] = useState("")
-    const [promptTimeError, setPromptTimeError] = useState("")
-    const [submissionTimeError, setSubmissionTimeError] = useState("")
+    const [groupNameError, setGroupNameError] = useState("");
+    const [groupSizeError, setGroupSizeError] = useState("");
+    const [promptTimeError, setPromptTimeError] = useState("");
+    const [submissionTimeError, setSubmissionTimeError] = useState("");
+
     // success prompts
-    const [successMessage, setSuccessMessage] = useState("")
-    const [successState, setSuccessState] = useState(false)
+    const [successMessage, setSuccessMessage] = useState("");
+    const [successState, setSuccessState] = useState(false);
+
     // error prompts
-    const [errorMessage, setErrorMessage] = useState("")
-    const [errorState, setErrorState] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("");
+    const [errorState, setErrorState] = useState(false);
+
     function submitGroupName() {
         let error = false;
         if (!groupName) {
-            setGroupNameError("Field cannot be empty!")
+            setGroupNameError("Empty field.")
             error = true;
         }
         if (!error) {
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupname`, {
-                groupName: groupName
-            })
-            .then((response) => {
-                const {nameChange} = response.data;
-                if (nameChange) {
-                    setSuccessMessage("Group Name has been changed!")
-                    setSuccessState(true);
-                }
-            })
-            .catch((error) => {
-                console.log(error)
-                const {status, data} = error.response;
-                if (status === 400) {
-                    setGroupNameError(data.errorMessage);
-                } else {
-                    setErrorMessage(data.errorMessage);
-                    setErrorState(true);
-                }
-            })
-        }
-    }
-    function submitGroupSize() {
-        console.log(groupSize)
-        let error = false;
-        if (!groupSize) {
-            setGroupSizeError("Field cannot be empty!")
-            error = true;
-        }
-        if (isNaN(parseInt(groupSize))) {
-            setGroupSizeError("Field cannot contain non-numeric characters!")
-            error = true;
-        }
-        if (!error) {
-            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupsize`, {
-                groupSize: groupSize
-            })
-            .then((response) => {
-                const {sizeChange} = response.data;
-                if (sizeChange) {
-                    setSuccessMessage("Group size has been changed!")
-                    setSuccessState(true);
-                }
-            })
-            .catch((error) => {
-                const {status, data} = error.response;
-                if (status === 400) {
-                    setGroupSizeError(data.errorMessage);
-                } else {
-                    setErrorMessage(data.errorMessage);
-                    setErrorState(true);
-                }
-            })
-        }
-    }
-    function submitPromptTime() {
-        setPromptTimeError("")
-        console.log(promptTime)
-        let error = false;
-        if (!promptTime) {
-            setGroupNameError("Select a new prompt time!")
-            error = true;
-        }
-        if (!error) {
-            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/prompttime`, {
-                promptTime: promptTime
-            })
-            .then((response) => {
-                const {promptTimeChange} = response.data;
-                if (promptTimeChange) {
-                    setSuccessMessage("Prompt time has been changed!")
-                    setSuccessState(true);
-                }
-            })
-            .catch((error) => {
-                console.log(error)
-                const {status, data} = error.response;
-                if (status === 400) {
-                    setPromptTimeError(data.errorMessage);
-                } else {
-                    setErrorMessage(data.errorMessage);
-                    setErrorState(true);
-                }
-            })
-        }
-    }
-    function submitSubmissionTime() {
-        setSubmissionTimeError("")
-        console.log(submissionTime)
-        let error = false;
-        if (!submissionTime) {
-            setGroupNameError("Select a new submission time!")
-            error = true;
-        }
-        if (!error) {
-            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/submissiontime`, {
-                submissionTime: submissionTime
+                groupName: groupName,
             })
                 .then((response) => {
-                    const {submissionTimeChange} = response.data;
-                    if (submissionTimeChange) {
-                        setSuccessMessage("Submission time has been changed!")
+                    const {nameChanged} = response.data;
+                    if (nameChanged) {
+                        setSuccessMessage("Group Name has been changed!");
                         setSuccessState(true);
                     }
                 })
                 .catch((error) => {
-                    console.log(error)
                     const {status, data} = error.response;
-                    if (status === 400) {
-                        setSubmissionTimeError(data.errorMessage);
+                    if (error.response) {
+                        if (status !== 500) {
+                            setGroupNameError(data.errorMessage);
+                        } else {
+                            console.log("Group Settings page: " + error);
+                            setErrorMessage(data.errorMessage);
+                            setErrorState(true);
+                        }
                     } else {
-                        setErrorMessage(data.errorMessage);
+                        console.log("Group Settings page: " + error);
+                        setErrorMessage("Something went wrong...");
+                        setErrorState(true);
+                    }
+                })
+        }
+    }
+
+    function submitGroupSize() {
+        let error = false;
+        if (!groupSize) {
+            setGroupSizeError("Empty field.");
+            error = true;
+        }
+        if (isNaN(parseInt(groupSize))) {
+            setGroupSizeError("Field cannot contain non-numeric characters.");
+            error = true;
+        }
+        if (!error) {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupsize`, {
+                groupSize: groupSize,
+            })
+                .then((response) => {
+                    const {sizeChanged} = response.data;
+                    if (sizeChanged) {
+                        setSuccessMessage("Group size has been changed!");
+                        setSuccessState(true);
+                    }
+                })
+                .catch((error) => {
+                    const {status, data} = error.response;
+                    if (error.response) {
+                        if (status !== 500) {
+                            setGroupNameError(data.errorMessage);
+                        } else {
+                            console.log("Group Settings page: " + error);
+                            setErrorMessage(data.errorMessage);
+                            setErrorState(true);
+                        }
+                    } else {
+                        console.log("Group Settings page: " + error);
+                        setErrorMessage("Something went wrong...");
+                        setErrorState(true);
+                    }
+                })
+        }
+    }
+
+    function submitPromptTime() {
+        setPromptTimeError("");
+        let error = false;
+        if (!promptTime) {
+            setGroupNameError("Select a new prompt time.");
+            error = true;
+        }
+        if (!error) {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/prompttime`, {
+                promptTime: promptTime,
+            })
+                .then((response) => {
+                    const {promptTimeChanged} = response.data;
+                    if (promptTimeChanged) {
+                        setSuccessMessage("Prompt time has been changed!");
+                        setSuccessState(true);
+                    }
+                })
+                .catch((error) => {
+                    const {status, data} = error.response;
+                    if (error.response) {
+                        if (status !== 500) {
+                            setGroupNameError(data.errorMessage);
+                        } else {
+                            console.log("Group Settings page: " + error);
+                            setErrorMessage(data.errorMessage);
+                            setErrorState(true);
+                        }
+                    } else {
+                        console.log("Group Settings page: " + error);
+                        setErrorMessage("Something went wrong...");
+                        setErrorState(true);
+                    }
+                })
+        }
+    }
+
+    function submitSubmissionTime() {
+        setSubmissionTimeError("");
+        let error = false;
+        if (!submissionTime) {
+            setGroupNameError("Select a new submission time.");
+            error = true;
+        }
+        if (!error) {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/submissiontime`, {
+                submissionTime: submissionTime,
+            })
+                .then((response) => {
+                    const {submissionTimeChange} = response.data;
+                    if (submissionTimeChange) {
+                        setSuccessMessage("Submission time has been changed!");
+                        setSuccessState(true);
+                    }
+                })
+                .catch((error) => {
+                    const {status, data} = error.response;
+                    if (error.response) {
+                        if (status !== 500) {
+                            setGroupNameError(data.errorMessage);
+                        } else {
+                            console.log("Group Settings page: " + error);
+                            setErrorMessage(data.errorMessage);
+                            setErrorState(true);
+                        }
+                    } else {
+                        console.log("Group Settings page: " + error);
+                        setErrorMessage("Something went wrong...");
                         setErrorState(true);
                     }
                 })
@@ -166,24 +209,26 @@ function GroupSettings({route, navigation}) {
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-                              enabled={false}>
+                              enabled={false} style={{flex: 1}}>
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 height: height * 0.2,
-                width: width * 0.9,
             }}>
-                <View style={{paddingLeft: 20, alignItems: 'flex-start'}}>
-                    <BackButton size={40} navigation={navigation} destination={"GroupHome"} params={route.params}/>
+                <View style={{
+                    paddingLeft: 15,
+                    alignItems: 'flex-start'
+                }}>
+                    <BackButton size={50} navigation={navigation} destination={"GroupHome"} params={route.params}/>
                 </View>
-                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                    <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Group Settings</Text>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
+                    <Text style={{fontSize: 40, fontFamily: 'OpenSansBold'}}>Group Settings</Text>
                 </View>
             </View>
             <View style={{
                 width: width,
-                height: Platform.OS === "ios" ? height * 0.6 : height * 0.7,
+                height: height * 0.6,
                 justifyContent: "center",
                 marginHorizontal: 20
             }}>
@@ -205,6 +250,7 @@ function GroupSettings({route, navigation}) {
                         placeholder='Enter Group Name'
                         containerStyle={{width: width * 0.8}}
                         value={groupName}
+                        autoCapitalize="none"
                         onChangeText={(text) => {
                             setGroupName(text);
                             setGroupNameError("");
@@ -231,6 +277,7 @@ function GroupSettings({route, navigation}) {
                         placeholder='Enter Group Size'
                         containerStyle={{width: width * 0.8}}
                         value={groupSize}
+                        autoCapitalize="none"
                         onChangeText={(text) => {
                             setGroupSize(text);
                             setGroupSizeError("");
@@ -255,7 +302,7 @@ function GroupSettings({route, navigation}) {
                     marginBottom: 6
                 }}>
                     <SelectTimeButton
-                        width={width}
+                        width={width * 0.75}
                         visibility={isPromptVisible}
                         setVisibility={setPromptVisible}
                         title={promptTitle}
@@ -292,7 +339,7 @@ function GroupSettings({route, navigation}) {
                     marginBottom: 6
                 }}>
                     <SelectTimeButton
-                        width={width}
+                        width={width * 0.75}
                         visibility={isSubmitVisible}
                         setVisibility={setSubmitVisible}
                         title={submissionTitle}
@@ -316,11 +363,11 @@ function GroupSettings({route, navigation}) {
             </View>
             <View style={{
                 alignItems: 'center',
-                marginTop: 30,
+                marginTop: 40,
                 width: width,
                 height: height * 0.01,
             }}>
-                <Button color='#A90808FF'>Delete Group</Button>
+                <Button>Delete Group</Button>
             </View>
             <ErrorPrompt Message={errorMessage} state={errorState} setError={setErrorState}></ErrorPrompt>
             <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
@@ -328,4 +375,4 @@ function GroupSettings({route, navigation}) {
     )
 }
 
-export default GroupSettings
+export default GroupSettings;

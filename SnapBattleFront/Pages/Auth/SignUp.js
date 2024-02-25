@@ -1,24 +1,29 @@
+/**
+ * SignUp Component
+ *
+ * Renders the sign-up screen, allowing new users to create an account.
+ * Users are required to input their name, username, email, and password.
+ *
+ * If the creation of the account is successful, the user data is stored locally, and the user is navigated to the main
+ * groups screen.
+ *
+ * @return {JSX.Element} A sign-up screen allowing users to create a new account.
+ */
+
 import {Dimensions, KeyboardAvoidingView, Platform, Pressable, Text, View} from "react-native";
 import {Button, CheckBox, Input} from "@rneui/themed";
 import Footer from "../../Components/Footer";
 import {useState} from "react";
-import BackIcon from '../../assets/back-icon.webp'
-import {Image} from 'expo-image';
 import axios from "axios";
-import ErrorPrompt from "../../Components/ErrorPrompt";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {deleteUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import BackButton from "../../Components/Button/BackButton";
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env;
 
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env
-
-
-/**
- * @return {JSX.Element} - Sign-up screen where users can create a new account.
- */
 
 
 function SignUp({navigation}) {
-    let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
+    let {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
     const [showPassword, setShowPassword] = useState(false); //Show password checkbox field
 
     //Input fields
@@ -46,8 +51,8 @@ function SignUp({navigation}) {
     const handleSignUp = () => {
 
         //Delete user data/token from storage
-        deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() => {});
-        deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => {});
+        deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(null);
+        deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(null);
 
         //Reset input error fields
         setErrorMessageName('');
@@ -87,13 +92,13 @@ function SignUp({navigation}) {
         const usernameTest = /^[a-zA-Z0-9_]+$/;
         const nameTest = /^[a-zA-Z]+$/;
         if (name.includes(" ") || !nameTest.test(name)) {
-            setErrorMessageName('Invalid syntax. Only letters are allowed')
+            setErrorMessageName('Invalid syntax. Only letters are allowed.')
             error = true;
         }
 
         if (username.includes(" ") || !usernameTest.test(username)) {
             if (username !== '') {
-                setErrorMessageUsername('Invalid syntax. Only underscores, numbers and letters are allowed')
+                setErrorMessageUsername('Invalid syntax. Only underscores, numbers and letters are allowed.');
                 error = true;
             }
         }
@@ -123,11 +128,10 @@ function SignUp({navigation}) {
                         //Storing userdata and token in system device
                         if (token != null) {
                             saveUserInfo(EXPO_PUBLIC_USER_TOKEN, token).then(() => {
-                                console.log("Success saving user token")
+                                console.log("Sign up page: Success saving user token.");
                             })
                                 .catch((error) => { //There was an error storing the token
-                                        console.log("Error in Token Storage");
-                                        console.log(error);
+                                        console.log("Sign up page: Error in Token Storage " + error);
                                         setErrorMessageServer("Something went wrong...");
                                         setErrorServer(true);
                                     }
@@ -138,17 +142,16 @@ function SignUp({navigation}) {
                             // Object contains: id (MongDB object id), username, email, name
                             // Note: it will saved in JSON, so make sure to use JSON.parse of you want to obtain the data
                             saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(user)).then(() => {
-                                console.log("Success saving user data")
+                                console.log("Sign up page: Success saving user data.");
                             })
                                 .catch((error) => {//There was an error storing the user
-                                        console.log("Error in User Storage");
-                                        console.log(error);
+                                        console.log("Sign up page: Error in User Storage " + error);
                                         setErrorMessageServer("Something went wrong...");
                                         setErrorServer(true);
                                     }
                                 );
                         }
-                        setAuthToken(token).then(() => {});
+                        setAuthToken(token).then(null);
                         navigation.navigate('Groups'); //Success and navigating to main screen
                     }
                 }
@@ -170,15 +173,17 @@ function SignUp({navigation}) {
                             setErrorMessageEmail(data.errorMessage);
                         }
                     } else if (status === 500) { //Server error
+                        console.log("Sign up page: " + error);
                         setErrorMessageServer(data.errorMessage);
                         setErrorServer(true);
                     } else {
-                        setErrorMessageServer("Something went wrong...")
+                        console.log("Sign up page: " + error);
+                        setErrorMessageServer("Something went wrong...");
                         setErrorServer(true);
                     }
                 } else { //No server connection
-                    console.log(error)
-                    setErrorMessageServer("Something went wrong...")
+                    console.log("Sign up page: " + error);
+                    setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
                 }
             })
@@ -196,11 +201,22 @@ function SignUp({navigation}) {
                 height: height * 0.2,
                 width: width * 0.9,
             }}>
-                <View style={{paddingLeft: 20, alignItems: 'flex-start'}}>
+                <View style={{
+                    paddingLeft: 20,
+                    alignItems: 'flex-start'
+                }}>
                     <BackButton size={50} navigation={navigation} destination="SignIn"/>
                 </View>
-                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
-                    <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Sign up</Text>
+                <View style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingRight: 20
+                }}>
+                    <Text style={{
+                        fontSize: 40,
+                        fontFamily: 'OpenSansBold'
+                    }}>Sign up</Text>
                     <Text style={{fontSize: 24}}>Create your account</Text>
                 </View>
             </View>
@@ -292,4 +308,4 @@ function SignUp({navigation}) {
     )
 }
 
-export default SignUp
+export default SignUp;

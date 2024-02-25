@@ -1,26 +1,33 @@
-import {KeyboardAvoidingView, Platform, View, Dimensions, SafeAreaView} from "react-native";
+/**
+ * SignIn Component
+ *
+ * This component renders the sign-in screen, allowing users with the ability to log into their account using
+ * their username and password.
+ *
+ * If the login is successful, the user information and authentication tokens are stored locally,
+ * and the user is navigated to the 'Groups' screen. It also tries to auto-login
+ * users by verifying stored authentication tokens.
+ *
+ * @component
+ * @return {JSX.Element} Sign-in screen component.
+ */
+
+import {KeyboardAvoidingView, Platform, View, Dimensions} from "react-native";
 import {Image} from 'expo-image';
-import Logo from '../../assets/logo.webp'
+import Logo from '../../assets/logo.webp';
 import {Button, CheckBox, Input, Text} from "@rneui/themed";
 import Footer from "../../Components/Footer";
 import {useEffect, useState} from "react";
 import axios from "axios";
 import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import LoadingScreen from "../../Components/Auth/LoadingScreen";
-import ErrorPrompt from "../../Components/ErrorPrompt";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env;
 
-
-/**
- * There are two displays in this page, the loading page while the data is being loaded
- * or the sign-in page.
- *
- * @return {JSX.Element} - Sign-in screen where users can sign in.
- */
 
 function SignIn({navigation}) {
-    let {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
+    let {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
     const [showPassword, setShowPassword] = useState(false); //Show password checkbox field
 
     //Input fields
@@ -43,9 +50,9 @@ function SignIn({navigation}) {
     const handleSignIn = () => {
         //Reset input error fields
         setErrorMessageUsername('');
-        setErrorMessagePassword('')
+        setErrorMessagePassword('');
 
-        let error = false
+        let error = false;
         //Check for empty field
         if (!username) {
             setErrorMessageUsername('Field empty.');
@@ -70,11 +77,10 @@ function SignIn({navigation}) {
                     //Storing userdata and token in system device
                     if (token != null) {
                         saveUserInfo(EXPO_PUBLIC_USER_TOKEN, token).then(() => {
-                            console.log("Success saving user token")
+                            console.log("Sign in page: Success saving user token.");
                         })
                             .catch((error) => { //There was an error storing the token
-                                    console.log("Error in Token Storage");
-                                    console.log(error);
+                                    console.log("Sign in page: Error in Token Storage " + error);
                                     setErrorMessageServer("Something went wrong...");
                                     setErrorServer(true);
                                 }
@@ -85,18 +91,17 @@ function SignIn({navigation}) {
                         // Object contains: id (MongDB object id), username, email, name
                         // Note: it will saved in JSON, so make sure to use JSON.parse of you want to obtain the data
                         saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(user)).then(() => {
-                            console.log("Success saving user data")
+                            console.log("Sign in page: Success saving user data.");
                         })
                             .catch((error) => {//There was an error storing the user
-                                    console.log("Error in User Storage");
-                                    console.log(error);
+                                    console.log("Sign in page:  Error in User Storage " + error);
                                     setErrorMessageServer("Something went wrong...");
                                     setErrorServer(true);
                                 }
                             );
                     }
-                    setAuthToken(token).then((success) => {console.log("Saved token in the anxios header.")});
-                    resetFields()
+                    setAuthToken(token).then((success) => {console.log("Sign in page: Saved token in the anxios header.")});
+                    resetFields();
                     navigation.navigate('Groups'); //Success and navigating to groups screen
                 }
             }).catch((error) => {
@@ -105,18 +110,15 @@ function SignIn({navigation}) {
                     if (status === 401) {
                         setErrorMessageUsername(data.errorMessage);
                         setErrorMessagePassword(data.errorMessage);
-                        return
                     } else if (status === 500) {
                         setErrorMessageServer("Something went wrong...");
                         setErrorServer(true);
-                        return
                     }
                 } else { //No server connection
-                    console.log(error)
-                    setErrorMessageServer("Something went wrong...")
+                    console.log("Sign in page: " + error);
+                    setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
                 }
-                console.log(error)
             });
         }
     }
@@ -125,15 +127,15 @@ function SignIn({navigation}) {
         setUsername('');
         setPassword('');
         setErrorMessageUsername('');
-        setErrorMessagePassword('')
+        setErrorMessagePassword('');
     }
 
 
     //Use effect to send a request to the server while the page is loading to see if the token is valid
     useEffect(() => {
-        resetFields()
+        resetFields();
         setLoading(true);
-        resetFields()
+        resetFields();
         getUserInfo(process.env.EXPO_PUBLIC_USER_TOKEN).then((token) => {
             if (token) {
                 axios.post(
@@ -144,10 +146,10 @@ function SignIn({navigation}) {
                 ).then(
                     (response) => {
                         //Server response
-                        resetFields()
+                        resetFields();
                         const {isAuthenticated} = response.data;
                         if (isAuthenticated) { //No error, but checking if user is authenticated
-                            console.log("User verified with token,")
+                            console.log("Sign in page: User verified with token.");
                             setAuthToken(token).then(() => {});
                             setTimeout(() => {
                                 navigation.navigate('Groups'); //Success and navigating to groups screen after 3 seconds
@@ -155,38 +157,36 @@ function SignIn({navigation}) {
                         }
                     })
                     .catch((error) => {
-                        resetFields()
+                        resetFields();
                         if (error.response) {
                             const {status} = error.response;
                             //setTimeout(null, 3000
                             setLoading(false);
-                            console.log(error)
                             if (status === 500) {
-                                setErrorMessageServer("Something went wrong...")
+                                console.log("Sign in page: " + error);
+                                setErrorMessageServer("Something went wrong...");
                                 setErrorServer(true);
                             }
                             if (status === 400 || status === 401) {
-                                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() => {
-                                });
-                                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => {
-                                });
+                                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(null);
+                                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(null);
                             }
                         } else { //No server connection
-                            resetFields()
-                            console.log(error)
+                            resetFields();
+                            console.log("Sign in page: " + error);
                             setLoading(false);
-                            setErrorMessageServer("Something went wrong...")
+                            setErrorMessageServer("Something went wrong...");
                             setErrorServer(true);
                         }
                     });
             } else {
-                resetFields()
+                resetFields();
                 setLoading(false);
             }
         }).catch((error) => {
-            resetFields()
+            resetFields();
             setLoading(false);
-            console.log(error)
+            console.log("Sign in page: " + error);
         });
     }, []);
 
@@ -210,7 +210,6 @@ function SignIn({navigation}) {
                         <Image
                             style={{width: '100%', height: '100%'}}
                             source={Logo}
-                            //placeholder={blurhash}
                             rcontentFit="contain"
                         />
                     </View>
@@ -249,7 +248,10 @@ function SignIn({navigation}) {
                     justifyContent: 'center',
                     flexDirection: 'column',
                 }}>
-                    <View style={{marginBottom: 10, width: '45%'}}>
+                    <View style={{
+                        marginBottom: 10,
+                        width: '45%'
+                    }}>
                         <CheckBox
                             title="Show Password"
                             style={{
@@ -278,4 +280,4 @@ function SignIn({navigation}) {
     )
 }
 
-export default SignIn
+export default SignIn;
