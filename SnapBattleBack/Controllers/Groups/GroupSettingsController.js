@@ -2,7 +2,7 @@ const Group = require('../../Models/Group')
 
 /**
  * /user/:userID/groups/:groupID/groupName
- * @params groupID, groupName
+ * @params groupName
  *
  * @returns 200 for success, 400 for invalid input,
  * 401 for authentication error, 404 for not found, 500 for server errs
@@ -37,7 +37,7 @@ module.exports.editGroupName = async(req, res) => {
 
 /**
  * /user/:userID/groups/:groupID/groupsize
- * @params groupID, groupSize
+ * @params groupSize
  *
  * @returns 200 for success, 400 for invalid input,
  * 401 for authentication error, 404 for not found, 500 for server errs
@@ -67,7 +67,7 @@ module.exports.editGroupSize = async(req, res) => {
 
 /**
  * /user/:userID/groups/:groupID/prompttime
- * @params groupID, groupSize
+ * @params promptTime
  *
  * @returns 200 for success, 400 for invalid input,
  * 401 for authentication error, 404 for not found, 500 for server errs
@@ -99,6 +99,46 @@ module.exports.editPromptTime = async(req, res) => {
             await group.save();
             console.log(group)
             return res.status(200).json({promptTimeChange: true})
+        }
+    } catch (error) {
+        return res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+/**
+ * /user/:userID/groups/:groupID/submissiontime
+ * @params submissionTime
+ *
+ * @returns 200 for success, 400 for invalid input,
+ * 401 for authentication error, 404 for not found, 500 for server errs
+ */
+module.exports.editSubmissionTime = async(req, res) => {
+    try {
+        const {userID, groupID} = req.params;
+        const {submissionTime} = req.body;
+        const group = await Group.findById(groupID);
+        if (group) {
+            let promptTime = group.timeStart;
+            console.log(promptTime)
+            if (group.adminUserID.toString() !== userID) {
+                return res.status(401).json({errorMessage: "You are not an administrator!"})
+            }
+            // check if prompt time isn't before submission time
+            let newHr = parseInt(submissionTime.substring(0, 2))
+            let startHr = parseInt(promptTime.substring(0,2))
+            if (newHr < startHr) {
+                return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"})
+            } else if (newHr === startHr) {
+                let newMin = parseInt(submissionTime.substring(3))
+                let startMin = parseInt(promptTime.substring(3))
+                if (newMin > startMin) {
+                    return res.status(400).json({errorMessage: "Submission time cannot start before prompt time!"})
+                }
+            }
+            group.timeEnd = submissionTime;
+            await group.save();
+            console.log(group)
+            return res.status(200).json({submissionTimeChange: true})
         }
     } catch (error) {
         return res.status(500).json({errorMessage: "Something went wrong..."});

@@ -102,6 +102,7 @@ function GroupSettings({route, navigation}) {
         }
     }
     function submitPromptTime() {
+        setPromptTimeError("")
         console.log(promptTime)
         let error = false;
         if (!promptTime) {
@@ -112,10 +113,41 @@ function GroupSettings({route, navigation}) {
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/prompttime`, {
                 promptTime: promptTime
             })
+            .then((response) => {
+                const {promptTimeChange} = response.data;
+                if (promptTimeChange) {
+                    setSuccessMessage("Prompt time has been changed!")
+                    setSuccessState(true);
+                }
+            })
+            .catch((error) => {
+                console.log(error)
+                const {status, data} = error.response;
+                if (status === 400) {
+                    setPromptTimeError(data.errorMessage);
+                } else {
+                    setErrorMessage(data.errorMessage);
+                    setErrorState(true);
+                }
+            })
+        }
+    }
+    function submitSubmissionTime() {
+        setSubmissionTimeError("")
+        console.log(submissionTime)
+        let error = false;
+        if (!submissionTime) {
+            setGroupNameError("Select a new submission time!")
+            error = true;
+        }
+        if (!error) {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/submissiontime`, {
+                submissionTime: submissionTime
+            })
                 .then((response) => {
-                    const {promptTimeChange} = response.data;
-                    if (promptTimeChange) {
-                        setSuccessMessage("Prompt time has been changed!")
+                    const {submissionTimeChange} = response.data;
+                    if (submissionTimeChange) {
+                        setSuccessMessage("Submission time has been changed!")
                         setSuccessState(true);
                     }
                 })
@@ -123,16 +155,13 @@ function GroupSettings({route, navigation}) {
                     console.log(error)
                     const {status, data} = error.response;
                     if (status === 400) {
-                        setPromptTimeError(data.errorMessage);
+                        setSubmissionTimeError(data.errorMessage);
                     } else {
                         setErrorMessage(data.errorMessage);
                         setErrorState(true);
                     }
                 })
         }
-    }
-    function submitSubmissionTime() {
-        console.log(submissionTime)
     }
 
     return (
