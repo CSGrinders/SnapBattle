@@ -46,7 +46,6 @@ function GroupSettings({route, navigation}) {
             error = true;
         }
         if (!error) {
-            console.log(groupName)
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupname`, {
                 groupName: groupName
             })
@@ -58,14 +57,49 @@ function GroupSettings({route, navigation}) {
                 }
             })
             .catch((error) => {
+                console.log(error)
                 const {status, data} = error.response;
-                setErrorMessage("Something went wrong... " + status + " " + data);
-                setErrorState(true);
+                if (status === 400) {
+                    setGroupNameError(data.errorMessage);
+                } else {
+                    setErrorMessage(data.errorMessage);
+                    setErrorState(true);
+                }
             })
         }
     }
     function submitGroupSize() {
         console.log(groupSize)
+        let error = false;
+        if (!groupSize) {
+            setGroupSizeError("Field cannot be empty!")
+            error = true;
+        }
+        if (isNaN(parseInt(groupSize))) {
+            setGroupSizeError("Field cannot contain non-numeric characters!")
+            error = true;
+        }
+        if (!error) {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupsize`, {
+                groupSize: groupSize
+            })
+            .then((response) => {
+                const {sizeChange} = response.data;
+                if (sizeChange) {
+                    setSuccessMessage("Group Size Change Success!")
+                    setSuccessState(true);
+                }
+            })
+            .catch((error) => {
+                const {status, data} = error.response;
+                if (status === 400) {
+                    setGroupSizeError(data.errorMessage);
+                } else {
+                    setErrorMessage(data.errorMessage);
+                    setErrorState(true);
+                }
+            })
+        }
     }
     function submitPromptTime() {
         console.log(promptTime)
@@ -143,7 +177,7 @@ function GroupSettings({route, navigation}) {
                         value={groupSize}
                         onChangeText={(text) => {
                             setGroupSize(text);
-                            setGroupNameError("");
+                            setGroupSizeError("");
                         }}
                         errorMessage={groupSizeError}>
                     </Input>
