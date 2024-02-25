@@ -15,6 +15,7 @@ import { Image } from "expo-image";
 import axios from "axios";
 import ErrorPrompt from "../../Components/ErrorPrompt";
 import {getUserInfo} from "../../Storage/Storage";
+import SelectTimeButton from "../../Components/Group/SelectTime";
 
 const { EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO } =
   process.env;
@@ -29,51 +30,20 @@ function CreateNewGroup({ route, navigation }) {
   const [promptTime, setPromptTime] = useState("");
   const [submissionTime, setSubmissionTime] = useState("");
 
-  // state variables for dropdown
-  const [promptOpen, setPromptOpen] = useState(false);
-  const [submissionOpen, setSubmissionOpen] = useState(false);
-
-  const [items, setItems] = useState([
-    { label: "12:00AM", value: "00:00" },
-    { label: "01:00AM", value: "01:00" },
-    { label: "02:00AM", value: "02:00" },
-    { label: "03:00AM", value: "03:00" },
-    { label: "04:00AM", value: "04:00" },
-    { label: "05:00AM", value: "05:00" },
-    { label: "06:00AM", value: "06:00" },
-    { label: "07:00AM", value: "07:00" },
-    { label: "08:00AM", value: "08:00" },
-    { label: "09:00AM", value: "09:00" },
-    { label: "10:00AM", value: "10:00" },
-    { label: "11:00AM", value: "11:00" },
-    { label: "12:00PM", value: "12:00" },
-    { label: "01:00PM", value: "13:00" },
-    { label: "02:00PM", value: "14:00" },
-    { label: "03:00PM", value: "15:00" },
-    { label: "04:00PM", value: "16:00" },
-    { label: "05:00PM", value: "17:00" },
-    { label: "06:00PM", value: "18:00" },
-    { label: "07:00PM", value: "19:00" },
-    { label: "08:00PM", value: "20:00" },
-    { label: "09:00PM", value: "21:00" },
-    { label: "10:00PM", value: "22:00" },
-    { label: "11:00PM", value: "23:00" },
-  ]);
-
-  const onPromptOpen = useCallback(() => {
-    setSubmissionOpen(false);
-  }, []);
-
-  const onSubmissionOpen = useCallback(() => {
-    setPromptOpen(false);
-  }, []);
+  // release prompt time
+  const [isPromptVisible, setPromptVisible] = useState(false);
+  const [promptTitle, setPromptTitle] = useState("Select Prompt Time");
+  const [promptDate, setPromptDate] = useState(new Date());
+  // submit prompt time
+  const [isSubmitVisible, setSubmitVisible] = useState(false);
+  const [submissionTitle, setSubmissionTitle] = useState("Select Submission Time");
+  const [submissionDate, setSubmissionDate] = useState(new Date());
 
   // input field error messages
   const [errorMessageGroupName, setErrorMessageGroupName] = useState("");
   const [errorMessageGroupSize, setErrorMessageGroupSize] = useState("");
   const [errorMessagePromptTime, setErrorMessagePromptTime] = useState("");
-  const [errorMessageSubmissionTime, setErrorMessageSubmissionTime] =
-    useState("");
+  const [errorMessageSubmissionTime, setErrorMessageSubmissionTime] = useState("");
 
   // server error messages
   const [errorMessageServer, setErrorMessageServer] = useState("");
@@ -187,37 +157,16 @@ function CreateNewGroup({ route, navigation }) {
             }}
             errorMessage={errorMessageGroupSize}
           />
-          <DropDownPicker
-            placeholder="Select Prompt Time"
-            open={promptOpen}
-            value={promptTime}
-            items={items}
-            setOpen={setPromptOpen}
-            setValue={setPromptTime}
-            setItems={setItems}
-            onOpen={onPromptOpen}
-            maxHeight={130}
-            containerStyle={{
-              width: 330,
-              borderBottomWidth: 0,
-            }}
-            style={{
-              height: 60,
-              color: "white",
-              borderWidth: 2,
-              borderColor: "#252323",
-              borderRadius: 8,
-              backgroundColor: "transparent",
-            }}
-            textStyle={{
-              fontSize: 22,
-              textAlign: "center",
-              fontFamily: "OpenSansRegular",
-              color: "grey",
-            }}
-            zIndex={3000}
-            zIndexInverse={1000}
-          />
+          <SelectTimeButton
+            width={width}
+            visibility={isPromptVisible}
+            setVisibility={setPromptVisible}
+            title={promptTitle}
+            setTitle={setPromptTitle}
+            date={promptDate}
+            setDate={setPromptDate}
+            setTime={setPromptTime}>
+          </SelectTimeButton>
           <View
             style={{
               margin: 4,
@@ -234,36 +183,16 @@ function CreateNewGroup({ route, navigation }) {
               {errorMessagePromptTime}
             </Text>
           </View>
-          <DropDownPicker
-            placeholder="Select Submission Time"
-            open={submissionOpen}
-            value={submissionTime}
-            items={items}
-            setOpen={setSubmissionOpen}
-            setValue={setSubmissionTime}
-            setItems={setItems}
-            onOpen={onSubmissionOpen}
-            maxHeight={130}
-            containerStyle={{
-              width: 330,
-              borderBottomWidth: 0,
-            }}
-            style={{
-              height: 60,
-              borderWidth: 2,
-              borderColor: "#252323",
-              borderRadius: 8,
-              backgroundColor: "transparent",
-            }}
-            textStyle={{
-              fontSize: 22,
-              textAlign: "center",
-              fontFamily: "OpenSansRegular",
-              color: "grey",
-            }}
-            zIndex={1000}
-            zIndexInverse={3000}
-          />
+          <SelectTimeButton
+            width={width}
+            visibility={isSubmitVisible}
+            setVisibility={setSubmitVisible}
+            title={submissionTitle}
+            setTitle={setSubmissionTitle}
+            date={submissionDate}
+            setDate={setSubmissionDate}
+            setTime={setSubmissionTime}>
+          </SelectTimeButton>
           <View
             style={{
               margin: 4,

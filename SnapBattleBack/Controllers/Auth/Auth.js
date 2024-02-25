@@ -238,6 +238,7 @@ module.exports.AuthenticateOrSignUp = async (req, res) => {
     }
 
     //Routing to Sign up or Sign in
+    console.log("lol")
     if (isLogin) { //SignIn
         req.body = userData; // Prepare the request body for SignIn
         await module.exports.SignIn(req, res);
