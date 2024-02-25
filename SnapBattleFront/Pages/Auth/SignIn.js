@@ -17,11 +17,12 @@ import {Image} from 'expo-image';
 import Logo from '../../assets/logo.webp';
 import {Button, CheckBox, Input, Text} from "@rneui/themed";
 import Footer from "../../Components/Footer";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import axios from "axios";
 import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import LoadingScreen from "../../Components/Auth/LoadingScreen";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import {useFocusEffect} from "@react-navigation/native";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env;
 
@@ -132,63 +133,65 @@ function SignIn({navigation}) {
 
 
     //Use effect to send a request to the server while the page is loading to see if the token is valid
-    useEffect(() => {
-        resetFields();
-        setLoading(true);
-        resetFields();
-        getUserInfo(process.env.EXPO_PUBLIC_USER_TOKEN).then((token) => {
-            if (token) {
-                axios.post(
-                    `${EXPO_PUBLIC_API_URL}/auth`,
-                    {
-                        token: token,
-                    }
-                ).then(
-                    (response) => {
-                        //Server response
-                        resetFields();
-                        const {isAuthenticated} = response.data;
-                        if (isAuthenticated) { //No error, but checking if user is authenticated
-                            console.log("Sign in page: User verified with token.");
-                            setAuthToken(token).then(() => {});
-                            setTimeout(() => {
-                                navigation.navigate('Groups'); //Success and navigating to groups screen after 3 seconds
-                            }, 2000);
+    useFocusEffect(
+        useCallback(() => {
+            resetFields();
+            setLoading(true);
+            resetFields();
+            getUserInfo(process.env.EXPO_PUBLIC_USER_TOKEN).then((token) => {
+                if (token) {
+                    axios.post(
+                        `${EXPO_PUBLIC_API_URL}/auth`,
+                        {
+                            token: token,
                         }
-                    })
-                    .catch((error) => {
-                        resetFields();
-                        if (error.response) {
-                            const {status} = error.response;
-                            //setTimeout(null, 3000
-                            setLoading(false);
-                            if (status === 500) {
+                    ).then(
+                        (response) => {
+                            //Server response
+                            resetFields();
+                            const {isAuthenticated} = response.data;
+                            if (isAuthenticated) { //No error, but checking if user is authenticated
+                                console.log("Sign in page: User verified with token.");
+                                setAuthToken(token).then(() => {
+                                });
+                                setTimeout(() => {
+                                    navigation.navigate('Groups'); //Success and navigating to groups screen after 3 seconds
+                                }, 2000);
+                            }
+                        })
+                        .catch((error) => {
+                            resetFields();
+                            if (error.response) {
+                                const {status} = error.response;
+                                //setTimeout(null, 3000
+                                setLoading(false);
+                                if (status === 500) {
+                                    console.log("Sign in page: " + error);
+                                    setErrorMessageServer("Something went wrong...");
+                                    setErrorServer(true);
+                                }
+                                if (status === 400 || status === 401) {
+                                    deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(null);
+                                    deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(null);
+                                }
+                            } else { //No server connection
+                                resetFields();
                                 console.log("Sign in page: " + error);
+                                setLoading(false);
                                 setErrorMessageServer("Something went wrong...");
                                 setErrorServer(true);
                             }
-                            if (status === 400 || status === 401) {
-                                deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(null);
-                                deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(null);
-                            }
-                        } else { //No server connection
-                            resetFields();
-                            console.log("Sign in page: " + error);
-                            setLoading(false);
-                            setErrorMessageServer("Something went wrong...");
-                            setErrorServer(true);
-                        }
-                    });
-            } else {
+                        });
+                } else {
+                    resetFields();
+                    setLoading(false);
+                }
+            }).catch((error) => {
                 resetFields();
                 setLoading(false);
-            }
-        }).catch((error) => {
-            resetFields();
-            setLoading(false);
-            console.log("Sign in page: " + error);
-        });
-    }, []);
+                console.log("Sign in page: " + error);
+            });
+    }, []));
 
 
     return (
