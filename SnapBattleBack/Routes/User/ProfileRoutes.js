@@ -26,7 +26,7 @@ const {uploadPhoto} = require("../../Controllers/Profile/ProfileController");
 const {getPhoto} = require("../../Controllers/Profile/ProfileController");
 const {signOut} = require("../../Controllers/Auth/AuthController");
 const {getProfileInfo} = require("../../Controllers/Profile/ProfileController");
-const {deleteAccount, changeName, changeBio, changePassword} = require("../../Controllers/Profile/PorfileSettingsController");
+const {deleteAccount, changeName, changeBio, changePassword} = require("../../Controllers/Profile/ProfileSettingsController");
 
 router.post('/upload-photo', uploadPhoto)
 router.post('/signout', signOut)
