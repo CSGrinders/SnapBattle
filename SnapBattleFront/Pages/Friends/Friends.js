@@ -15,7 +15,7 @@ import {
     Dimensions,
     TouchableOpacity,
     Platform,
-    KeyboardAvoidingView
+    KeyboardAvoidingView, ScrollView
 } from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import BlockedFriendsIcon from "../../assets/blocked.webp"
@@ -29,6 +29,8 @@ import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {useFocusEffect} from "@react-navigation/native";
 import AcceptIcon from "../../assets/check.webp"
 import RejectIcon from "../../assets/reject.webp"
+import RemoveFriendIcon from "../../assets/close.webp"
+import BlockFriendIcon from "../../assets/block.webp"
 import SettingIcon from "../../assets/profile-setting-icon.webp";
 
 const {EXPO_PUBLIC_API_URL} = process.env;
@@ -251,19 +253,40 @@ function Friends({route, navigation}) {
             }
 
             <View style={{
-                width: width * 0.8,
-                marginLeft: 10
+                width: width,
+                marginLeft: 10,
+                flex: 1,
             }}>
                 <Text style={{...HeaderTheme.h2Style, marginBottom: 5}}>Friends</Text>
-                {friends.length !== 0 ? <View style={{width: width * 0.8}}>
-                    {friends.map((friend) => (
-                        <View key={uuid.v4()} style={{flexDirection: 'row', gap: 10}}>
-                            <Button buttonStyle={{width: 200}}>@{friend.username}</Button>
-                        </View>
-                    ))
+                <ScrollView contentContainerStyle={{flexGrow: 1}}>
+                    {friends.length !== 0 ? <View style={{gap: 10}}>
+                        {friends.map((friend) => (
+                            <View key={uuid.v4()} style={{flexDirection: 'row', gap: 10}}>
+                                <Button buttonStyle={{width: 200}}>@{friend.username}</Button>
+                                <TouchableOpacity>
+                                    <Image
+                                        source={RemoveFriendIcon}
+                                        style={{
+                                            height: 50,
+                                            width: 50
+                                        }}
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity>
+                                    <Image
+                                        source={BlockFriendIcon}
+                                        style={{
+                                            height: 50,
+                                            width: 50
+                                        }}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+                        ))
+                        }
+                    </View> : <></>
                     }
-                </View> : <></>
-                }
+                </ScrollView>
             </View>
 
 
