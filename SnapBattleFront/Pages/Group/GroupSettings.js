@@ -52,7 +52,7 @@ function GroupSettings({route, navigation}) {
             .then((response) => {
                 const {nameChange} = response.data;
                 if (nameChange) {
-                    setSuccessMessage("Group Name Change Success!")
+                    setSuccessMessage("Group Name has been changed!")
                     setSuccessState(true);
                 }
             })
@@ -86,7 +86,7 @@ function GroupSettings({route, navigation}) {
             .then((response) => {
                 const {sizeChange} = response.data;
                 if (sizeChange) {
-                    setSuccessMessage("Group Size Change Success!")
+                    setSuccessMessage("Group size has been changed!")
                     setSuccessState(true);
                 }
             })
@@ -103,6 +103,33 @@ function GroupSettings({route, navigation}) {
     }
     function submitPromptTime() {
         console.log(promptTime)
+        let error = false;
+        if (!promptTime) {
+            setGroupNameError("Select a new prompt time!")
+            error = true;
+        }
+        if (!error) {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/prompttime`, {
+                promptTime: promptTime
+            })
+                .then((response) => {
+                    const {promptTimeChange} = response.data;
+                    if (promptTimeChange) {
+                        setSuccessMessage("Prompt time has been changed!")
+                        setSuccessState(true);
+                    }
+                })
+                .catch((error) => {
+                    console.log(error)
+                    const {status, data} = error.response;
+                    if (status === 400) {
+                        setPromptTimeError(data.errorMessage);
+                    } else {
+                        setErrorMessage(data.errorMessage);
+                        setErrorState(true);
+                    }
+                })
+        }
     }
     function submitSubmissionTime() {
         console.log(submissionTime)
@@ -218,7 +245,7 @@ function GroupSettings({route, navigation}) {
                         color: "red",
                     }}
                 >
-                    {submissionTimeError}
+                    {promptTimeError}
                 </Text>
                 <Text style={{
                     marginTop: 10,

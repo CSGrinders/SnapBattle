@@ -8,7 +8,7 @@ const {
 } = require("../../../Controllers/Groups/GroupInviteController");
 
 const { getGroups, createGroup, listUsers } = require("../../../Controllers/Groups/GroupActionsController");
-const { editGroupName, editGroupSize } = require("../../../Controllers/Groups/GroupSettingsController");
+const { editGroupName, editGroupSize, editPromptTime} = require("../../../Controllers/Groups/GroupSettingsController");
 
 router.get('/', getGroups)
 
@@ -21,6 +21,8 @@ router.post('/:groupID/invite', inviteToGroup)
 router.post('/:groupID/groupname', editGroupName)
 
 router.post('/:groupID/groupsize', editGroupSize)
+
+router.post('/:groupID/prompttime', editPromptTime)
 
 
 module.exports = router

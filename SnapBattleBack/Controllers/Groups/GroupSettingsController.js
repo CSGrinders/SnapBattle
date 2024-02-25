@@ -55,7 +55,7 @@ module.exports.editGroupSize = async(req, res) => {
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"})
             }
-            group.size = groupSize;
+            group.maxUsers = groupSize;
             await group.save();
             console.log(group)
             return res.status(200).json({sizeChange: true})
@@ -65,3 +65,42 @@ module.exports.editGroupSize = async(req, res) => {
     }
 }
 
+/**
+ * /user/:userID/groups/:groupID/prompttime
+ * @params groupID, groupSize
+ *
+ * @returns 200 for success, 400 for invalid input,
+ * 401 for authentication error, 404 for not found, 500 for server errs
+ */
+module.exports.editPromptTime = async(req, res) => {
+    try {
+        const {userID, groupID} = req.params;
+        const {promptTime} = req.body;
+        const group = await Group.findById(groupID);
+        if (group) {
+            let submissionTime = group.timeEnd;
+            console.log(submissionTime)
+            if (group.adminUserID.toString() !== userID) {
+                return res.status(401).json({errorMessage: "You are not an administrator!"})
+            }
+            // check if prompt time isn't before submission time
+            let newHr = parseInt(promptTime.substring(0, 2))
+            let subHr = parseInt(submissionTime.substring(0,2))
+            if (newHr > subHr) {
+                return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"})
+            } else if (newHr === subHr) {
+                let newMin = parseInt(promptTime.substring(3))
+                let subMin = parseInt(submissionTime.substring(3))
+                if (newMin > subMin) {
+                    return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"})
+                }
+            }
+            group.timeStart = promptTime;
+            await group.save();
+            console.log(group)
+            return res.status(200).json({promptTimeChange: true})
+        }
+    } catch (error) {
+        return res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
