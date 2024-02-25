@@ -185,7 +185,7 @@ function CreateNewGroup({route, navigation}) {
                     Prompt Time
                 </Text>
                 <SelectTimeButton
-                    width={width * 0.85}
+                    width={width * 0.87}
                     visibility={isPromptVisible}
                     setVisibility={setPromptVisible}
                     title={promptTitle}
@@ -220,7 +220,7 @@ function CreateNewGroup({route, navigation}) {
                     Submission Time
                 </Text>
                 <SelectTimeButton
-                    width={width * 0.85}
+                    width={width * 0.87}
                     visibility={isSubmitVisible}
                     setVisibility={setSubmitVisible}
                     title={submissionTitle}
