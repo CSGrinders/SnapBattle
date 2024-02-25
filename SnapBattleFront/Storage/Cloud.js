@@ -1,5 +1,4 @@
-const {
-    EXPO_PUBLIC_API_URL,} = process.env
+const {EXPO_PUBLIC_API_URL,} = process.env;
 
 import axios from "axios";
 
@@ -17,17 +16,17 @@ export function saveImageToCloud(userID, imageUri) {
                         { base64data: base64data }
                     )
                         .then(res => {
-                            console.log("Image uploaded successfully:", res.data);
+                            console.log("SaveImageToCloud: Image uploaded correctly -> ", res.data);
                             resolve(res); // Resolve the promise with the response
                         })
                         .catch(error => {
-                            console.error("Error uploading image:", error);
+                            console.error("SaveImageToCloud: error while uploading image -> ", error);
                             reject(error); // Reject the promise with the error
                         });
                 };
             })
             .catch(error => {
-                console.error("Error fetching image:", error);
+                console.error("SaveImageToCloud: ", error);
                 reject(error); // Reject the promise if fetching image fails
             });
     });
@@ -40,7 +39,7 @@ export async function getProfilePhoto(userID) {
         );
         return response.data;
     } catch (error) {
-        console.error("Error fetching profile photo:", error);
+        console.error("SaveImageToCloud: Error fetching profile photo -> ", error);
         throw error;
     }
 }

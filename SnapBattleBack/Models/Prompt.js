@@ -5,9 +5,11 @@
  * information in the MongoDB database.
  *
  * @SnapBattle, 2024
+ * Author: CSGrinders
+ *
  */
 
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const Prompt = new mongoose.Schema({
     prompt: {

@@ -1,14 +1,14 @@
 import {View} from "react-native";
 import {Image} from 'expo-image';
 import default_image_source from '../../assets/default-profile-picture.webp'
-import {getUserInfo} from "../../Storage/Storage";
 import {useCallback, useState} from "react";
 import {getProfilePhoto} from "../../Storage/Cloud";
 import {useFocusEffect} from "@react-navigation/native";
-const {EXPO_PUBLIC_USER_INFO} = process.env
 
+/**
+ * @returns {JSX.Element} - Other users Profile pictures
+ */
 const OtherProfilePicture = ({size, searchID}) => {
-    const [userID, setUserID] = useState('');
     const [image, setImage] = useState('');
 
     useFocusEffect(
@@ -22,7 +22,7 @@ const OtherProfilePicture = ({size, searchID}) => {
                     }
                 });
         }, [])
-    )
+    );
 
 
 
@@ -46,4 +46,4 @@ const OtherProfilePicture = ({size, searchID}) => {
     )
 }
 
-export default OtherProfilePicture
+export default OtherProfilePicture;

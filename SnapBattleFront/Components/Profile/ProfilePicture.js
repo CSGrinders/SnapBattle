@@ -7,6 +7,11 @@ import {getProfilePhoto} from "../../Storage/Cloud";
 import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_USER_INFO} = process.env
 
+
+/**
+ * @returns {JSX.Element} - User profile picture
+ */
+
 const ProfilePicture = ({size, temp_image}) => {
 
     const [userID, setUserID] = useState('');
@@ -19,13 +24,13 @@ const ProfilePicture = ({size, temp_image}) => {
             getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
                 if (info) {
                     const userData = JSON.parse(info);
-                    if (userData.id) setUserID(userData.id)
+                    if (userData.id) setUserID(userData.id);
                     getProfilePhoto(userData.id)
                         .then((data) => {
                             try {
-                                setImage(data.url)
+                                setImage(data.url);
                             } catch {
-                                setImage('')
+                                setImage('');
                             }
                         });
                 }
@@ -37,13 +42,13 @@ const ProfilePicture = ({size, temp_image}) => {
         getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
             if (info) {
                 const userData = JSON.parse(info);
-                if (userData.id) setUserID(userData.id)
+                if (userData.id) setUserID(userData.id);
                 getProfilePhoto(userData.id)
                     .then((data) => {
                         try {
-                            setImage(data.url)
+                            setImage(data.url);
                         } catch {
-                            setImage('')
+                            setImage('');
                         }
                     });
             }
@@ -79,4 +84,4 @@ const ProfilePicture = ({size, temp_image}) => {
     )
 }
 
-export default ProfilePicture
+export default ProfilePicture;

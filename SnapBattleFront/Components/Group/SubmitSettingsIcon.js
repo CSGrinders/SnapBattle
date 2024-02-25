@@ -1,7 +1,10 @@
-import {TouchableOpacity, View} from "react-native";
+import {TouchableOpacity} from "react-native";
 import {Image} from "expo-image";
 import SendIcon from "../../assets/send-icon.webp";
 
+/**
+ * @returns {JSX.Element} - Submit icon
+ */
 const GroupSettingsSubmitIcon = ({size, submitPressed}) => {
     return (
         <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={submitPressed}>
@@ -10,4 +13,4 @@ const GroupSettingsSubmitIcon = ({size, submitPressed}) => {
     )
 }
 
-export default GroupSettingsSubmitIcon
+export default GroupSettingsSubmitIcon;

@@ -1,13 +1,15 @@
 /*
  * User.js
  *
- * This file defines the schema for User information in the MongoDB database.
+ * This file defines the schema for User and session information in the MongoDB database.
  *
  * @SnapBattle, 2024
+ * Author: CSGrinders
+ *
  */
 
-const mongoose = require("mongoose")
-const bcrypt = require("bcrypt")
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 
 const User = new mongoose.Schema({
@@ -73,7 +75,7 @@ const Session = new mongoose.Schema({
 User.pre("save", async function (next) {
     if (!this.isModified('password')) return next();
 
-    this.password = await bcrypt.hash(this.password, 12)
+    this.password = await bcrypt.hash(this.password, 12);
     next();
 })
 

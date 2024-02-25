@@ -1,99 +1,134 @@
-import {Dimensions, Pressable, SafeAreaView, TouchableOpacity, View, Text} from "react-native";
+/**
+ * Profile Component
+ *
+ * This component displays the user's profile page, showing the name, username, biography, and achievements.
+ * It also allows users to navigate to the profile settings page for any modifications
+ * and to the friends page to view or manage their friends.
+ *
+ *
+ * @component
+ * @return {JSX.Element} User's profile.
+ */
+
+
+import {Dimensions, TouchableOpacity, View, Text} from "react-native";
 import {Button} from "@rneui/themed";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import BackButton from "../../Components/Button/BackButton";
-import SettingIcon from '../../assets/profile-setting-icon.webp'
+import SettingIcon from '../../assets/profile-setting-icon.webp';
 import {Image} from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
-import {useCallback, useEffect, useState} from "react";
-import {getProfilePhoto, saveImageToCloud} from "../../Storage/Cloud";
-import {getUserInfo} from "../../Storage/Storage";
+import {useCallback, useState} from "react";
 import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
+
+const {EXPO_PUBLIC_API_URL} = process.env;
 
 function Profile({route, navigation}) {
-    const {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
+    const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {name, username, email, userID} = route.params
+    const {name, username, email, userID} = route.params;
     const [bio, setBio] = useState('');
     const [achievements, setAchievements] = useState('');
+
+    //Server error
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
 
     const [pfpSeed, setPfpSeed] = useState(1);
 
     useFocusEffect(
         useCallback(() => {
-            getUserInfo()
+            getUserInfo();
         }, [userID])
-    )
+    );
 
     function getUserInfo() {
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/getProfileInfo`
         )
             .then((res) => {
-                setAchievements(res.data.achievements)
-                setBio(res.data.bio)
+                setAchievements(res.data.achievements);
+                setBio(res.data.bio);
             })
-            .catch((err) => {
-                console.log("bruh profee")
+            .catch((error) => {
+                if (error.response) {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                } else {
+                    console.log("Profile page: " + error);
+                }
             })
+
     }
 
     return (
-        <SafeAreaView style={{
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            width: width,
-            height: height
-        }}
-        >
+        <View style={{flex: 1}}>
             <View style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                width: width * 0.9,
-                height: height * 0.15,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                height: height * 0.2,
             }}>
-                <BackButton size={50} navigation={navigation} destination={"Groups"}/>
-                <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Page</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings', route.params)}>
-                    <Image source={SettingIcon} style={{width:50, height:50}}></Image>
-                </TouchableOpacity>
+                <View style={{
+                    paddingLeft: 15,
+                    alignItems: 'flex-start'
+                }}>
+                    <BackButton size={50} navigation={navigation} destination={"Groups"}/>
+                </View>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                    <Text style={{
+                        fontSize: 40,
+                        fontFamily: 'OpenSansBold'
+                    }}>Profile Page</Text>
+                </View>
+                <View style={{marginRight: 20}}>
+                    <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings', route.params)}>
+                        <Image
+                            source={SettingIcon}
+                            style={{
+                                width: 45,
+                                height: 45
+                        }}></Image>
+                    </TouchableOpacity>
+                </View>
             </View>
             <View style={{
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: height * 0.25,
+                height: height * 0.15,
             }}>
-                    <ProfilePicture size={150} temp_image={''}/>
-                <Text style={{fontWeight: 'bold', fontSize: 20}}>{name}</Text>
+                <ProfilePicture size={150} temp_image={''}/>
+                <Text style={{
+                    fontWeight: 'bold',
+                    fontSize: 24,
+                }}>{name}</Text>
                 <Text>@{username}</Text>
             </View>
 
             <View style={{
                 alignItems: 'flex-start',
                 justifyContent: 'center',
-                width: width * 0.8,
-                height: height * 0.1
+                height: height * 0.25,
+                width: width * 0.9,
+                marginLeft: 15
             }}>
                 <Text style={{
-                    fontSize: 25,
+                    fontSize: 24,
                     fontWeight: 'bold',
                 }}>
-                    Bio
+                    Biography
                 </Text>
-                <Text>{bio}</Text>
+                <Text style={{marginTop: 3}}>{bio}</Text>
             </View>
 
             <View style={{
                 alignItems: 'flex-start',
                 justifyContent: 'center',
-                width: width * 0.8,
-                height: height * 0.1
+                width: width * 0.9,
+                marginLeft: 15
             }}>
                 <Text style={{
-                    fontSize: 25,
+                    fontSize: 24,
                     fontWeight: 'bold',
                 }}>
                     Achievements
@@ -111,8 +146,8 @@ function Profile({route, navigation}) {
                     Friends
                 </Button>
             </View>
-        </SafeAreaView>
+        </View>
     )
 }
 
-export default Profile
+export default Profile;

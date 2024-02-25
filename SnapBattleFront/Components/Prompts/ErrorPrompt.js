@@ -2,30 +2,19 @@ import React, {useEffect, useState} from 'react';
 import {Modal, Pressable, View} from 'react-native';
 import {Button, Text} from '@rneui/themed';
 import {Image} from "expo-image";
-import CloseButton from "../assets/close.webp";
+import CloseButton from "../../assets/close.webp";
 
 
 /**
- * @returns {JSX.Element} - info prompt
+ * @returns {JSX.Element} - Error prompt
  */
 
-const InfoPrompt = ({ Message, state, setEnable }) => {
+const ErrorPrompt = ({ Message, state, setError }) => {
     const [invBoxVisible, setInvBoxVisibility] = useState(false);
 
     useEffect(() => {
         setInvBoxVisibility(state);
-
-        let timer;
-        if (state) { //Disappear in 3 seconds
-            timer = setTimeout(() => {
-                setInvBoxVisibility(false);
-                if (setEnable) setEnable(false);
-            }, 3000);
-        }
-
-        // Cleanup function to clear the timeout
-        return () => clearTimeout(timer);
-    }, [state, setEnable]);
+    }, [state]);
 
     return(
         <Modal
@@ -33,8 +22,8 @@ const InfoPrompt = ({ Message, state, setEnable }) => {
             transparent={true}
             visible={invBoxVisible}
             onRequestClose={() => {
-                setInvBoxVisibility(false)
-                setError(false)
+                setInvBoxVisibility(false);
+                setError(false);
             }}
         >
             <View style={{
@@ -51,7 +40,7 @@ const InfoPrompt = ({ Message, state, setEnable }) => {
                 }}>
                     <Pressable onPress={() => {
                         setInvBoxVisibility(false)
-                        setEnable(false)
+                        setError(false)
                     }}>
                         <Image
                             source={CloseButton}
@@ -69,12 +58,15 @@ const InfoPrompt = ({ Message, state, setEnable }) => {
                         alignItems: 'center',
                         marginTop: 5,
                     }}>
-                        <Text style={{fontSize: 36, textAlign: 'center'}}>{Message}</Text>
+                        <Text style={{
+                            fontSize: 36,
+                            textAlign: 'center'
+                        }}>{Message}</Text>
                         <View style={{marginTop: 10}}>
                             <Button onPress={() => {
-                                setInvBoxVisibility(false)
-                                setEnable(false)
-                            }}>Close</Button>
+                                setInvBoxVisibility(false);
+                                setError(false);
+                            }}>Try again</Button>
                         </View>
                     </View>
                 </View>
@@ -84,4 +76,4 @@ const InfoPrompt = ({ Message, state, setEnable }) => {
 };
 
 
-export default InfoPrompt;
+export default ErrorPrompt;
