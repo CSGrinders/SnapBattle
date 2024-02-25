@@ -41,8 +41,6 @@ function SignIn({navigation}) {
     const [isLoading, setLoading] = useState(false);
 
     const handleSignIn = () => {
-        console.log("pressed")
-
         //Reset input error fields
         setErrorMessageUsername('');
         setErrorMessagePassword('')

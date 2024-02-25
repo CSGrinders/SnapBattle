@@ -47,24 +47,22 @@ function GroupSettings({route, navigation}) {
         }
         if (!error) {
             console.log(groupName)
-            axios.post(
-                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupname`,
-                {
-                    groupName: groupName
-                }
-            ).then((response) => {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/groupname`, {
+                groupName: groupName
+            })
+            .then((response) => {
                 const {nameChange} = response.data;
                 if (nameChange) {
                     setSuccessMessage("Group Name Change Success!")
                     setSuccessState(true);
                 }
-            }).catch((error) => {
+            })
+            .catch((error) => {
                 const {status, data} = error.response;
-                setErrorMessage("Something went wrong... " + data);
+                setErrorMessage("Something went wrong... " + status + " " + data);
                 setErrorState(true);
             })
         }
-
     }
     function submitGroupSize() {
         console.log(groupSize)
