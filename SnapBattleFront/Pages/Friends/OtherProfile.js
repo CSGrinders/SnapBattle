@@ -1,19 +1,17 @@
-import {Dimensions, Pressable, SafeAreaView, TouchableOpacity, View} from "react-native";
-import {Button, Text} from "@rneui/themed";
-import ProfilePicture from "../../Components/Profile/ProfilePicture";
+import {Dimensions, Text, SafeAreaView, View} from "react-native";
+import {Button} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
-import SettingIcon from '../../assets/profile-setting-icon.webp'
-import {Image} from 'expo-image';
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import axios from "axios";
 import ErrorPrompt from "../../Components/ErrorPrompt";
 import InfoPrompt from "../../Components/InfoPrompt";
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
+import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
+const {EXPO_PUBLIC_API_URL} = process.env
 
 function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window') //Get dimensions of the screen for footer
 
-    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio} = route.params
+    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID} = route.params
 
     const [image, setImage] = useState('')
 
@@ -42,23 +40,25 @@ function OtherProfile({route, navigation}) {
     return (
         <SafeAreaView style={{
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             width: width,
             height: height}}
         >
             <View style={{
-                alignItems: 'center',
-                flex: 2
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: width * 0.9,
+                height: height * 0.15,
             }}>
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    width: width * 0.9,
-                }}>
-                    <BackButton size={50} navigation={navigation} destination={"Friends"} params={{name: name, username: username, email: email, userID: userID}}/>
-                </View>
-                <ProfilePicture size={150}/>
+                <BackButton size={50} navigation={navigation} destination={"Friends"} params={{name: name, username: username, email: email, userID: userID}}/>
+            </View>
+            <View style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: height * 0.2,
+            }}>
+                <OtherProfilePicture size={150} searchID={searchID}/>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{searchName}</Text>
                 <Text>@{searchUsername}</Text>
             </View>
@@ -67,12 +67,11 @@ function OtherProfile({route, navigation}) {
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.8,
-                flex: 1
+                height: height * 0.1
             }}>
                 <Text style={{
                     fontWeight: 'bold',
-                    fontSize: 20,
-                    marginBottom: 5
+                    fontSize: 25,
                 }}>Bio</Text>
                 <Text>{searchBio}</Text>
             </View>
@@ -81,25 +80,24 @@ function OtherProfile({route, navigation}) {
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.8,
-                flex: 1
+                height: height * 0.1
             }}>
                 <Text style={{
                     fontWeight: 'bold',
-                    fontSize: 20,
-                    marginBottom: 5
+                    fontSize: 25,
                 }}>Achievements</Text>
                 <Text>Winner x2</Text>
             </View>
 
 
-            <View style={{justifyContent: 'flex-end', flex: 2}}>
+            <View style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: width,
+                height: height * 0.5
+            }}>
                 <Button
-                    style={{
-                        alignContent: 'flex-end',
-                        alignItems: 'center',
-                        justifyContent: 'center'}}
                     onPress={sendFriendRequest}
-
                 >
                     Send Friend Request
                 </Button>

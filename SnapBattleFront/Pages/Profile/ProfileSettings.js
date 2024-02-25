@@ -1,4 +1,5 @@
 import {
+    ActivityIndicator,
     Alert,
     Dimensions,
     KeyboardAvoidingView,
@@ -11,8 +12,8 @@ import {
 } from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import axios from "axios";
-import {useEffect, useState} from "react";
-import {deleteUserInfo, getUserInfo} from "../../Storage/Storage";
+import {useCallback, useEffect, useState} from "react";
+import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/ErrorPrompt";
 import {Button, Input} from "@rneui/themed";
 import InfoPrompt from "../../Components/InfoPrompt";
@@ -20,11 +21,14 @@ import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
 import {Image} from "expo-image";
 import CloseButton from "../../assets/close.webp";
+import * as ImagePicker from "expo-image-picker";
+import {saveImageToCloud} from "../../Storage/Cloud";
+import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
 
 function ProfileSettings({route, navigation}) {
 
-    const {name, username, email, userID} = route.params
+    const {name, username, email, userID} = route.params;
 
     let {width, height} = Dimensions.get('window'); //Get screen size
 
@@ -32,10 +36,17 @@ function ProfileSettings({route, navigation}) {
     const [image, setImage] = useState('');
 
     //Fields
-    const [bio, setBio] = useState('');
+    const [newBio, setNewBio] = useState('');
+    const [newName, setNewName] = useState(name);
+    const [newPassword, setNewPassword] = useState('');
+    const [option, setOption] = useState('');
 
-    //
-    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [errorMessageName, setErrorMessageName] = useState('');
+    const [errorMessageBio, setErrorMessageBio] = useState('');
+    const [errorMessagePassword, setErrorMessagePassword] = useState('');
+
+    //Prompt delete/password
+    const [confirm, setConfirm] = useState(false);
     const [confirmStatus, setConfirmStatus] = useState('');
     const [confirmUsername, setConfirmUsername] = useState('');
 
@@ -46,10 +57,42 @@ function ProfileSettings({route, navigation}) {
     const [infoMessage, setInfoMessage] = useState('');
     const [infoPrompt, setInfoPrompt] = useState(false);
 
-    function handleSubmit() {
-        console.log("submit pressed")
+    const [loading, setLoading] = useState(false);
+
+
+    const pfPressed = () => {
+        imagePicker();
     }
 
+    useFocusEffect(
+        useCallback(() => {
+            setImage('');
+        }, [userID])
+    )
+
+    async function imagePicker() {
+        try {
+            let selectedImage = null;
+            selectedImage = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 4],
+                quality: 1,
+            });
+            // turn on reload pop up and deactivate interactions
+            setLoading(true);
+            const res = await saveImageToCloud(userID, selectedImage.assets[0].uri);
+            // turn off reload
+            setLoading(false);
+            setInfoPrompt(true);
+            setInfoMessage("Image Uploaded");
+            setImage(selectedImage.assets[0].uri);
+            return res;
+        } catch (e) {
+            console.log(e);
+        }
+    }
+    // Handle sign out
     function handleSignOut() {
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/signout`,
@@ -58,6 +101,7 @@ function ProfileSettings({route, navigation}) {
             if (isSignedOut) { //Success
                 deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User logged out. Deleting user token."));
                 deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User logged out. Deleting user data."));
+                setAuthToken(null).then(r => {});
                 setInfoPrompt(true);
                 setInfoMessage("You are signing out...");
                 setTimeout(() => {
@@ -73,21 +117,24 @@ function ProfileSettings({route, navigation}) {
     }
 
     function handleDeleteAccount() {
-        if (username !== confirmUsername) {
+        if (username !== confirmUsername) { //Different usernames
             setConfirmStatus('Username does not match.');
             return
         }
+        //Reset fields
         setConfirmStatus('');
         setConfirmUsername('');
-        setConfirmDelete(false);
+        setConfirm(false);
+
+        //Request to the server
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/delete`,
         ).then((response) => {
-            console.log("test")
             const isDeleted = response.data;
             if (isDeleted) { //Success
                 deleteUserInfo(EXPO_PUBLIC_USER_TOKEN).then(() => console.log("User deleted. Deleting user token."));
                 deleteUserInfo(EXPO_PUBLIC_USER_INFO).then(() =>  console.log("User deleted. Deleting user data."));
+                setAuthToken(null).then(r => {});
                 setInfoPrompt(true);
                 setInfoMessage("You are signing out...");
                 setTimeout(() => {
@@ -104,23 +151,153 @@ function ProfileSettings({route, navigation}) {
     }
 
 
-
+    //Handle Change name
     function handleChangeName() {
-
+        if (newName === '') { //Empty fields
+            setErrorMessageName('Empty field.');
+        } else if (name === newName) {
+            setErrorMessageName('The new name should be different.')
+        } else {
+            axios.post(
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/changename`,
+                {
+                    newName: newName,
+                }
+            ).then((response) => {
+                const nameChanged = response.data;
+                if (nameChanged) { //Success
+                    //route.params.name = newName;
+                    console.log(route.params.name)
+                    const userData = {
+                        name: newName,
+                        username: username,
+                        email: email,
+                        id: userID,
+                    }
+                    //Save user info again
+                    saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(userData))
+                        .then((success) => console.log("Updated user info."))
+                        .catch((error) => console.log(error))
+                    setInfoPrompt(true);
+                    setInfoMessage("You changed your name!");
+                    setErrorMessageName('');
+                }
+            }).catch((error) => {
+                setNewName(name);
+                console.log(error);
+                const {status, data} = error.response;
+                if (error.response) { //Error
+                    if (status !== 500) {
+                        setErrorMessageName(data.errorMessage);
+                    } else {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                }
+            });
+        }
     }
 
+    // Change Bio
     function handleChangeBio() {
-
+        if (newBio === '') { //Empty fields
+            setErrorMessageBio('Empty field.');
+        } else {
+            axios.post(
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/changebio`,
+                {
+                    newBio: newBio,
+                }
+            ).then((response) => {
+                const bioChanged = response.data;
+                if (bioChanged) { //Success
+                    //route.params.name = newName;
+                    setInfoPrompt(true);
+                    setInfoMessage("You changed your biography!");
+                    setErrorMessageName('');
+                }
+            }).catch((error) => {
+                console.log(error);
+                const {status, data} = error.response;
+                if (error.response) { //Error
+                    if (status !== 500) {
+                        setErrorMessageBio(data.errorMessage);
+                    } else {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                }
+            });
+        }
     }
 
     function handleChangePassword() {
+        setConfirm(false)
+        setConfirmStatus('');
+        setOption('');
+        if (newPassword === '') { //Empty field
+            setErrorMessagePassword("Empty field.")
+            return
+        }
+        if (newPassword.includes(" ")) { //Check for invalid input
+            setErrorMessagePassword('Invalid password. (No spaces)');
+            return
+        }
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/changepassword`,
+            {
+                newPassword: newPassword,
+            }
+        ).then((response) => {
+            const passChanged = response.data;
+            if (passChanged) { //Success
+                setInfoPrompt(true);
+                setInfoMessage("You changed your password!");
+                setErrorMessageName('');
+            }
+        }).catch((error) => {
+            console.log(error);
+            const {status, data} = error.response;
+            if (error.response) { //Error
+                if (status !== 500) {
+                    setErrorMessagePassword(data.errorMessage);
+                } else {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
+            }
+        });
+    }
 
+    //Handle option for user confirm modal
+    function modeOption() {
+        if (option === "delete") {
+            handleDeleteAccount();
+        } else {
+            handleChangePassword()
+        }
+    }
+
+    function handleOption() {
+        setOption("password");
+        setConfirm(true);
     }
 
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                               enabled={false}>
+            {loading && (
+                <View>
+                    <ActivityIndicator size="large" color="blue" style={{
+                        position: 'absolute',
+                        left: (width / 2) - 10,
+                        top: height / 2,
+                    }} />
+                </View>
+            )}
+
+
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -129,11 +306,15 @@ function ProfileSettings({route, navigation}) {
                 width: width * 0.9,
             }}>
                 <View style={{paddingLeft: 15, alignItems: 'flex-start'}}>
-                    <BackButton
+                    {!loading && <BackButton
                         size={50}
                         navigation={navigation}
                         destination={"Profile"}
-                        params={route.params}/>
+                        params={{
+                            ...route.params,
+                            name: newName,
+                        }}
+                    />}
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Profile Settings</Text>
@@ -144,8 +325,8 @@ function ProfileSettings({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.1,
             }}>
-                <TouchableOpacity onPress={() => {}}>
-                    <ProfilePicture size={150}/>
+                <TouchableOpacity onPress={pfPressed} disabled={loading}>
+                    <ProfilePicture size={150} temp_image={image}/>
                 </TouchableOpacity>
             </View>
             <Text style={{
@@ -163,8 +344,18 @@ function ProfileSettings({route, navigation}) {
                 justifyContent: "flex-start",
                 marginLeft: 20,
             }}>
-                <Input placeholder='Enter new name' containerStyle={{width: width * 0.8}}></Input>
-                <SubmitIcon size={50} submitPressed={handleSubmit}/>
+                <Input
+                    placeholder='Enter new name'
+                    disabled={loading}
+                    containerStyle={{width: width * 0.8}}
+                    onChangeText={newName => {
+                        setNewName(newName);
+                        setErrorMessageName('');
+                    }}
+                    autoCapitalize="none"
+                    errorMessage={errorMessageName}
+                ></Input>
+                {!loading && <SubmitIcon size={50} submitPressed={handleChangeName}/>}
             </View>
             <Text style={{
                 marginHorizontal: 30,
@@ -181,8 +372,18 @@ function ProfileSettings({route, navigation}) {
                 justifyContent: "flex-start",
                 marginLeft: 20,
             }}>
-                <Input placeholder='Enter new bio' containerStyle={{width: width * 0.8}}></Input>
-                <SubmitIcon size={50} submitPressed={handleSubmit}/>
+                <Input
+                    placeholder='Enter new bio'
+                    disabled={loading}
+                    containerStyle={{width: width * 0.8}}
+                    onChangeText={newBio => {
+                        setNewBio(newBio);
+                        setErrorMessageBio('');
+                    }}
+                    autoCapitalize="none"
+                    errorMessage={errorMessageBio}
+                ></Input>
+                {!loading && <SubmitIcon size={50} submitPressed={handleChangeBio}/>}
             </View>
             <Text style={{
                 marginHorizontal: 30,
@@ -198,9 +399,20 @@ function ProfileSettings({route, navigation}) {
                 flexDirection: "row",
                 justifyContent: "flex-start",
                 marginLeft: 20,
-            }}>
-                <Input placeholder='Enter your old Password' containerStyle={{width: width * 0.8}}></Input>
-                <SubmitIcon size={50} submitPressed={handleSubmit}/>
+            }}
+                  disabled={loading}>
+                <Input
+                    placeholder='Enter your new Password'
+                    containerStyle={{width: width * 0.8}}
+                    disabled={loading}
+                    onChangeText={newPassword => {
+                        setNewPassword(newPassword);
+                        setErrorMessagePassword('');
+                    }}
+                    autoCapitalize="none"
+                    errorMessage={errorMessagePassword}
+                ></Input>
+                {!loading && <SubmitIcon size={50} submitPressed={handleOption}/>}
             </View>
             <View style={{
                 justifyContent: 'center',
@@ -209,10 +421,11 @@ function ProfileSettings({route, navigation}) {
                 height: height * 0.1
             }}>
                 <Button onPress={()=> {
-                    setConfirmDelete(true)
+                    setOption("delete");
+                    setConfirm(true)
                     setConfirmUsername('')
                     setConfirmStatus('')
-                }}>Delete Account</Button>
+                }} disabled={loading} >Delete Account</Button>
             </View>
             <View style={{
                 justifyContent: 'center',
@@ -220,16 +433,16 @@ function ProfileSettings({route, navigation}) {
                 width: width,
                 height: height * 0.05
             }}>
-                <Button onPress={()=> {handleSignOut()}}>Sign Out</Button>
+                <Button disabled={loading} onPress={()=> {handleSignOut()}}>Sign Out</Button>
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}></InfoPrompt>
             <Modal
                 animationType="slide"
                 transparent={true}
-                visible={confirmDelete}
+                visible={confirm}
                 onRequestClose={() => {
-                    setConfirmDelete(false)
+                    setConfirm(false)
                     setConfirmStatus('')
                 }}>
                 <View style={{
@@ -245,7 +458,7 @@ function ProfileSettings({route, navigation}) {
                         padding: 10,
                     }}>
                         <Pressable onPress={() => {
-                            setConfirmDelete(false);
+                            setConfirm(false);
                             setConfirmUsername('');
                             setConfirmStatus('');
                         }}>
@@ -269,7 +482,7 @@ function ProfileSettings({route, navigation}) {
                             <Text>Enter your username: <Text style={{fontFamily: 'OpenSansBold'}}> {username}</Text> to confirm the action.</Text>
                         </View>
                         <Input
-                                placeholder='Confirm action'
+                                placeholder='Confirm action.'
                                 onChangeText={username => {
                                     setConfirmUsername(username)
                                     setConfirmStatus('');
@@ -278,7 +491,7 @@ function ProfileSettings({route, navigation}) {
                                 errorMessage={confirmStatus}
                             />
                             <View style={{marginTop: 10}}>
-                                <Button onPress={() => {handleDeleteAccount()}}>Confirm</Button>
+                                <Button onPress={() => {modeOption()}}>Confirm</Button>
 
                             </View>
                         </View>

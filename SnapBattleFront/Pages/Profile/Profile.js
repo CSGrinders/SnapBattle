@@ -19,12 +19,7 @@ function Profile({route, navigation}) {
     const [bio, setBio] = useState('');
     const [achievements, setAchievements] = useState('');
 
-    const [image, setImage] = useState('');
-
-
-    const pfPressed = () => {
-        imagePicker();
-    }
+    const [pfpSeed, setPfpSeed] = useState(1);
 
     useFocusEffect(
         useCallback(() => {
@@ -43,27 +38,8 @@ function Profile({route, navigation}) {
             .catch((err) => {
                 console.log("bruh profee")
             })
-        getProfilePhoto(userID)
-            .then((data) => {
-                setImage(data.url)
-            });
     }
-    const imagePicker = async () => {
-        try {
-            let selectedImage = null;
-            selectedImage = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [4, 4],
-                quality: 1,
-            });
-            console.log(selectedImage.assets[0].uri);
-            await saveImageToCloud(userID, selectedImage.assets[0].uri);
-            await setImage(selectedImage.assets[0].uri);
-        } catch (e) {
-            console.log(e);
-        }
-    }
+
     return (
         <SafeAreaView style={{
             alignItems: 'center',
@@ -90,9 +66,7 @@ function Profile({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.25,
             }}>
-                <TouchableOpacity onPress={pfPressed}>
-                    <ProfilePicture size={150}/>
-                </TouchableOpacity>
+                    <ProfilePicture size={150} temp_image={''}/>
                 <Text style={{fontWeight: 'bold', fontSize: 20}}>{name}</Text>
                 <Text>@{username}</Text>
             </View>

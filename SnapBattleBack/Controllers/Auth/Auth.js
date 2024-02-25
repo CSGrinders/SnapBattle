@@ -11,6 +11,8 @@ const jwt = require('jsonwebtoken');
 const {User, Session} = require("../../Models/User");
 const {compare} = require("bcrypt");
 const validator = require('validator');
+
+
 /**
  * Handle user signup.
  *
@@ -263,7 +265,9 @@ module.exports.signOut = async(req, res)=> {
                 errorMessage: "Something went wrong...",
             });
         }
-        Session.deleteOne(session); //Remove session
+        console.log(session)
+        await Session.deleteOne(session); //Remove session
+        console.log(session)
 
         return res.status(200).json({
             isSignedOut: true,
