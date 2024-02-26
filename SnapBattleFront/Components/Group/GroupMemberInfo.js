@@ -16,7 +16,7 @@ function GroupMemberInfo({navigation, name, username, email, userID, width, admi
                 flexDirection: "row",
             }}>
                 <TouchableOpacity
-                    onPress={() => navigation.navigate("Profile", {
+                    onPress={() => navigation.navigate("OtherProfile", {
                         name: name,
                         username: username,
                         email: email,

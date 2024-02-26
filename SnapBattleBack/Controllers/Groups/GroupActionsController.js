@@ -78,6 +78,17 @@ module.exports.createGroup = async(req, res) => {
         const user = await User.findById(userID);
 
         if (user) {
+            let newHr = parseInt(timeStart.substring(0, 2));
+            let subHr = parseInt(timeEnd.substring(0,2));
+            if (newHr > subHr) {
+                return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
+            } else if (newHr === subHr) {
+                let newMin = parseInt(timeStart.substring(3));
+                let subMin = parseInt(timeEnd.substring(3));
+                if (newMin > subMin) {
+                    return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
+                }
+            }
             const userList = [];
             userList.push(user._id);
     

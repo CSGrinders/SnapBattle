@@ -154,6 +154,7 @@ function GroupMembers({route, navigation}) {
                                 onChangeText={username => setInvUser(username)}
                                 errorStyle={{color: invStatusColor}}
                                 errorMessage={invStatusMsg}
+                                autoCapitalize="none"
                             />
                             <Button onPress={inviteUser}>Confirm</Button>
                         </View>
