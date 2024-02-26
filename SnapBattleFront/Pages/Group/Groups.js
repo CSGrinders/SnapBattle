@@ -106,7 +106,6 @@ function Groups({navigation}) {
     }
 
     function leaveGroup(groupID) {
-        console.log("bruh");
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/leave-group`
         )
