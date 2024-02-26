@@ -207,6 +207,18 @@ function GroupSettings({route, navigation}) {
         }
     }
 
+    function deleteGroup() {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/delete-group`
+        )
+            .then((res) => {
+                navigation.navigate("Groups");
+            })
+            .catch((error) => {
+                console.log("Group Settings page: " + error);
+            })
+    }
+
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
                               enabled={false} style={{flex: 1}}>
@@ -367,7 +379,7 @@ function GroupSettings({route, navigation}) {
                 width: width,
                 height: height * 0.01,
             }}>
-                <Button>Delete Group</Button>
+                <Button onPress={deleteGroup}>Delete Group</Button>
             </View>
             <ErrorPrompt Message={errorMessage} state={errorState} setError={setErrorState}></ErrorPrompt>
             <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
