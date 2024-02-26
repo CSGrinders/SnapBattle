@@ -198,6 +198,7 @@ function GroupMembers({route, navigation}) {
                                     email={member.email}
                                     userID={member._id}
                                     admin={adminUser === member._id}
+                                    isAdmin={adminUser === userID ? (adminUser !== member._id) : false}
                                     width={width * 0.84}
                                 />
                             </View>

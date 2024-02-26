@@ -2,11 +2,10 @@ import { Card, Text } from '@rneui/themed';
 import { TouchableOpacity } from "react-native";
 import {View} from "react-native";
 import Profile from "../../assets/default-profile-picture.webp";
-import Reject from "../../assets/reject.webp";
 import {Image} from "expo-image";
 import KickButton from "../Button/KickButton";
 
-function GroupMemberInfo({navigation, name, username, email, userID, width, admin}) {
+function GroupMemberInfo({navigation, name, username, email, userID, width, admin, isAdmin}) {
     // TODO: PFP @hojin
     let adminStr = admin ? "Administrator" : "Member";
     return (
@@ -48,7 +47,8 @@ function GroupMemberInfo({navigation, name, username, email, userID, width, admi
                     </View>
                 </TouchableOpacity>
                 <View style={{
-                    justifyContent: "center"
+                    justifyContent: "center",
+                    display: !isAdmin
                 }}>
                     <KickButton size={50}/>
                 </View>
