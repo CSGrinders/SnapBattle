@@ -3,6 +3,10 @@
  *
  * This component displays the profile details of other users.
  *
+ * viewType = 0 -> other user is a friend
+ * viewType = 1 -> other user is not a friend & no pending requests
+ * viewType = 2 -> other user is a pending friend
+ *
  * @component
  * @return {JSX.Element} Renders a view of other users' profiles.
  */
@@ -20,7 +24,7 @@ const {EXPO_PUBLIC_API_URL} = process.env
 function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID} = route.params;
+    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID, viewType} = route.params;
 
     const [image, setImage] = useState('');
 
@@ -59,6 +63,29 @@ function OtherProfile({route, navigation}) {
         })
     }
 
+    function removeFriend(username) {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/remove`,
+            {
+                removeUsername: username
+            }
+        ).then((res) => {
+            setInfoPrompt(true);
+            setInfoMessage(res.data.message);
+            setTimeout(() => {
+                navigation.navigate("Friends", {name: name, username: username, email: email, userID: userID})
+            }, 1000)
+        })
+        .catch((err) => {
+            setErrorMessageServer(err.response.data.errorMessage);
+            setErrorServer(true);
+        })
+    }
+
+    function blockFriend() {
+        console.log("block friend")
+    }
+
     return (
         <View style={{flex: 1}}>
             <View style={{
@@ -71,10 +98,12 @@ function OtherProfile({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={50} navigation={navigation}
+                    <BackButton
+                                size={50}
+                                navigation={navigation}
                                 destination={"Friends"}
-                                params={{name: name, username: username, email: email, userID: userID
-                    }}/>
+                                params={{name: name, username: username, email: email, userID: userID}}
+                    />
                 </View>
             </View>
             <View style={{
@@ -119,13 +148,34 @@ function OtherProfile({route, navigation}) {
                 justifyContent: 'center',
                 alignItems: 'center',
                 width: width,
-                height: height * 0.5
+                height: height * 0.5,
+                gap: 10
             }}>
-                <Button
-                    onPress={sendFriendRequest}
-                >
-                    Send Friend Request
-                </Button>
+                {viewType === 0 ?
+                    <>
+                        <Button onPress={() => removeFriend(searchUsername)}>
+                            Remove Friend
+                        </Button>
+                        <Button onPress={() => blockFriend(searchUsername)}>
+                            Block Friend
+                        </Button>
+                    </>
+                    :
+                    <></>
+                }
+                {viewType === 1 ?
+                    <>
+                        <Button
+                            onPress={sendFriendRequest}
+                        >
+                            Send Friend Request
+                        </Button>
+                    </>
+                    :
+                    <></>
+                }
+
+
             </View>
 
             <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}/>

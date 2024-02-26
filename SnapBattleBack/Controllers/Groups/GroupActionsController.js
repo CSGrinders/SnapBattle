@@ -8,12 +8,16 @@
  * - CreateGroup: Allows a user to create a new group with specified fields such as group name, maximum users,
  *   start and end time for the group's activity, and voting period.
  * - ListUsers: Provides a list of all users within a specified group, helping group management and interaction.
+ * - AcceptGroupInvite: Accepts an existing invite to a group
+ * - RejectGroupInvite: Rejects an existing invite to a group
+ * - LeaveGroup: Allows a user to leave a group they are in
  *
  * @SnapBattle, 2024
  * Author: CSGrinders
  *
  */
 
+const { nextTick } = require('process');
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 
@@ -30,15 +34,22 @@ module.exports.getGroups = async(req, res)=> {
         const {userID} = req.params;
 
         //get user's groups as an array of {_id, name}
-        const findGroups = await User.findById(userID, 'groups -_id').populate('groups', 'name');
-        if (findGroups) {
-            let groups = findGroups.groups;
+        //get user's group invites as an array of {_id, name}
+        const user = await User.findById(userID, 'groups invites -_id')
+            .populate('groups', 'name')
+            .populate('invites', 'name')
+        if (user) {
+            let groups = user.groups;
             groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name}));
-            res.status(200).json(groups);
+            let invites = user.invites
+            invites = invites.map((group) => ({groupID: group._id.toString(), name: group.name}))
+            res.status(200).json({invites, groups});
         }
         else {
-            res.status(404).json({errorMessage: "Groups could not be found."});
+            res.status(404).json({errorMessage: "Groups or group invites could not be found."});
         }
+
+
     }
     catch (error) {
         console.log("getGroups module: " + error);
@@ -102,7 +113,7 @@ module.exports.createGroup = async(req, res) => {
 
 /**
  * desc
- * /user/:userID/groups/:groupID
+ * /user/:userID/groups/list-users/:groupID
  *
  *  @params userID, groupID
  *
@@ -122,6 +133,144 @@ module.exports.listUsers = async(req, res) => {
         }
     } catch (error) {
         console.log("listUsers module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+module.exports.acceptGroupInvite = async(req, res, next) => {
+    try {
+        const {userID, groupID} = req.params
+        const user = await User.findById(userID)
+        const group = await Group.findById(groupID)
+
+        //add user to group
+        if (group.userList.length < group.maxUsers) {
+            group.userList.push(userID)
+            await group.save()
+        }
+        else {
+            return res.status(404).json({errorMessage: "You cannot join because the group has the max number of users"})
+        }
+
+        //add group to user's groups and remove group from user's group invites
+        user.groups.push(groupID)
+        for (let i = 0; i < user.invites.length; i++) {
+            if (user.invites[i]._id.toString() === groupID) {
+                user.invites.splice(i, 1)
+                break
+            }
+        }
+        await user.save()
+
+        //get user's new groups and group invites and send back to client
+        next()
+
+    } catch (error) {
+        console.log("acceptGroupsInvite module: " + error);
+        return res.status(500).json({errorMessage: "idk hee hee"})
+    }
+}
+
+module.exports.rejectGroupInvite = async(req, res, next) => {
+    try {
+        const {userID, groupID} = req.params
+        const user = await User.findById(userID)
+
+        //remove group from user's group invites
+        for (let i = 0; i < user.invites.length; i++) {
+            if (user.invites[i]._id.toString() === groupID) {
+                user.invites.splice(i, 1)
+                break
+            }
+        }
+        await user.save()
+
+        next()
+
+    } catch (error) {
+        console.log("rejectGroupsInvite module: " + error);
+        return res.status(500).json({errorMessage: "idk hee hee 2"})
+    }
+}
+/**
+ * desc
+ * /user/:userID/groups/:groupID/leave-group
+ *
+ *  @params userID, groupID
+ *
+ **/
+
+module.exports.leaveGroup = async(req, res, next) => {
+    try {
+        const groupID = req.params.groupID;
+        const userID = req.params.userID;
+
+        const user = await User.findById(userID);
+        const group = await Group.findById(groupID);
+
+        // Check if user exists
+        if (!user) {
+            console.log("leaveGroup module: user not found");
+            return res.status(404).json({errorMessage: "User not found"});
+        }
+
+        // Check if group exists
+        if (!group) {
+            console.log("leaveGroup module: Group not found");
+            return res.status(404).json({errorMessage: "Group not found"});
+        }
+
+        // Check if group is in user's group
+        if (user.groups.filter((groupID) => groupID.toString() === group._id.toString()).length !== 1) {
+            console.log(user.groups)
+            console.log("group not in user's groups");
+            return res.status(404).json({errorMessage: "Group not in users's group"});
+        }
+
+        // Remove user from group's user list
+        group.userList = group.userList.filter((id) => id.toString() !== user._id.toString());
+        await group.save();
+
+        if (group.userList.length === 0) {
+            await Group.findByIdAndDelete(group._id);
+        }
+
+        // Remove group from user's group list
+        user.groups = user.groups.filter((groupID) => groupID !== group._id);
+        await user.save();
+
+        next();
+
+    } catch (error) {
+        console.log("leaveGroup module " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+/**
+ * desc
+ * /user/:userID/groups/:groupID/delete-group
+ *
+ *  @params groupID
+ *
+ **/
+
+module.exports.deleteGroup = async(req, res) => {
+    try {
+        const groupID = req.params.groupID;
+
+        // Find group
+        const group = await Group.findById(groupID);
+
+        if (group) {
+            await Group.findByIdAndDelete(groupID);
+            res.status(200).json({groupDeleted: true});
+        } else {
+            console.log("deleteGroup module: Group not found");
+            res.status(404).json({errorMessage: "Group not found"});
+        }
+    } catch (error) {
+        console.log("deleteGroup module: " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }

@@ -56,7 +56,8 @@ const User = new mongoose.Schema({
         ref: 'User'
     }],
     numWins: {
-        type: Number
+        type: Number,
+        default: 0
     }
 })
 

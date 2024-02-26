@@ -64,7 +64,7 @@ function GroupMembers({route, navigation}) {
         .catch((err) => {
             setErrorMessageServer("Something went wrong...");
             setErrorServer(true);
-            console.log("CreateGroup page: " + error);
+            console.log("CreateGroup page: " + err);
         })
     }
 
@@ -77,7 +77,7 @@ function GroupMembers({route, navigation}) {
             }
         ).then(
             (res) => {
-                const message = res.data;
+                const message = res.data.message;
                 if (message) {
                     setInvStatusMsg(message);
                     setInvStatusColor("green");
