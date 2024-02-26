@@ -112,7 +112,6 @@ function GroupMembers({route, navigation}) {
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             enabled={false} style={{flex: 1, alignItems: "center"}}>
-
             <Modal
                 animationType="slide"
                 transparent={true}
@@ -166,7 +165,8 @@ function GroupMembers({route, navigation}) {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
-                marginTop: 70
+                marginTop: 70,
+                marginBottom: 10
             }}>
                 <View style={{
                     paddingLeft: 15,
@@ -206,6 +206,7 @@ function GroupMembers({route, navigation}) {
                 </ScrollView>
             </View>
             <View style={{
+                marginTop: 20,
                 marginBottom: 20
             }}>
                 <Button onPress={() => setInvBoxVisibility(true)}>Invite +</Button>
