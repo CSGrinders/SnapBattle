@@ -227,6 +227,13 @@ module.exports.leaveGroup = async(req, res, next) => {
             return res.status(404).json({errorMessage: "Group not in users's group"});
         }
 
+        // Remove group from user's group list
+        console.log("before:",user.groups);
+        user.groups = user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
+        console.log("after:",user.groups);
+        await user.save();
+        
+
         // Remove user from group's user list
         group.userList = group.userList.filter((id) => id.toString() !== user._id.toString());
         await group.save();
@@ -234,10 +241,6 @@ module.exports.leaveGroup = async(req, res, next) => {
         if (group.userList.length === 0) {
             await Group.findByIdAndDelete(group._id);
         }
-
-        // Remove group from user's group list
-        user.groups = user.groups.filter((groupID) => groupID !== group._id);
-        await user.save();
 
         next();
 
@@ -260,9 +263,17 @@ module.exports.deleteGroup = async(req, res) => {
         const groupID = req.params.groupID;
 
         // Find group
-        const group = await Group.findById(groupID);
+        const group = await Group.findById(groupID).populate('userList');
 
         if (group) {
+            const users = group.userList;
+
+            // Iterate through users in groups and delete group from user
+            for (let i = 0; i < users.length; i++) {
+                users[i].groups = users[i].groups.filter((groupID) => groupID.toString() !== group._id.toString());
+                users[i].save();
+            }
+
             await Group.findByIdAndDelete(groupID);
             res.status(200).json({groupDeleted: true});
         } else {
