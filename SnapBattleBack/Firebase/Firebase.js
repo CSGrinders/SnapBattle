@@ -1,6 +1,16 @@
+/*
+ * Firebase.js
+ *
+ * This configuration file initializes Firebase.
+ *
+ * @SnapBattle, 2024
+ * Author: CSGrinders
+ *
+ */
+
 const {initializeApp} = require("firebase/app");
-const {getStorage, uploadBytes, ref} = require("firebase/storage")
-require("dotenv").config()
+const {getStorage, uploadBytes, ref} = require("firebase/storage");
+require("dotenv").config();
 const {
     EXPO_PUBLIC_KEY,
     EXPO_PUBLIC_DOMAIN,

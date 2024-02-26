@@ -1,10 +1,18 @@
 /*
  * Index.js
  *
- * This file sets up a server using Express.js
- * and connects it to a MongoDB database.
+ * Backend main.
  *
- * @SnapBattle, 2023
+ * Functionalities:
+ * - Initializes the Express.
+ * - Connects to MongoDB using mongoose.
+ * - Configures CORS to allow cross-origin requests.
+ * - Routers (authRouter, groupsRouter, profileRouter, friendsRouter) to manage different functionalities.
+ * - Secures user routes with userVerification middleware.
+ *
+ * @SnapBattle, 2024
+ * Author: CSGrinders
+ *
  */
 
 const express = require("express")
@@ -12,11 +20,11 @@ const mongoose = require("mongoose")
 const cors = require("cors")
 const app = express()
 const bodyParser = require('body-parser');
-const groupsRouter = require('./Routes/User/Groups/Groups')
-const authRouter = require('./Routes/Auth')
-const profileRouter = require('./Routes/User/Profile/Profile')
-const friendsRouter = require('./Routes/User/Friends/Friends')
-const {userVerification} = require("./Controllers/Auth/Auth");
+const groupsRouter = require('./Routes/User/GroupsRoutes')
+const authRouter = require('./Routes/AuthRoute')
+const profileRouter = require('./Routes/User/ProfileRoutes')
+const friendsRouter = require('./Routes/User/FriendsRoutes')
+const {userVerification} = require("./Controllers/Auth/AuthController");
 require("dotenv").config()
 const {MONGO_URL, PORT} = process.env
 
@@ -32,13 +40,12 @@ app.listen(PORT, () => {
 })
 
 // Configure CORS middleware
-app.use(
-    cors({
-        origin: [`http://localhost:3000`],
-        methods: ["GET", "POST", "PUT", "DELETE"],
-        credentials: true,
-    })
-)
+//pp.use(
+//    cors({
+ //       origin: [`http://localhost:3000`],
+//        methods: ["GET", "POST", "PUT", "DELETE"],
+//        credentials: true,
+ ///)
 
 //parses json data from request body and makes it available in req.body
 app.use(bodyParser.json({ limit: '50mb' }));

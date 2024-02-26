@@ -3,6 +3,10 @@ import { View } from 'react-native';
 import { Text } from '@rneui/themed';
 import {FooterStyle} from "../Theme/Theme";
 
+/**
+ * @returns {JSX.Element} - Footer Component
+ */
+
 const Footer = () => {
     return (
         <View style={FooterStyle.footerContainer}>

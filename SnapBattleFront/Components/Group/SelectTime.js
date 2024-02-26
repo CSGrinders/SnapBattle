@@ -21,7 +21,7 @@ function SelectTimeButton(
         setVisibility(false);
     };
 
-    const handleConfirm = (time) => {
+    const handleConfirm = (time, width) => {
         // string parsing for button title
         let hours = time.getHours() - 13 < 0 ? time.getHours() : time.getHours() - 12;
         hours = hours === 0 ? 12 : hours;
@@ -31,9 +31,9 @@ function SelectTimeButton(
         // string parsing to send to server
         let hrStr = time.getHours() < 10 ? "0" + time.getHours().toString() : time.getHours().toString();
         let minStr = time.getMinutes() < 10 ? "0" + time.getMinutes().toString() : time.getMinutes().toString();
-        setTime(hrStr + ":" + minStr)
+        setTime(hrStr + ":" + minStr);
         // set date for time picker
-        setDate(time)
+        setDate(time);
         hideTimePicker();
     };
 
@@ -43,7 +43,7 @@ function SelectTimeButton(
                     buttonStyle={{
                         borderRadius: 8,
                         borderWidth: 2,
-                        width: width * 0.75,
+                        width: width,
                         height: 55,
                     }}
                     containerStyle={{
@@ -62,4 +62,4 @@ function SelectTimeButton(
         </View>
     );
 }
-export default SelectTimeButton
+export default SelectTimeButton;

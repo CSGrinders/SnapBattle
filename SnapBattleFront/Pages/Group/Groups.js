@@ -1,14 +1,35 @@
-import {useCallback, useEffect, useState} from "react";
-import {Dimensions, Pressable, SafeAreaView, Text, View, Image, ScrollView, ActivityIndicator} from "react-native";
+/**
+ * Groups Component
+ *
+ * This component renders the main group page for users to interact with groups. It displays a list of groups
+ * the user is a member of, pending group invites, and gives navigation options to enter to a group page,
+ * manage profile, and create new groups.
+ *
+ * @component
+ * @return {JSX.Element} Renders the main groups.
+ */
+
+import {useCallback, useState} from "react";
+import {
+    Dimensions,
+    Pressable,
+    Text,
+    View,
+    Image,
+    ScrollView,
+    ActivityIndicator,
+} from "react-native";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
-import PlusButton from "../../assets/plus.webp"
-import LeaveButton from "../../assets/leave.webp"
+import PlusButton from "../../assets/plus.webp";
+import LeaveButton from "../../assets/leave.webp";
 import axios from "axios";
-import uuid from 'react-native-uuid'
+import uuid from 'react-native-uuid';
 import {Button} from "@rneui/themed";
 import {useFocusEffect} from "@react-navigation/native";
 import {getUserInfo} from "../../Storage/Storage";
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function Groups({navigation}) {
 
@@ -20,9 +41,13 @@ function Groups({navigation}) {
     const [token, setToken] = useState('');
 
     //groups are in format [{groupID: ?, name: ?}, ...]
-    const [groups, setGroups] = useState([-1])
-    const [groupInvites, setGroupInvites] = useState(["test1", "test2", "test3", "test4"])
-    const {width, height} = Dimensions.get('window')
+    const [groups, setGroups] = useState([-1]);
+    const [groupInvites, setGroupInvites] = useState(["test1", "test2", "test3", "test4"]);
+    const {width, height} = Dimensions.get('window');
+
+    //Server error messages
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
 
     //getting user information
     useFocusEffect(
@@ -33,7 +58,7 @@ function Groups({navigation}) {
                     if (userData.name) setName(userData.name);
                     if (userData.username) setUsername(userData.username);
                     if (userData.email) setEmail(userData.email);
-                    if (userData.id) setUserID(userData.id)
+                    if (userData.id) setUserID(userData.id);
                 }
             })
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
@@ -49,7 +74,7 @@ function Groups({navigation}) {
         useCallback(() => {
             getGroups()
         }, [userID])
-    )
+    );
 
 
     //get user's list of groups
@@ -60,67 +85,98 @@ function Groups({navigation}) {
             .then((res) => {
                 setGroups(res.data)
             })
-            .catch((err) => {
-                console.log("bruh")
-            })
+            .catch((error) => {
+                const {status, data} = error.response;
+                if (error.response) {
+                    if (status !== 500) {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    } else {
+                        console.log("Main Group page: " + error);
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                } else {
+                    console.log("Main Group page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
+            });
+
     }
 
 
     return (
-        <SafeAreaView style={{alignItems: 'center', width: width, height: height}}>
-
+        <View style={{flex: 1}}>
             <View style={{
                 flex: 0,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                width: 0.9 * width
+                height: height * 0.2,
             }}>
                 <View>
-                    <Text style={{fontSize: 36, fontFamily: 'OpenSansBold'}}>Groups</Text>
+                    <Text style={{
+                        fontSize: 40,
+                        fontFamily: 'OpenSansBold',
+                        marginLeft: 10,
+                    }}>Groups</Text>
                 </View>
-                <View>
-                    <Pressable onPress={() => navigation.navigate("Profile", {name: name, username: username,
-                                                                                   email: email, userID: userID})}>
+                <View style={{marginRight: 10,}}>
+                    <Pressable
+                        onPress={() => navigation.navigate("Profile",
+                            {
+                                name: name,
+                                username: username,
+                                email: email,
+                                userID: userID
+                            })}>
                         <ProfilePicture size={50}/>
                     </Pressable>
                 </View>
             </View>
 
-
             <View style={{
-                flex: 0,
-                width: width * 0.8,
+                height: height * 0.15,
+                marginLeft: 10,
             }}>
                 <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Pending Requests</Text>
-                {groupInvites.map((group) => {
-                    return (
-                        <Text key={uuid.v4()}>{group}</Text>
-                    )
-                })}
+                <ScrollView contentContainerStyle={{flexGrow: 1}}>
+                    {groupInvites.map((group) => {
+                        return (
+                            <Text key={uuid.v4()}>{group}</Text>
+                        )
+                    })}
+                </ScrollView>
             </View>
 
 
             <View style={{
-                width: width * 0.8,
-                flex: 1
+                marginLeft: 10,
             }}>
                 <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Groups</Text>
-                <ScrollView>
-                    {(groups[0]!== -1) ? groups.map((group) => {
+                <ScrollView contentContainerStyle={{flexGrow: 1}}>
+                    {(groups[0] !== -1) ? groups.map((group) => {
                         return (
                             <View key={uuid.v4()} style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
-                                marginVertical: 5}}
+                                marginVertical: 5
+                            }}
                             >
                                 <Button
                                     buttonStyle={{width: 200}}
-                                    onPress={() => navigation.navigate("GroupHome", {name: name, username: username, email: email, userID: userID, groupID: group.groupID})}
+                                    onPress={() => navigation.navigate("GroupHome", {
+                                        name: name,
+                                        username: username,
+                                        email: email,
+                                        userID: userID,
+                                        groupID: group.groupID
+                                    })}
                                 >
                                     {group.name}
                                 </Button>
-                                <Pressable>
+                                <Pressable style={{marginRight: 10}}>
                                     <Image
                                         source={LeaveButton}
                                         style={{
@@ -136,8 +192,14 @@ function Groups({navigation}) {
             </View>
 
 
-            <View>
-                <Pressable style={{alignItems: 'center'}} onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
+            <View style={{
+                position: 'absolute',
+                bottom: 20,
+                alignSelf: 'center',
+                alignItems: 'center'
+            }}>
+                <Pressable style={{alignItems: 'center'}}
+                           onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
                     <Image
                         source={PlusButton}
                         style={{
@@ -148,8 +210,9 @@ function Groups({navigation}) {
                     <Text style={{fontFamily: "OpenSansRegular"}}>Create Group</Text>
                 </Pressable>
             </View>
-        </SafeAreaView>
+            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
+        </View>
     )
 }
 
-export default Groups
+export default Groups;

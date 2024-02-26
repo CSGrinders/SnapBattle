@@ -1,10 +1,12 @@
-import * as SecureStore from "expo-secure-store";
-import axios from "axios";
 
 /**
  * These methods will allow to retrieve data from the device
  * that was saved when the user signed in or up
  */
+
+
+import * as SecureStore from "expo-secure-store";
+import axios from "axios";
 
 
 export async function saveUserInfo(key, value) {

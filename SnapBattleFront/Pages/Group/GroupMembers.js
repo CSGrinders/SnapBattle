@@ -1,36 +1,54 @@
-import {ActivityIndicator, Alert, Dimensions, Modal, Pressable, SafeAreaView, ScrollView, Text, View} from "react-native";
+import {
+    ActivityIndicator,
+    Alert,
+    Dimensions, KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    View
+} from "react-native";
 import {Image} from "expo-image";
 import {Button, Input} from "@rneui/themed";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO} = process.env
+const {EXPO_PUBLIC_API_URL} = process.env
 import BackIcon from "../../assets/back-icon.webp";
 import {useFocusEffect} from "@react-navigation/native";
 import uuid from 'react-native-uuid'
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import GroupMemberInfoCard from "../../Components/Group/GroupMemberInfo";
+import BackButton from "../../Components/Button/BackButton";
 
 function GroupMembers({route, navigation}) {
 
-    const {name, username, email, userID, groupID} = route.params
-    const {width, height} = Dimensions.get('window')
+    const {name, username, email, userID, groupID} = route.params;
+    const {width, height} = Dimensions.get('window');
 
     //state for whether the invite box is open or not
-    const [invBoxVisible, setInvBoxVisibility] = useState(false)
+    const [invBoxVisible, setInvBoxVisibility] = useState(false);
 
     //state for the username to be invited to the group
-    const [invUser, setInvUser] = useState("")
+    const [invUser, setInvUser] = useState("");
 
     //state for group invite status message
-    const [invStatusMsg, setInvStatusMsg] = useState("")
-    const [invStatusColor, setInvStatusColor] = useState("green")
+    const [invStatusMsg, setInvStatusMsg] = useState("");
+    const [invStatusColor, setInvStatusColor] = useState("green");
+
+    //Server error messages
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
 
     //state for group members
-    const [groupMembers, setGroupMembers] = useState([-1])
+    const [groupMembers, setGroupMembers] = useState([-1]);
+    const [adminUser, setAdminUser] = useState("");
 
         //getting information necessary for page display
      useFocusEffect(
         useCallback(() => {
-            getGroupMembers()
+            getGroupMembers();
         }, [])
     )
 
@@ -40,10 +58,13 @@ function GroupMembers({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/list-users/${groupID}`
         )
         .then((res) => {
-            setGroupMembers(res.data)
+            setGroupMembers(res.data.list);
+            setAdminUser(res.data.adminUser);
         })
         .catch((err) => {
-            console.log("bruh", err)
+            setErrorMessageServer("Something went wrong...");
+            setErrorServer(true);
+            console.log("CreateGroup page: " + error);
         })
     }
 
@@ -56,130 +77,142 @@ function GroupMembers({route, navigation}) {
             }
         ).then(
             (res) => {
-                setInvStatusMsg(res.data)
-                setInvStatusColor("green")
+                const message = res.data;
+                if (message) {
+                    setInvStatusMsg(message);
+                    setInvStatusColor("green");
+                }
             }
-        ).catch(
-            (error) => {
-                // Check for error.response if its null, also you can use //error.response.status
-                setInvStatusMsg(error.response.data)
-                setInvStatusColor("red")
+        ).catch((error) => {
+            const {status, data} = error.response;
+            if (error.response) {
+                if (status !== 500) {
+                    setInvStatusMsg(data.errorMessage);
+                    setInvStatusColor("red")
+                } else {
+                    console.log("Group Settings page: " + error);
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                }
+            } else {
+                console.log("Group Settings page: " + error);
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
             }
-        )
+        })
     }
 
     function closeInviteBox() {
-        setInvStatusMsg("")
-        setInvBoxVisibility(false)
+        setInvStatusMsg("");
+        setInvBoxVisibility(false);
     }
 
 
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'space-between'}} >
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            enabled={false} style={{flex: 1, alignItems: "center"}}>
 
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={invBoxVisible}
-                    onRequestClose={() => {
-                        Alert.alert('Modal has been closed.')
-                        setInvBoxVisibility(false)
-                        setInvStatusMsg("")
-                    }}>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={invBoxVisible}
+                onRequestClose={() => {
+                    Alert.alert('Modal has been closed.')
+                    setInvBoxVisibility(false)
+                    setInvStatusMsg("")
+            }}>
+                <View style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
                     <View style={{
-                        flex: 1,
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        backgroundColor: 'white',
+                        borderColor: 'black',
+                        borderWidth: 2,
+                        padding: 10,
                     }}>
+                        <Pressable onPress={closeInviteBox}>
+                            <Image
+                                source={CloseButton}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    marginLeft: 'auto',
+                                }}
+                                rcontentFit="cover"
+                                transition={500}
+                            />
+                        </Pressable>
                         <View style={{
-                            backgroundColor: 'white',
-                            borderColor: 'black',
-                            borderWidth: 2,
-                            padding: 10,
+                            flex: 0,
+                            alignItems: 'center'
                         }}>
-                            <Pressable onPress={closeInviteBox}>
-                                <Image
-                                    source={CloseButton}
-                                    style={{
-                                        width: 30,
-                                        height: 30,
-                                        marginLeft: 'auto',
-                                    }}
-                                    rcontentFit="cover"
-                                    transition={500}
-                                />
-                            </Pressable>
-                            <View style={{
-                                flex: 0,
-                                alignItems: 'center'
-                            }}>
-                                <Text>Enter the username of the friend you would like to invite</Text>
-                                <Input
-                                    placeholder='username'
-                                    onChangeText={username => setInvUser(username)}
-                                    errorStyle={{color: invStatusColor}}
-                                    errorMessage={invStatusMsg}
-                                />
-                                <Button onPress={inviteUser}>Confirm</Button>
-                            </View>
+                            <Text>Enter the username of the friend you would like to invite</Text>
+                            <Input
+                                placeholder='username'
+                                onChangeText={username => setInvUser(username)}
+                                errorStyle={{color: invStatusColor}}
+                                errorMessage={invStatusMsg}
+                            />
+                            <Button onPress={inviteUser}>Confirm</Button>
                         </View>
                     </View>
-                </Modal>
-
-
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    height: height * 0.2,
-                    width: width * 0.9,
-                }}>
-                    <Pressable
-                        style={{ paddingLeft: 20, alignItems: "flex-start" }}
-                        onPress={() => navigation.navigate("Groups")}
-                    >
-                        <Image source={BackIcon} style={{ width: 50, height: 50 }}></Image>
-                    </Pressable>
-                    <View style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        paddingRight: 20,
-                    }}
-                    >
-                        <Text style={{ fontSize: 36 }}>Group Members</Text>
-                    </View>
                 </View>
+            </Modal>
 
-
+            <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                marginTop: 70
+            }}>
                 <View style={{
-                    width: width * 0.8,
-                    flex: 1
+                    paddingLeft: 15,
+                    alignItems: 'flex-start'
                 }}>
-                    <ScrollView>
-                        {(groupMembers[0]!== -1) ? groupMembers.map((member) => {
+                    <BackButton size={50} navigation={navigation} destination={"GroupHome"} params={route.params}/>
+                </View>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
+                    <Text style={{fontSize: 32, fontFamily: 'OpenSansBold'}}>Group Members</Text>
+                </View>
+            </View>
+
+            <View style={{
+                width: width,
+                flex: 1
+            }}>
+                <ScrollView>
+                    {(groupMembers[0]!== -1) ? groupMembers.map((member) => {
                         return (
                             <View key={uuid.v4()} style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
                                 marginVertical: 5}}
                             >
-                                <Button
-                                    buttonStyle={{width: 300}}
-                                    onPress={() => navigation.navigate("Profile", {name: member.name, username: member.username, email: member.email, userID: member._id})}
-                                >
-                                    {member.username}
-                                </Button>
+                                <GroupMemberInfoCard
+                                    navigation={navigation}
+                                    name={member.name}
+                                    username={member.username}
+                                    email={member.email}
+                                    userID={member._id}
+                                    admin={adminUser === member._id}
+                                    width={width * 0.84}
+                                />
                             </View>
                         )
-                    }) : <ActivityIndicator size="large" color="#000000"/>}
+                }) : <ActivityIndicator size="large" color="#000000"/>}
                 </ScrollView>
             </View>
-
-
+            <View style={{
+                marginBottom: 20
+            }}>
                 <Button onPress={() => setInvBoxVisibility(true)}>Invite +</Button>
-        </SafeAreaView>
+            </View>
+            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
+        </KeyboardAvoidingView>
     )
 }
 
-export default GroupMembers
+export default GroupMembers;

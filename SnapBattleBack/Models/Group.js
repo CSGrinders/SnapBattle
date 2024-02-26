@@ -5,9 +5,11 @@
  * in the MongoDB database,
  *
  * @SnapBattle, 2024
+ * Author: CSGrinders
+ *
  */
 
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 
 const Group = new mongoose.Schema({
@@ -41,4 +43,4 @@ const Group = new mongoose.Schema({
     }]
 })
 
-module.exports = mongoose.model("Group", Group)
+module.exports = mongoose.model("Group", Group);

@@ -1,4 +1,22 @@
-import {View, Image, SafeAreaView, Text, Dimensions, Pressable, TouchableOpacity} from "react-native";
+/**
+ * Friends Component
+ *
+ * This component renders a page where will allow users to manage their friends. It displays a list of current friends,
+ * manages incoming friend requests, and allowing the search and add new friends.
+ *
+ * @component
+ * @return {JSX.Element} A user render for managing friends.
+ */
+
+import {
+    View,
+    Image,
+    Text,
+    Dimensions,
+    TouchableOpacity,
+    Platform,
+    KeyboardAvoidingView
+} from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import BlockedFriendsIcon from "../../assets/blocked.webp"
 import SearchIcon from "../../assets/search-icon.webp"
@@ -7,22 +25,22 @@ import {Button, Input} from "@rneui/themed";
 import {useCallback, useState} from "react";
 import axios from "axios";
 import uuid from "react-native-uuid";
-import ErrorPrompt from "../../Components/ErrorPrompt";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {useFocusEffect} from "@react-navigation/native";
 import AcceptIcon from "../../assets/check.webp"
 import RejectIcon from "../../assets/reject.webp"
 import SettingIcon from "../../assets/profile-setting-icon.webp";
 
-const {EXPO_PUBLIC_API_URL} = process.env
+const {EXPO_PUBLIC_API_URL} = process.env;
 
 function Friends({route, navigation}) {
 
-    const {name, username, email, userID} = route.params
+    const {name, username, email, userID} = route.params;
 
-    const {width, height} = Dimensions.get('window')
+    const {width, height} = Dimensions.get('window');
 
     //username to search
-    const [search, setSearch] = useState("")
+    const [search, setSearch] = useState("");
 
     //server info/error messages
     const [errorMessageServer, setErrorMessageServer] = useState('');
@@ -30,23 +48,33 @@ function Friends({route, navigation}) {
 
     //friends {username: ?} and friend requests {username: ?}
     //TODO: add profile pictures
-    const [friendReqs, setFriendReqs] = useState([])
-    const [friends, setFriends] = useState([])
+    const [friendReqs, setFriendReqs] = useState([]);
+    const [friends, setFriends] = useState([]);
 
     function searchUser() {
-        console.log('test')
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search}`,
         )
             .then((res) => {
-                console.log(res.data)
-                const {searchName, searchUsername, searchEmail, searchBio} = res.data
-                navigation.navigate("OtherProfile", {...route.params, ...res.data})
+                const {searchName, searchUsername, searchEmail, searchBio} = res.data;
+                navigation.navigate("OtherProfile", {...route.params, ...res.data});
             })
-            .catch((err) => {
-                console.log(err)
-                setErrorMessageServer(err.response.data.errorMessage);
-                setErrorServer(true);
+            .catch((error) => {
+                const {status, data} = error.response;
+                if (error.response) {
+                    if (status !== 500) {
+                        setErrorMessageServer(data.errorMessage);
+                        setErrorServer(true);
+                    } else {
+                        console.log("Friends page: " + error);
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                } else {
+                    console.log("Friends page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
             })
     }
 
@@ -55,11 +83,15 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/get-friends`
         )
             .then((res) => {
-                const {friends} = res.data
-                setFriends(friends)
+                const {friends} = res.data;
+                setFriends(friends);
             })
-            .catch((err) => {
-                console.log(err.response.data.errorMessage)
+            .catch((error) => {
+                console.log("Friends page: " + error);
+                if (error.response) {
+                    setErrorMessageServer(error.response.data.errorMessage);
+                    setErrorServer(true);
+                }
             })
     }
 
@@ -68,32 +100,38 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/get-requests`
         )
             .then((res) => {
-                const {requests} = res.data
-                setFriendReqs(requests)
+                const {requests} = res.data;
+                setFriendReqs(requests);
             })
-            .catch((err) => {
-                console.log(err.response.data.errorMessage)
+            .catch((error) => {
+                console.log("Friends page: " + error);
+                if (error.response) {
+                    setErrorMessageServer(error.response.data.errorMessage);
+                    setErrorServer(true);
+                }
             })
     }
 
     function acceptRequest(reqUsername) {
-        console.log("accept request")
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/accept`,
             {
                 reqUsername: reqUsername
             }
         ).then((res) => {
-            const {friends, friendRequests} = res.data
-            setFriendReqs(friendRequests)
-            setFriends(friends)
-        }).catch((err) => {
-            console.log(err)
+            const {friends, friendRequests} = res.data;
+            setFriendReqs(friendRequests);
+            setFriends(friends);
+        }).catch((error) => {
+            console.log("Friends page: " + error);
+            if (error.response) {
+                setErrorMessageServer(error.response.data.errorMessage);
+                setErrorServer(true);
+            }
         })
     }
 
     function denyRequest(reqUsername) {
-        console.log("deny request")
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/deny`,
             {
@@ -101,48 +139,67 @@ function Friends({route, navigation}) {
             }
         ).then((res) => {
             console.log(res)
-        }).catch((err) => {
-            console.log(err)
+        }).catch((error) => {
+            console.log("Friends page: " + error);
+            if (error.response) {
+                setErrorMessageServer(error.response.data.errorMessage);
+                setErrorServer(true);
+            }
         })
     }
 
     useFocusEffect(
         useCallback(() => {
-            getFriendRequests()
-            getFriends()
+            getFriendRequests();
+            getFriends();
         }, [])
     )
 
     return (
-        <SafeAreaView style={{
-            alignItems: 'center',
-            width: width,
-            height: height,
-            gap: 20
-        }}
-        >
-
-            <View style={{flexDirection: 'row', justifyContent: 'center', width: 0.9 * width}}>
-                <BackButton size={50} navigation={navigation} destination={"Profile"} params={route.params}/>
-                <View style={{flex: 1, marginLeft: 10}}>
-                    <Text style={HeaderTheme.h1Style}>Friends</Text>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
+                              enabled={false} style={{flex: 1}}>
+            <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                height: height * 0.2,
+            }}>
+                <View style={{
+                    paddingLeft: 15,
+                    alignItems: 'flex-start'
+                }}>
+                    <BackButton size={50} navigation={navigation} destination={"Groups"}/>
                 </View>
-                <Image
-                    source={BlockedFriendsIcon}
-                    style={{
-                        width: 50,
-                        height: 50
-                    }}
-                />
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                    <Text style={{
+                        fontSize: 36,
+                        fontFamily: 'OpenSansBold'
+                    }}>Friends</Text>
+                </View>
+                <View style={{marginRight: 20}}>
+                    <TouchableOpacity onPress={() => {
+                    }}>
+                        <Image
+                            source={BlockedFriendsIcon}
+                            style={{
+                                width: 50,
+                                height: 50
+                            }}></Image>
+                    </TouchableOpacity>
+                </View>
             </View>
 
-
-            <View style={{flex: 0, flexDirection: 'row', justifyContent: 'center', width: 0.9 * width}}>
-                <Input
-                    placeholder={"username"}
-                    containerStyle={{flex: 1}}
-                    onChangeText={username => setSearch(username)}/>
-                <TouchableOpacity onPress={searchUser}>
+            <View style={{
+                alignItems: 'flex-start',
+                flexDirection: "row",
+                justifyContent: "flex-start",
+            }}>
+                <Input containerStyle={{width: width * 0.8}}
+                       placeholder={"username"}
+                       autoCapitalize="none"
+                       onChangeText={username => setSearch(username)}
+                />
+                <TouchableOpacity style={{marginLeft: 20}} onPress={searchUser}>
                     <Image
                         source={SearchIcon}
                         style={{
@@ -153,17 +210,27 @@ function Friends({route, navigation}) {
                 </TouchableOpacity>
             </View>
 
-            {friendReqs.length !== 0 ?  <View style={{width: width * 0.8}}>
-                    <Text style={HeaderTheme.h2Style}>Pending Requests</Text>
+            {friendReqs.length !== 0 ?
+                <View style={{
+                    marginLeft: 10,
+                    marginBottom: 15
+                }}>
+                    <Text style={{...HeaderTheme.h2Style, marginBottom: 5}}>Pending Requests</Text>
                     {friendReqs.map((req) => (
-                            <View key={uuid.v4()} style={{flexDirection: 'row', gap: 10}}>
-                                <Button buttonStyle={{width: 200}}>@{req.username}</Button>
+                        <View key={uuid.v4()} style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}>
+                            <Button style={{alignItems: 'flex-start'}} buttonStyle={{width: 200}}>@{req.username}</Button>
+                            <View style={{flexDirection: 'row', alignItems: 'flex-end', marginRight: 10}}>
                                 <TouchableOpacity onPress={() => acceptRequest(req.username)}>
                                     <Image
                                         source={AcceptIcon}
                                         style={{
                                             width: 50,
-                                            height: 50
+                                            height: 50,
+                                            marginRight: 20
                                         }}
                                     />
                                 </TouchableOpacity>
@@ -177,28 +244,32 @@ function Friends({route, navigation}) {
                                     />
                                 </TouchableOpacity>
                             </View>
-                        ))
+                        </View>
+                    ))
                     }
                 </View> : <></>
             }
 
-            <View style={{width: width * 0.8}}>
-                <Text style={HeaderTheme.h2Style}>Friends</Text>
-                {friends.length !== 0 ?  <View style={{width: width * 0.8}}>
-                        {friends.map((friend) => (
-                                <View key={uuid.v4()} style={{flexDirection: 'row', gap: 10}}>
-                                    <Button buttonStyle={{width: 200}}>@{friend.username}</Button>
-                                </View>
-                            ))
-                        }
-                    </View> : <></>
+            <View style={{
+                width: width * 0.8,
+                marginLeft: 10
+            }}>
+                <Text style={{...HeaderTheme.h2Style, marginBottom: 5}}>Friends</Text>
+                {friends.length !== 0 ? <View style={{width: width * 0.8}}>
+                    {friends.map((friend) => (
+                        <View key={uuid.v4()} style={{flexDirection: 'row', gap: 10}}>
+                            <Button buttonStyle={{width: 200}}>@{friend.username}</Button>
+                        </View>
+                    ))
+                    }
+                </View> : <></>
                 }
             </View>
 
 
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
-        </SafeAreaView>
+        </KeyboardAvoidingView>
     )
 }
 
-export default Friends
+export default Friends;
