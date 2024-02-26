@@ -139,7 +139,7 @@ function Groups({navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/leave-group`
         )
             .then((res) => {
-                setGroups(res.data);
+                setGroups(res.data.groups);
             })
             .catch((error) => {
                 console.log("Main Group page: " + error);
