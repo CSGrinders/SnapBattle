@@ -32,7 +32,7 @@ import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
 import {Image} from "expo-image";
 import CloseButton from "../../assets/close.webp";
 import * as ImagePicker from "expo-image-picker";
-import {saveImageToCloud} from "../../Storage/Cloud";
+import {saveImageToCloud, setProfileImageCache} from "../../Storage/Cloud";
 import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -89,21 +89,24 @@ function ProfileSettings({route, navigation}) {
                 aspect: [4, 4],
                 quality: 1,
             });
-            // turn on reload pop up and deactivate interactions
-            setLoading(true);
-            const res = await saveImageToCloud(userID, selectedImage.assets[0].uri);
-            // turn off reload
-            setLoading(false);
-            setInfoPrompt(true);
-            setInfoMessage("Image Uploaded");
-            setImage(selectedImage.assets[0].uri);
-            return res;
+            if (selectedImage.assets) {
+                // turn on reload pop up and deactivate interactions
+                setLoading(true);
+                const res = await saveImageToCloud(userID, selectedImage.assets[0].uri);
+                // turn off reload
+                setLoading(false);
+                setInfoPrompt(true);
+                setInfoMessage("Image Uploaded");
+                setImage(selectedImage.assets[0].uri);
+                return res;
+            }
         } catch (error) {
             console.log("Profile settings page: " + error);
         }
     }
     // Handle sign out
     function handleSignOut() {
+        setProfileImageCache('default');
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/signout`,
         ).then((response) => {

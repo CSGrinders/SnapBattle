@@ -2,6 +2,8 @@ const {EXPO_PUBLIC_API_URL,} = process.env;
 
 import axios from "axios";
 
+let imageUrl = '';
+
 export function saveImageToCloud(userID, imageUri) {
     return new Promise((resolve, reject) => {
         fetch(imageUri)
@@ -39,7 +41,15 @@ export async function getProfilePhoto(userID) {
         );
         return response.data;
     } catch (error) {
-        console.error("SaveImageToCloud: Error fetching profile photo -> ", error);
-        throw error;
+        console.log("return default / SaveImageToCloud: Error fetching profile photo -> ", error);
+        return {url: 'default'};
     }
+}
+
+export async function setProfileImageCache(url) {
+    imageUrl = url;
+}
+
+export async function getProfileImageCache() {
+    return imageUrl;
 }

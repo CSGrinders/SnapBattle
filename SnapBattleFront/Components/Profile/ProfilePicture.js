@@ -3,7 +3,7 @@ import {Image} from 'expo-image';
 import default_image_source from '../../assets/default-profile-picture.webp'
 import {getUserInfo} from "../../Storage/Storage";
 import {useCallback, useEffect, useState} from "react";
-import {getProfilePhoto} from "../../Storage/Cloud";
+import {getProfileImageCache, getProfilePhoto, setProfileImageCache} from "../../Storage/Cloud";
 import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_USER_INFO} = process.env
 
@@ -14,10 +14,11 @@ const {EXPO_PUBLIC_USER_INFO} = process.env
 
 const ProfilePicture = ({size, temp_image}) => {
 
+
+    const blurhash =
+        '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
     const [userID, setUserID] = useState('');
     const [image, setImage] = useState('');
-
-
 
     useFocusEffect(
         useCallback(() => {
@@ -25,14 +26,24 @@ const ProfilePicture = ({size, temp_image}) => {
                 if (info) {
                     const userData = JSON.parse(info);
                     if (userData.id) setUserID(userData.id);
-                    getProfilePhoto(userData.id)
-                        .then((data) => {
-                            try {
-                                setImage(data.url);
-                            } catch {
-                                setImage('');
-                            }
-                        });
+                    getProfileImageCache().then(url => {
+                        console.log("cache, yeeing", url);
+                        setImage(url);
+                        if (url === '' || url === undefined) {
+                            console.log("tlqkf")
+                            getProfilePhoto(userData.id)
+                                .then((data) => {
+                                    try {
+                                        console.log("pfpicture getProfilePhoto ", data.url);
+                                        setImage(data.url);
+                                        setProfileImageCache(data.url);
+                                    } catch {
+                                        setImage('default');
+                                        setProfileImageCache('default');
+                                    }
+                                });
+                        }
+                    })
                 }
             })
         }, [])
@@ -47,13 +58,15 @@ const ProfilePicture = ({size, temp_image}) => {
                     .then((data) => {
                         try {
                             setImage(data.url);
+                            setProfileImageCache(data.url);
                         } catch {
-                            setImage('');
+                            setImage('default');
+                            setProfileImageCache('default');
                         }
                     });
             }
         });
-    }, [image]);
+    }, [temp_image]);
 
     return (
         <View>
@@ -65,7 +78,7 @@ const ProfilePicture = ({size, temp_image}) => {
                                              borderWidth: size / 35
                                          }}
             />) : (<View>
-                {image !== '' ? (<Image source={{uri: image}}
+                {image !== 'default' ? (<Image source={{uri: image}}
                                         style={{
                                             width: size,
                                             height: size,

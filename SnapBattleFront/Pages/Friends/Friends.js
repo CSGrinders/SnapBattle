@@ -58,7 +58,7 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search}`,
         )
             .then((res) => {
-                const {searchName, searchUsername, searchEmail, searchBio, viewType} = res.data;
+                const {searchName, searchUsername, searchEmail, searchBio, viewType, url} = res.data;
                 navigation.navigate("OtherProfile", {...route.params, ...res.data, viewType: viewType});
             })
             .catch((error) => {

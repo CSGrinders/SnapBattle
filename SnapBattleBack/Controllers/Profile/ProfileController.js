@@ -47,9 +47,6 @@ module.exports.uploadPhoto = async(req, res)=> {
         uploadBytesResumable(imageRef, blob).then(() => {
             return res.status(200).json({status: "Image uploaded successfully."});
         });
-        // const storageRef = storage.ref().child("/")
-        // storageRef.put(blob)
-
     } catch (error) {
         console.log("uploadPhoto module: " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});
