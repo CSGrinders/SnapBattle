@@ -14,7 +14,7 @@
 import {Dimensions, Text, View} from "react-native";
 import {Button} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
-import {forwardRef, useRef, useState} from "react";
+import {useState} from "react";
 import axios from "axios";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
@@ -27,8 +27,6 @@ function OtherProfile({route, navigation}) {
     const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID, viewType} = route.params;
 
     const [image, setImage] = useState('');
-
-    const backButtonRef = useRef(null)
 
     //Server error
     const [errorMessageServer, setErrorMessageServer] = useState('');
@@ -74,13 +72,13 @@ function OtherProfile({route, navigation}) {
         ).then((res) => {
             setInfoPrompt(true);
             setInfoMessage(res.data.message);
-            console.log(backButtonRef.current)
             setTimeout(() => {
                 navigation.navigate("Friends", {name: name, username: username, email: email, userID: userID})
             }, 1000)
         })
         .catch((err) => {
-            console.log(err)
+            setErrorMessageServer(err.response.data.errorMessage);
+            setErrorServer(true);
         })
     }
 
