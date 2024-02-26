@@ -11,6 +11,7 @@
  * - getFriends: Lists all the friends of a user.
  * - acceptFriendRequest: Allows users to accept friend requests.
  * - denyFriendRequest: Allows users to deny friend requests.
+ * - removeFriend: removes a friend from the user's friend's list and and vice versa
  *
  * @SnapBattle, 2024
  * Author: CSGrinders
@@ -278,17 +279,40 @@ module.exports.denyFriendRequest = async (req, res, next) => {
     }
 }
 
+/**
+ * Add small desc.
+ * route
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+
 module.exports.removeFriend = async (req, res, next) => {
     try {
         //user A
         const {userID} = req.params
+        let userA = await User.findById(userID).populate('friends')
+        let AFriends = userA.friends
 
         //user B
         const {removeUsername} = req.body
+        let userB = await User.findOne({username: removeUsername}).populate('friends')
+        let BFriends = userB.friends
+
+        //ensure that user A and user B are friends
+        let isFriends = false
+        for (let i = 0; i < AFriends.length; i++) {
+            if (AFriends[i].username === removeUsername) {
+                isFriends = true
+                break
+            }
+        }
+        if (!isFriends) {
+            return res.status(404).json({errorMessage: "You are not friends. Please reload the friends page"})
+        }
+
 
         //remove user B from user A's friend list
-        let userA = await User.findById(userID).populate('friends')
-        let AFriends = userA.friends
         for (let i = 0; i < AFriends.length; i++) {
             if (AFriends[i].username === removeUsername) {
                 AFriends.splice(i, 1)
@@ -298,9 +322,6 @@ module.exports.removeFriend = async (req, res, next) => {
         await userA.save()
 
         //remove user A from user B's friend list
-        let userB = await User.findOne({username: removeUsername}).populate('friends')
-        let BFriends = userB.friends
-        console.log(BFriends)
         for (let i = 0; i < BFriends.length; i++) {
             if (BFriends[i]._id.toString() === userID) {
                 BFriends.splice(i, 1)

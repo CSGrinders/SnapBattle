@@ -9,7 +9,7 @@
  * @return {JSX.Element} Renders the main groups.
  */
 
-import {useCallback, useState} from "react";
+import {useCallback, useReducer, useState} from "react";
 import {
     Dimensions,
     Pressable,
@@ -17,11 +17,13 @@ import {
     View,
     Image,
     ScrollView,
-    ActivityIndicator,
+    ActivityIndicator, TouchableOpacity,
 } from "react-native";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import PlusButton from "../../assets/plus.webp";
 import LeaveButton from "../../assets/leave.webp";
+import AcceptButton from "../../assets/check.webp"
+import RejectButton from "../../assets/close.webp"
 import axios from "axios";
 import uuid from 'react-native-uuid';
 import {Button} from "@rneui/themed";
@@ -42,12 +44,14 @@ function Groups({navigation}) {
 
     //groups are in format [{groupID: ?, name: ?}, ...]
     const [groups, setGroups] = useState([-1]);
-    const [groupInvites, setGroupInvites] = useState(["test1", "test2", "test3", "test4"]);
+    const [groupInvites, setGroupInvites] = useState([-1]);
     const {width, height} = Dimensions.get('window');
 
     //Server error messages
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
+
+    const [refresh, applyRefresh]  = useState(false)
 
     //getting user information
     useFocusEffect(
@@ -77,13 +81,15 @@ function Groups({navigation}) {
     );
 
 
-    //get user's list of groups
+    //get user's list of groups and the user's pending group invites
     function getGroups() {
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
             .then((res) => {
-                setGroups(res.data)
+                const {invites, groups} = res.data
+                setGroups(groups)
+                setGroupInvites(invites)
             })
             .catch((error) => {
                 const {status, data} = error.response;
@@ -102,9 +108,31 @@ function Groups({navigation}) {
                     setErrorServer(true);
                 }
             });
-
     }
 
+    function acceptGroupInvite(groupID) {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/acceptInvite`
+        ).then(res => {
+            const {invites, groups} = res.data
+            setGroups(groups)
+            setGroupInvites(invites)
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+
+    function rejectGroupInvite(groupID) {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/rejectInvite`
+        ).then(res => {
+            const {invites, groups} = res.data
+            setGroups(groups)
+            setGroupInvites(invites)
+        }).catch(err => {
+            console.log(err)
+        })
+    }
 
     return (
         <View style={{flex: 1}}>
@@ -139,20 +167,55 @@ function Groups({navigation}) {
             <View style={{
                 height: height * 0.15,
                 marginLeft: 10,
+                flex: 0
             }}>
                 <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Pending Requests</Text>
-                <ScrollView contentContainerStyle={{flexGrow: 1}}>
-                    {groupInvites.map((group) => {
+                <ScrollView contentContainerStyle={{flexGrow: 1}} key={refresh}>
+                    {(groupInvites[0] !== -1) ? groupInvites.map((group) => {
                         return (
-                            <Text key={uuid.v4()}>{group}</Text>
+                            <View key={uuid.v4()} style={{
+                                flexDirection: 'row',
+                                justifyContent: 'space-between',
+                                marginVertical: 5
+                            }}
+                            >
+                                <Button buttonStyle={{width: 200}}>
+                                    {group.name}
+                                </Button>
+                                <TouchableOpacity
+                                    style={{marginRight: 10}}
+                                    onPress={() => acceptGroupInvite(group.groupID)}
+                                >
+                                    <Image
+                                        source={AcceptButton}
+                                        style={{
+                                            width: 50,
+                                            height: 50
+                                        }}
+                                    />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={{marginRight: 10}}
+                                    onPress={() => rejectGroupInvite(group.groupID)}
+                                >
+                                    <Image
+                                        source={RejectButton}
+                                        style={{
+                                            width: 50,
+                                            height: 50
+                                        }}
+                                    />
+                                </TouchableOpacity>
+                            </View>
                         )
-                    })}
+                    }) : <ActivityIndicator size="large" color="#000000"/>}
                 </ScrollView>
             </View>
 
 
             <View style={{
                 marginLeft: 10,
+                flex: 1
             }}>
                 <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Groups</Text>
                 <ScrollView contentContainerStyle={{flexGrow: 1}}>
@@ -198,7 +261,7 @@ function Groups({navigation}) {
                 alignSelf: 'center',
                 alignItems: 'center'
             }}>
-                <Pressable style={{alignItems: 'center'}}
+                <TouchableOpacity style={{alignItems: 'center'}}
                            onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
                     <Image
                         source={PlusButton}
@@ -208,7 +271,7 @@ function Groups({navigation}) {
                         }}
                     />
                     <Text style={{fontFamily: "OpenSansRegular"}}>Create Group</Text>
-                </Pressable>
+                </TouchableOpacity>
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
         </View>
