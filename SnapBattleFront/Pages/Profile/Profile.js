@@ -58,7 +58,6 @@ function Profile({route, navigation}) {
                     console.log("Profile page: " + error);
                 }
             })
-
     }
 
     return (
