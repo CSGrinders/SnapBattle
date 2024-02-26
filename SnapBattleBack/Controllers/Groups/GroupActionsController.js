@@ -10,12 +10,14 @@
  * - ListUsers: Provides a list of all users within a specified group, helping group management and interaction.
  * - AcceptGroupInvite: Accepts an existing invite to a group
  * - RejectGroupInvite: Rejects an existing invite to a group
+ * - LeaveGroup: Allows a user to leave a group they are in
  *
  * @SnapBattle, 2024
  * Author: CSGrinders
  *
  */
 
+const { nextTick } = require('process');
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 
@@ -111,7 +113,7 @@ module.exports.createGroup = async(req, res) => {
 
 /**
  * desc
- * /user/:userID/groups/:groupID
+ * /user/:userID/groups/list-users/:groupID
  *
  *  @params userID, groupID
  *
@@ -187,5 +189,87 @@ module.exports.rejectGroupInvite = async(req, res, next) => {
     } catch (error) {
         console.log("rejectGroupsInvite module: " + error);
         return res.status(500).json({errorMessage: "idk hee hee 2"})
+    }
+}
+/**
+ * desc
+ * /user/:userID/groups/:groupID/leave-group
+ *
+ *  @params userID, groupID
+ *
+ **/
+
+module.exports.leaveGroup = async(req, res, next) => {
+    try {
+        const groupID = req.params.groupID;
+        const userID = req.params.userID;
+
+        const user = await User.findById(userID);
+        const group = await Group.findById(groupID);
+
+        // Check if user exists
+        if (!user) {
+            console.log("leaveGroup module: user not found");
+            return res.status(404).json({errorMessage: "User not found"});
+        }
+
+        // Check if group exists
+        if (!group) {
+            console.log("leaveGroup module: Group not found");
+            return res.status(404).json({errorMessage: "Group not found"});
+        }
+
+        // Check if group is in user's group
+        if (user.groups.filter((groupID) => groupID.toString() === group._id.toString()).length !== 1) {
+            console.log(user.groups)
+            console.log("group not in user's groups");
+            return res.status(404).json({errorMessage: "Group not in users's group"});
+        }
+
+        // Remove user from group's user list
+        group.userList = group.userList.filter((id) => id.toString() !== user._id.toString());
+        await group.save();
+
+        if (group.userList.length === 0) {
+            await Group.findByIdAndDelete(group._id);
+        }
+
+        // Remove group from user's group list
+        user.groups = user.groups.filter((groupID) => groupID !== group._id);
+        await user.save();
+
+        next();
+
+    } catch (error) {
+        console.log("leaveGroup module " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+/**
+ * desc
+ * /user/:userID/groups/:groupID/delete-group
+ *
+ *  @params groupID
+ *
+ **/
+
+module.exports.deleteGroup = async(req, res) => {
+    try {
+        const groupID = req.params.groupID;
+
+        // Find group
+        const group = await Group.findById(groupID);
+
+        if (group) {
+            await Group.findByIdAndDelete(groupID);
+            res.status(200).json({groupDeleted: true});
+        } else {
+            console.log("deleteGroup module: Group not found");
+            res.status(404).json({errorMessage: "Group not found"});
+        }
+    } catch (error) {
+        console.log("deleteGroup module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }

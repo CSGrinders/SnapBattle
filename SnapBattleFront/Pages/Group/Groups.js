@@ -134,6 +134,20 @@ function Groups({navigation}) {
         })
     }
 
+    function leaveGroup(groupID) {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/leave-group`
+        )
+            .then((res) => {
+                setGroups(res.data);
+            })
+            .catch((error) => {
+                console.log("Main Group page: " + error);
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
+            })
+    }
+
     return (
         <View style={{flex: 1}}>
             <View style={{
@@ -239,7 +253,7 @@ function Groups({navigation}) {
                                 >
                                     {group.name}
                                 </Button>
-                                <Pressable style={{marginRight: 10}}>
+                                <Pressable style={{marginRight: 10}} onPress={() => leaveGroup(group.groupID)}>
                                     <Image
                                         source={LeaveButton}
                                         style={{
