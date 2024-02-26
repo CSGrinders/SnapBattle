@@ -1,4 +1,14 @@
-import {ActivityIndicator, Alert, Dimensions, Modal, Pressable, SafeAreaView, ScrollView, Text, View} from "react-native";
+import {
+    ActivityIndicator,
+    Alert,
+    Dimensions, KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    Text,
+    View
+} from "react-native";
 import {Image} from "expo-image";
 import {Button, Input} from "@rneui/themed";
 import {useCallback, useState} from "react";
@@ -9,6 +19,8 @@ import BackIcon from "../../assets/back-icon.webp";
 import {useFocusEffect} from "@react-navigation/native";
 import uuid from 'react-native-uuid'
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import GroupMemberInfoCard from "../../Components/Group/GroupMemberInfo";
+import BackButton from "../../Components/Button/BackButton";
 
 function GroupMembers({route, navigation}) {
 
@@ -31,6 +43,7 @@ function GroupMembers({route, navigation}) {
 
     //state for group members
     const [groupMembers, setGroupMembers] = useState([-1]);
+    const [adminUser, setAdminUser] = useState("");
 
         //getting information necessary for page display
      useFocusEffect(
@@ -46,6 +59,7 @@ function GroupMembers({route, navigation}) {
         )
         .then((res) => {
             setGroupMembers(res.data.list);
+            setAdminUser(res.data.adminUser);
         })
         .catch((err) => {
             setErrorMessageServer("Something went wrong...");
@@ -95,110 +109,110 @@ function GroupMembers({route, navigation}) {
 
 
     return (
-        <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'space-between'}} >
-
-                <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={invBoxVisible}
-                    onRequestClose={() => {
-                        Alert.alert('Modal has been closed.')
-                        setInvBoxVisibility(false)
-                        setInvStatusMsg("")
-                    }}>
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            enabled={false} style={{flex: 1, alignItems: "center"}}>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={invBoxVisible}
+                onRequestClose={() => {
+                    Alert.alert('Modal has been closed.')
+                    setInvBoxVisibility(false)
+                    setInvStatusMsg("")
+            }}>
+                <View style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
                     <View style={{
-                        flex: 1,
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        backgroundColor: 'white',
+                        borderColor: 'black',
+                        borderWidth: 2,
+                        padding: 10,
                     }}>
+                        <Pressable onPress={closeInviteBox}>
+                            <Image
+                                source={CloseButton}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    marginLeft: 'auto',
+                                }}
+                                rcontentFit="cover"
+                                transition={500}
+                            />
+                        </Pressable>
                         <View style={{
-                            backgroundColor: 'white',
-                            borderColor: 'black',
-                            borderWidth: 2,
-                            padding: 10,
+                            flex: 0,
+                            alignItems: 'center'
                         }}>
-                            <Pressable onPress={closeInviteBox}>
-                                <Image
-                                    source={CloseButton}
-                                    style={{
-                                        width: 30,
-                                        height: 30,
-                                        marginLeft: 'auto',
-                                    }}
-                                    rcontentFit="cover"
-                                    transition={500}
-                                />
-                            </Pressable>
-                            <View style={{
-                                flex: 0,
-                                alignItems: 'center'
-                            }}>
-                                <Text>Enter the username of the friend you would like to invite</Text>
-                                <Input
-                                    placeholder='username'
-                                    onChangeText={username => setInvUser(username)}
-                                    errorStyle={{color: invStatusColor}}
-                                    errorMessage={invStatusMsg}
-                                />
-                                <Button onPress={inviteUser}>Confirm</Button>
-                            </View>
+                            <Text>Enter the username of the friend you would like to invite</Text>
+                            <Input
+                                placeholder='username'
+                                onChangeText={username => setInvUser(username)}
+                                errorStyle={{color: invStatusColor}}
+                                errorMessage={invStatusMsg}
+                            />
+                            <Button onPress={inviteUser}>Confirm</Button>
                         </View>
                     </View>
-                </Modal>
-
-
-                <View style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "flex-start",
-                    height: height * 0.2,
-                    width: width * 0.9,
-                }}>
-                    <Pressable
-                        style={{ paddingLeft: 20, alignItems: "flex-start" }}
-                        onPress={() => navigation.navigate("Groups")}
-                    >
-                        <Image source={BackIcon} style={{ width: 50, height: 50 }}></Image>
-                    </Pressable>
-                    <View style={{
-                        flex: 1,
-                        justifyContent: "center",
-                        alignItems: "center",
-                        paddingRight: 20,
-                    }}
-                    >
-                        <Text style={{ fontSize: 36 }}>Group Members</Text>
-                    </View>
                 </View>
+            </Modal>
 
-
+            <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                marginTop: 70,
+                marginBottom: 10
+            }}>
                 <View style={{
-                    width: width * 0.8,
-                    flex: 1
+                    paddingLeft: 15,
+                    alignItems: 'flex-start'
                 }}>
-                    <ScrollView>
-                        {(groupMembers[0]!== -1) ? groupMembers.map((member) => {
+                    <BackButton size={50} navigation={navigation} destination={"GroupHome"} params={route.params}/>
+                </View>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
+                    <Text style={{fontSize: 32, fontFamily: 'OpenSansBold'}}>Group Members</Text>
+                </View>
+            </View>
+
+            <View style={{
+                width: width,
+                flex: 1
+            }}>
+                <ScrollView>
+                    {(groupMembers[0]!== -1) ? groupMembers.map((member) => {
                         return (
                             <View key={uuid.v4()} style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
                                 marginVertical: 5}}
                             >
-                                <Button
-                                    buttonStyle={{width: 300}}
-                                    onPress={() => navigation.navigate("Profile", {name: member.name, username: member.username, email: member.email, userID: member._id})}
-                                >
-                                    {member.username}
-                                </Button>
+                                <GroupMemberInfoCard
+                                    navigation={navigation}
+                                    name={member.name}
+                                    username={member.username}
+                                    email={member.email}
+                                    userID={member._id}
+                                    admin={adminUser === member._id}
+                                    width={width * 0.84}
+                                />
                             </View>
                         )
-                    }) : <ActivityIndicator size="large" color="#000000"/>}
+                }) : <ActivityIndicator size="large" color="#000000"/>}
                 </ScrollView>
             </View>
-
+            <View style={{
+                marginTop: 20,
+                marginBottom: 20
+            }}>
                 <Button onPress={() => setInvBoxVisibility(true)}>Invite +</Button>
+            </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
-        </SafeAreaView>
+        </KeyboardAvoidingView>
     )
 }
 

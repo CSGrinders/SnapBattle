@@ -126,7 +126,8 @@ module.exports.listUsers = async(req, res) => {
 
         if (group) {
             console.log("listUsers module: " + group.userList);
-            res.status(200).json({list: group.userList})
+            console.log("adminUser: " + group.adminUserID);
+            res.status(200).json({list: group.userList, adminUser: group.adminUserID})
         } else {
             res.status(404).json({errorMessage: "Group not found."})
         }

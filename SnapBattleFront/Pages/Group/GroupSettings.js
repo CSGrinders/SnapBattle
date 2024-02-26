@@ -20,8 +20,7 @@ import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function GroupSettings({route, navigation}) {
-    const {name, username, email, userID, groupID} = route.params;
-
+    const {userID, groupID} = route.params;
     // UI formatting
     let {width, height} = Dimensions.get('window');
 
