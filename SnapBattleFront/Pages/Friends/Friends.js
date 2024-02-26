@@ -58,8 +58,35 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search}`,
         )
             .then((res) => {
+                const {searchName, searchUsername, searchEmail, searchBio, viewType} = res.data;
+                navigation.navigate("OtherProfile", {...route.params, ...res.data, viewType: viewType});
+            })
+            .catch((error) => {
+                const {status, data} = error.response;
+                if (error.response) {
+                    if (status !== 500) {
+                        setErrorMessageServer(data.errorMessage);
+                        setErrorServer(true);
+                    } else {
+                        console.log("Friends page: " + error);
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                } else {
+                    console.log("Friends page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
+            })
+    }
+
+    function seeFriend(username, viewType) {
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${username}`,
+        )
+            .then((res) => {
                 const {searchName, searchUsername, searchEmail, searchBio} = res.data;
-                navigation.navigate("OtherProfile", {...route.params, ...res.data});
+                navigation.navigate("OtherProfile", {...route.params, ...res.data, viewType: viewType});
             })
             .catch((error) => {
                 const {status, data} = error.response;
@@ -140,7 +167,8 @@ function Friends({route, navigation}) {
                 reqUsername: reqUsername
             }
         ).then((res) => {
-            console.log(res)
+            const {requests} = res.data
+            setFriendReqs(requests)
         }).catch((error) => {
             console.log("Friends page: " + error);
             if (error.response) {
@@ -224,7 +252,13 @@ function Friends({route, navigation}) {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                         }}>
-                            <Button style={{alignItems: 'flex-start'}} buttonStyle={{width: 200}}>@{req.username}</Button>
+                            <Button
+                                style={{alignItems: 'flex-start'}}
+                                buttonStyle={{width: 200}}
+                                onPress={() => seeFriend(req.username, 2)}
+                            >
+                                @{req.username}
+                            </Button>
                             <View style={{flexDirection: 'row', alignItems: 'flex-end', marginRight: 10}}>
                                 <TouchableOpacity onPress={() => acceptRequest(req.username)}>
                                     <Image
@@ -261,27 +295,12 @@ function Friends({route, navigation}) {
                 <ScrollView contentContainerStyle={{flexGrow: 1}}>
                     {friends.length !== 0 ? <View style={{gap: 10}}>
                         {friends.map((friend) => (
-                            <View key={uuid.v4()} style={{flexDirection: 'row', gap: 10}}>
-                                <Button buttonStyle={{width: 200}}>@{friend.username}</Button>
-                                <TouchableOpacity>
-                                    <Image
-                                        source={RemoveFriendIcon}
-                                        style={{
-                                            height: 50,
-                                            width: 50
-                                        }}
-                                    />
-                                </TouchableOpacity>
-                                <TouchableOpacity>
-                                    <Image
-                                        source={BlockFriendIcon}
-                                        style={{
-                                            height: 50,
-                                            width: 50
-                                        }}
-                                    />
-                                </TouchableOpacity>
-                            </View>
+                            <Button key={uuid.v4()}
+                                    buttonStyle={{width: 200}}
+                                    onPress={() => seeFriend(friend.username, 0)}
+                            >
+                                @{friend.username}
+                            </Button>
                         ))
                         }
                     </View> : <></>
