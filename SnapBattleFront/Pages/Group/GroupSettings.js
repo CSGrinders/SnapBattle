@@ -7,7 +7,7 @@
  * @return {JSX.Element} Renders a user page for managing the settings of a group.
  */
 
-import {KeyboardAvoidingView, Dimensions, Text, View, Platform} from "react-native";
+import {KeyboardAvoidingView, Dimensions, Text, View, Platform, Modal, Pressable} from "react-native";
 import SubmitIcon from "../../Components/Group/SubmitSettingsIcon.js";
 import {Button, Input} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
@@ -16,11 +16,13 @@ import {useState} from "react";
 import axios from "axios";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import {Image} from "expo-image";
+import CloseButton from "../../assets/close.webp";
 
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function GroupSettings({route, navigation}) {
-    const {userID, groupID} = route.params;
+    const {userID, username, groupID} = route.params;
     // UI formatting
     let {width, height} = Dimensions.get('window');
 
@@ -55,6 +57,11 @@ function GroupSettings({route, navigation}) {
     // error prompts
     const [errorMessage, setErrorMessage] = useState("");
     const [errorState, setErrorState] = useState(false);
+
+    //Prompt delete
+    const [confirm, setConfirm] = useState(false);
+    const [confirmStatus, setConfirmStatus] = useState('');
+    const [confirmUsername, setConfirmUsername] = useState('');
 
     function submitGroupName() {
         let error = false;
@@ -207,14 +214,32 @@ function GroupSettings({route, navigation}) {
     }
 
     function deleteGroup() {
+        setConfirm(false);
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/delete-group`
         )
             .then((res) => {
-                navigation.navigate("Groups");
+                setSuccessState(true);
+                setSuccessMessage("Group Deleted successfully...");
+                setTimeout(() => {
+                    navigation.navigate("Groups");
+                }, 2000);
             })
             .catch((error) => {
-                console.log("Group Settings page: " + error);
+                const {status, data} = error.response;
+                if (error.response) {
+                    if (status !== 500) {
+                        setGroupNameError(data.errorMessage);
+                    } else {
+                        console.log("Group Settings page: " + error);
+                        setErrorMessage(data.errorMessage);
+                        setErrorState(true);
+                    }
+                } else {
+                    console.log("Group Settings page: " + error);
+                    setErrorMessage("Something went wrong...");
+                    setErrorState(true);
+                }
             })
     }
 
@@ -378,10 +403,71 @@ function GroupSettings({route, navigation}) {
                 width: width,
                 height: height * 0.01,
             }}>
-                <Button onPress={deleteGroup}>Delete Group</Button>
+                <Button onPress={() => {setConfirm(true)}}>Delete Group</Button>
             </View>
             <ErrorPrompt Message={errorMessage} state={errorState} setError={setErrorState}></ErrorPrompt>
             <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={confirm}
+                onRequestClose={() => {
+                    setConfirm(false);
+                    setConfirmStatus('');
+                }}>
+                <View style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
+                    <View style={{
+                        backgroundColor: 'white',
+                        borderColor: 'black',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        padding: 10,
+                    }}>
+                        <Pressable onPress={() => {
+                            setConfirm(false);
+                            setConfirmUsername('');
+                            setConfirmStatus('');
+                        }}>
+                            <Image
+                                source={CloseButton}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    marginLeft: 'auto',
+                                }}
+                                rcontentFit="cover"
+                                transition={500}
+                            />
+                        </Pressable>
+                        <View style={{
+                            flex: 0,
+                            alignItems: 'center'
+
+                        }}>
+                            <View style={{marginBottom: 10}}>
+                                <Text>Enter your username: <Text style={{fontFamily: 'OpenSansBold'}}> {username}</Text> to confirm the action.</Text>
+                            </View>
+                            <Input
+                                placeholder='Confirm action.'
+                                onChangeText={username => {
+                                    setConfirmUsername(username);
+                                    setConfirmStatus('');
+                                }}
+                                autoCapitalize="none"
+                                errorMessage={confirmStatus}
+                            />
+                            <View style={{marginTop: 10}}>
+                                <Button onPress={() => {deleteGroup()}}>Confirm</Button>
+
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </KeyboardAvoidingView>
     )
 }

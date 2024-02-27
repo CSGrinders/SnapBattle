@@ -17,7 +17,6 @@
  *
  */
 
-const { nextTick } = require('process');
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 
@@ -37,7 +36,7 @@ module.exports.getGroups = async(req, res)=> {
         //get user's group invites as an array of {_id, name}
         const user = await User.findById(userID, 'groups invites -_id')
             .populate('groups', 'name')
-            .populate('invites', 'name')
+            .populate('invites', 'name');
         if (user) {
             let groups = user.groups;
             groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name}));
@@ -48,8 +47,6 @@ module.exports.getGroups = async(req, res)=> {
         else {
             res.status(404).json({errorMessage: "Groups or group invites could not be found."});
         }
-
-
     }
     catch (error) {
         console.log("getGroups module: " + error);
