@@ -40,6 +40,10 @@ module.exports.inviteToGroup = async(req, res)=> {
             return res.status(404).json({errorMessage: "Group could not be found."});
         }
 
+        if(group.userList.length === group.maxUsers) {
+            return res.status(404).json({errorMessage: "The group has the max number of users"})
+        }
+
         //array of user objects
         const friends = user.friends;
         if (!friends) {

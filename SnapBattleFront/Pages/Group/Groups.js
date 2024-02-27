@@ -230,7 +230,7 @@ function Groups({navigation}) {
                                 email: email,
                                 userID: userID
                             })}>
-                        <ProfilePicture size={50}/>
+                        <ProfilePicture size={50} userID={userID}/>
                     </Pressable>
                 </View>
             </View>

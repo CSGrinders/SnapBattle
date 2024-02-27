@@ -19,6 +19,12 @@
 
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
+const {getPhoto} = require("../Profile/ProfileController");
+const {
+    ref,
+    getDownloadURL
+} = require("firebase/storage");
+const storage = require("../../Firebase/Firebase");
 
 /**
  * desc
@@ -122,15 +128,14 @@ module.exports.listUsers = async(req, res) => {
         const group = await Group.findById(groupID).populate('userList');
 
         if (group) {
-            console.log("listUsers module: " + group.userList);
-            console.log("adminUser: " + group.adminUserID);
-            res.status(200).json({list: group.userList, adminUser: group.adminUserID})
+            console.log(group.userList)
+            return res.status(200).json({list: group.userList, adminUser: group.adminUserID})
         } else {
-            res.status(404).json({errorMessage: "Group not found."})
+            return res.status(404).json({errorMessage: "Group not found."})
         }
     } catch (error) {
         console.log("listUsers module: " + error);
-        res.status(500).json({errorMessage: "Something went wrong..."});
+        return res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
 
@@ -146,6 +151,7 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
             await group.save()
         }
         else {
+            console.log("acceptGroupsInvite module: group has max number of users")
             return res.status(404).json({errorMessage: "You cannot join because the group has the max number of users"})
         }
 
@@ -158,7 +164,6 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
             }
         }
         await user.save()
-
         //get user's new groups and group invites and send back to client
         next()
 

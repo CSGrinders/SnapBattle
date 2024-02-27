@@ -193,6 +193,7 @@ function GroupMembers({route, navigation}) {
                             >
                                 <GroupMemberInfoCard
                                     navigation={navigation}
+                                    pfpURL={member.profilePicture}
                                     name={member.name}
                                     username={member.username}
                                     email={member.email}

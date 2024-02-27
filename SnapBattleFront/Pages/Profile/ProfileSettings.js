@@ -23,7 +23,7 @@ import {
 import BackButton from "../../Components/Button/BackButton";
 import axios from "axios";
 import {useCallback, useState} from "react";
-import {deleteUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
+import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {Button, Input} from "@rneui/themed";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
@@ -32,7 +32,7 @@ import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
 import {Image} from "expo-image";
 import CloseButton from "../../assets/close.webp";
 import * as ImagePicker from "expo-image-picker";
-import {saveImageToCloud, setProfileImageCache} from "../../Storage/Cloud";
+import {getProfilePhoto, saveImageToCloud, setProfileImageCache} from "../../Storage/Cloud";
 import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -87,18 +87,19 @@ function ProfileSettings({route, navigation}) {
                 mediaTypes: ImagePicker.MediaTypeOptions.Images,
                 allowsEditing: true,
                 aspect: [4, 4],
-                quality: 1,
+                quality: 0,
+                base64: true
             });
             if (selectedImage.assets) {
                 // turn on reload pop up and deactivate interactions
                 setLoading(true);
-                const res = await saveImageToCloud(userID, selectedImage.assets[0].uri);
+                await saveImageToCloud(userID, selectedImage.assets[0].base64);
                 // turn off reload
                 setLoading(false);
                 setInfoPrompt(true);
                 setInfoMessage("Image Uploaded");
                 setImage(selectedImage.assets[0].uri);
-                return res;
+                setProfileImageCache(selectedImage.assets[0].uri);
             }
         } catch (error) {
             console.log("Profile settings page: " + error);

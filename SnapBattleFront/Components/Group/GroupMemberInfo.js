@@ -1,13 +1,11 @@
 import { Card, Text } from '@rneui/themed';
 import { TouchableOpacity } from "react-native";
 import {View} from "react-native";
-import Profile from "../../assets/default-profile-picture.webp";
-import Reject from "../../assets/reject.webp";
 import {Image} from "expo-image";
 import KickButton from "../Button/KickButton";
+import OtherProfilePicture from "../Profile/OtherProfilePicture";
 
-function GroupMemberInfo({navigation, name, username, email, userID, width, admin}) {
-    // TODO: PFP @hojin
+function GroupMemberInfo({navigation, name, pfpURL, username, email, userID, width, admin}) {
     let adminStr = admin ? "Administrator" : "Member";
     return (
         <Card wrapperStyle={{
@@ -32,9 +30,7 @@ function GroupMemberInfo({navigation, name, username, email, userID, width, admi
                         alignContent: "center",
                         maxHeight: 200
                     }}>
-                        <View>
-                            <Image source={Profile} style={{width:55, height:55}}/>
-                        </View>
+                        <OtherProfilePicture size={55} imageUrl={pfpURL}/>
                         <View style={{
                             marginLeft: 5
                         }}>
