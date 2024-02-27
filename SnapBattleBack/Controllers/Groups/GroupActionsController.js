@@ -218,16 +218,22 @@ module.exports.leaveGroup = async(req, res, next) => {
         }
 
         // Check if group is in user's group
-        if (user.groups.filter((groupID) => groupID.toString() === group._id.toString()).length !== 1) {
-            console.log(user.groups)
-            console.log("group not in user's groups");
+        let found = false
+        for (let i = 0; i < user.groups.length; i++) {
+            if (user.groups[i]._id.toString() === groupID) {
+                found = true
+            }
+        }
+        if (!found) {
+            //console.log(user.groups)
+            console.log("leaveGroup module: group not in user's groups");
             return res.status(404).json({errorMessage: "Group not in users's group"});
         }
 
         // Remove group from user's group list
-        console.log("before:",user.groups);
+        //console.log("before:",user.groups);
         user.groups = user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
-        console.log("after:",user.groups);
+        //console.log("after:",user.groups);
         await user.save();
         
 

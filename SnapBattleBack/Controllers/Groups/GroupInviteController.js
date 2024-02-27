@@ -23,7 +23,6 @@ const Group = require("../../Models/Group");
  * @param {object} res - Express response object.
  */
 
-//TODO: TESTING
 module.exports.inviteToGroup = async(req, res)=> {
     try {
         const {userID, groupID} = req.params;
@@ -67,6 +66,13 @@ module.exports.inviteToGroup = async(req, res)=> {
         for (let i = 0; i < inviteFriend.invites.length; i++) {
             if (inviteFriend.invites[i]._id.toString() === groupID) {
                 return res.status(404).json({errorMessage: "You have already sent a request to this user"});
+            }
+        }
+
+        //ensure that the friend is not already in the group
+        for (let i = 0; i < group.userList.length; i++) {
+            if (group.userList[i]._id.toString() === inviteFriend._id.toString()) {
+                return res.status(404).json({errorMessage: "This friend is already in the group"})
             }
         }
 
