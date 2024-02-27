@@ -20,6 +20,7 @@ import axios from "axios";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import SelectTimeButton from "../../Components/Group/SelectTime";
 import BackButton from "../../Components/Button/BackButton";
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 
 const {EXPO_PUBLIC_API_URL} = process.env;
 
@@ -51,6 +52,9 @@ function CreateNewGroup({route, navigation}) {
     // server error messages
     const [errorMessageServer, setErrorMessageServer] = useState("");
     const [errorServer, setErrorServer] = useState(false);
+
+    const [infoMessage, setInfoMessage] = useState('');
+    const [infoPrompt, setInfoPrompt] = useState(false);
 
     const handleGroupCreate = () => {
         setErrorMessageGroupName("");
@@ -96,7 +100,11 @@ function CreateNewGroup({route, navigation}) {
             ).then((response) => {
                 const groupCreated = response.data;
                 if (groupCreated) {
-                    navigation.navigate("Groups", {userID: userID});
+                    setInfoPrompt(true);
+                    setInfoMessage(`Group created successfully!`);
+                    setTimeout(() => {
+                        navigation.navigate("Groups", {userID: userID});
+                    }, 2000);
                 }
 
             }).catch((error) => {
@@ -267,6 +275,7 @@ function CreateNewGroup({route, navigation}) {
                 state={errorServer}
                 setError={setErrorServer}
             ></ErrorPrompt>
+            <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}></InfoPrompt>
         </KeyboardAvoidingView>
     );
 }

@@ -58,7 +58,6 @@ module.exports.searchUser = async(req, res) => {
             //check if searched user is already a friend -> display profile without add friend button using viewType = 1
             for (let i = 0; i < searchUser.friends.length; i++) {
                 if (searchUser.friends[i]._id.toString() === userID) {
-                    console.log("huh")
                     return res.status(200).json({
                         searchName: searchUser.name,
                         searchUsername: searchUser.username,
