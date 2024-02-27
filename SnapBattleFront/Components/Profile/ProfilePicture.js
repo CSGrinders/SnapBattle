@@ -18,6 +18,8 @@ const ProfilePicture = ({size, temp_image, userID}) => {
         useCallback(() => {
             const url = getProfileImageCache()
             if (url === '' || url ===  undefined) {
+                console.log("restart")
+                console.log(`id: ${userID}`)
                 getProfilePhoto(userID)
                     .then((data) => {
                         try {
@@ -31,7 +33,7 @@ const ProfilePicture = ({size, temp_image, userID}) => {
                     });
             }
             setImage(url)
-        }, [])
+        }, [userID])
     )
 
     return (
