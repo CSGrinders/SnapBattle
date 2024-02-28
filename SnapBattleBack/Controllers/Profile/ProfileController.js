@@ -99,12 +99,19 @@ module.exports.getProfileInfo = async (req, res) => {
         const {userID} = req.params;
         const findUser = await User.findById(userID);
         if (findUser) {
+            const name = findUser.name
             const bio = findUser.biography;
             const achievements = findUser.numWins;
             const profilePicture = findUser.profilePicture;
             const username = findUser.username;
 
-            return res.status(200).json({username: username, profilePicture: profilePicture, bio: bio, achievements: achievements});
+            return res.status(200).json({
+                name: name,
+                username: username,
+                profilePicture: profilePicture,
+                bio: bio,
+                achievements: achievements
+            });
         } else {
             return res.status(404).json({errorMessage: "User could not be found."});
         }

@@ -8,9 +8,6 @@ const {EXPO_PUBLIC_API_URL} = process.env
 
 function GroupMemberInfo({navigation,
                              groupID,
-                             name,
-                             username,
-                             email,
                              userID,
                              searchName,
                              searchUsername,
@@ -28,18 +25,9 @@ function GroupMemberInfo({navigation,
             }).then((response) => {
                 let {status, data} = response;
                 if (status === 202) {
-                    navigation.navigate("Profile", {
-                        name: name,
-                        username: username,
-                        email: email,
-                        userID: userID
-                    })
+                    navigation.navigate("Profile", {userID: userID})
                 } else {
                     navigation.navigate("OtherProfile", {
-                        name: name,
-                        username: username,
-                        email: email,
-                        userID: userID,
                         searchName: data.searchName,
                         searchUsername: data.searchUsername,
                         searchBio: data.searchBio,

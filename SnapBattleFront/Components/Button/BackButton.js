@@ -2,10 +2,10 @@ import {TouchableOpacity, View} from "react-native";
 import {Image} from "expo-image";
 import BackIcon from "../../assets/back-icon.webp";
 
-const BackButton = ({size, navigation, destination, params}) => {
+const BackButton = ({size, navigation}) => {
     return (
         <View>
-            <TouchableOpacity onPress={() => navigation.navigate(destination, params)}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Image source={BackIcon} style={{width:size, height:size}}></Image>
             </TouchableOpacity>
         </View>

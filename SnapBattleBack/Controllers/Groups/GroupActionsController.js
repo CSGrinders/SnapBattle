@@ -41,15 +41,16 @@ module.exports.getGroups = async(req, res)=> {
 
         //get user's groups as an array of {_id, name}
         //get user's group invites as an array of {_id, name}
-        const user = await User.findById(userID, 'groups invites -_id')
+        const user = await User.findById(userID, 'username groups invites -_id')
             .populate('groups', 'name')
             .populate('invites', 'name');
         if (user) {
+            let username = user.username
             let groups = user.groups;
             groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name}));
             let invites = user.invites
             invites = invites.map((group) => ({groupID: group._id.toString(), name: group.name}))
-            res.status(200).json({invites, groups});
+            res.status(200).json({username, invites, groups});
         }
         else {
             res.status(404).json({errorMessage: "Groups or group invites could not be found."});
@@ -391,6 +392,7 @@ module.exports.visitFriendProfile = async (req, res) => {
                         searchUsername: searchUser.username,
                         searchBio: searchUser.biography,
                         searchID: searchUser._id.toString(),
+                        searchPFP: searchUser.profilePicture,
                         viewType: 2
                     });
                 }
@@ -401,6 +403,7 @@ module.exports.visitFriendProfile = async (req, res) => {
                 searchUsername: searchUser.username,
                 searchBio: searchUser.biography,
                 searchID: searchUser._id.toString(),
+                searchPFP: searchUser.profilePicture,
                 viewType: 1
             });
         } else {

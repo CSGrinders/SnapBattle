@@ -25,7 +25,7 @@ import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function CreateNewGroup({route, navigation}) {
-    let {userID, createdGroup} = route.params;
+    let {userID} = route.params;
     const {width, height} = Dimensions.get("window");
 
     // input fields
@@ -133,7 +133,7 @@ function CreateNewGroup({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={50} navigation={navigation} destination={"Groups"}/>
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
                     <Text style={{

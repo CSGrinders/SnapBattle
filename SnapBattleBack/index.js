@@ -30,11 +30,14 @@ require("dotenv").config()
 const {MONGO_URL, PORT} = process.env;
 const {createServer} = require("http");
 const {groupUpdates} = require("./ServerSocketControllers/GroupSocket");
+const {friendUpdates} = require("./ServerSocketControllers/FriendsSocket");
 const app = express()
 const server = createServer(app);
 const io = socketIo(server);
-groupUpdates(io, server);
 
+//WebSockets
+groupUpdates(io, server);
+friendUpdates(io, server);
 
 // Connect to MongoDB
 mongoose

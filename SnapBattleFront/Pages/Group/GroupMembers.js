@@ -15,7 +15,6 @@ import {useCallback, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
 const {EXPO_PUBLIC_API_URL} = process.env
-import BackIcon from "../../assets/back-icon.webp";
 import {useFocusEffect} from "@react-navigation/native";
 import uuid from 'react-native-uuid'
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
@@ -24,7 +23,7 @@ import BackButton from "../../Components/Button/BackButton";
 
 function GroupMembers({route, navigation}) {
 
-    const {name, username, email, userID, groupID} = route.params;
+    const {userID, groupID} = route.params;
     const {width, height} = Dimensions.get('window');
 
     //state for whether the invite box is open or not
@@ -172,7 +171,7 @@ function GroupMembers({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={50} navigation={navigation} destination={"GroupHome"} params={route.params}/>
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
                     <Text style={{fontSize: 32, fontFamily: 'OpenSansBold'}}>Group Members</Text>
@@ -194,9 +193,6 @@ function GroupMembers({route, navigation}) {
                                 <GroupMemberInfoCard
                                     navigation={navigation}
                                     groupID={groupID}
-                                    name={name}
-                                    username={username}
-                                    email={email}
                                     userID={userID}
                                     searchName={member.name}
                                     searchUsername={member.username}

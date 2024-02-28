@@ -28,7 +28,7 @@ import axios from "axios";
 import uuid from 'react-native-uuid';
 import {Button} from "@rneui/themed";
 import {useFocusEffect} from "@react-navigation/native";
-import {getUserInfo} from "../../Storage/Storage";
+import {deleteUserInfo, getUserInfo} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
@@ -36,14 +36,12 @@ import socket, {SocketContext} from "../../Storage/Socket";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
-function Groups({route, navigation}) {
+function Groups({navigation}) {
 
     //user information
-    const [name, setName] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
     const [userID, setUserID] = useState('');
     const [token, setToken] = useState('');
+    const [username, setUsername] = useState('')
 
     //groups are in format [{groupID: ?, name: ?}, ...]
     const [groups, setGroups] = useState([-1]);
@@ -66,11 +64,16 @@ function Groups({route, navigation}) {
     const socket = useContext(SocketContext);
     const [createdGroup, setCreatedGroup] = useState(false);
 
-    const { getGroupsState } = route.params || {};
 
     //getting user information
     useFocusEffect(
         useCallback(() => {
+            getGroups();
+            getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
+                if (info) {
+                    setUserID(info);
+                }
+            })
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
                 if (info) {
                     socket.emit("groupUpdate", info, "groupsMain", null);
@@ -95,32 +98,9 @@ function Groups({route, navigation}) {
             return () => {
                 socket.off('groupUpdate');
             };
-        }, [])
+        }, [userID])
     )
 
-
-    //getting information necessary for page display
-    useEffect(() => {
-        console.log("Only");
-        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-            if (info) {
-                const userData = JSON.parse(info);
-                if (userData.name) setName(userData.name);
-                if (userData.username) setUsername(userData.username);
-                if (userData.email) setEmail(userData.email);
-                if (userData.id) setUserID(userData.id);
-            }
-        })
-        getGroups();
-    }, [userID]);
-
-    //Getting info
-    useEffect(() => {
-        if (getGroupsState) {
-            console.log("Getting info");
-            getGroups();
-        }
-    }, [getGroupsState]);
 
     //get user's list of groups and the user's pending group invites
     function getGroups() {
@@ -129,13 +109,13 @@ function Groups({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
             .then((res) => {
-                const {invites, groups} = res.data;
+                const {username, invites, groups} = res.data;
+                setUsername(username)
                 setGroups(groups);
                 setGroupInvites(invites);
             })
             .catch((error) => {
                 const {status, data} = error.response;
-                console.log(error);
                 if (error.response) {
                     if (status !== 500) {
                         setErrorMessageServer("Something went wrong...");
@@ -253,9 +233,6 @@ function Groups({route, navigation}) {
                     <Pressable
                         onPress={() => navigation.navigate("Profile",
                             {
-                                name: name,
-                                username: username,
-                                email: email,
                                 userID: userID
                             })}>
                         <ProfilePicture size={50} userID={userID}/>
@@ -328,11 +305,9 @@ function Groups({route, navigation}) {
                                 <Button
                                     buttonStyle={{width: 200}}
                                     onPress={() => navigation.navigate("GroupHome", {
-                                        name: name,
-                                        username: username,
-                                        email: email,
                                         userID: userID,
-                                        groupID: group.groupID
+                                        groupID: group.groupID,
+                                        username: username
                                     })}
                                 >
                                     {group.name}
@@ -364,7 +339,7 @@ function Groups({route, navigation}) {
                 alignItems: 'center'
             }}>
                 <TouchableOpacity style={{alignItems: 'center'}}
-                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID, createdGroup: createdGroup})}>
+                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
                     <Image
                         source={PlusButton}
                         style={{

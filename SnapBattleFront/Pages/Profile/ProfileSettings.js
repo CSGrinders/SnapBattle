@@ -38,7 +38,7 @@ const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = pro
 
 function ProfileSettings({route, navigation}) {
 
-    const {name, username, email, userID} = route.params;
+    const {name, username, userID} = route.params;
 
     let {width, height} = Dimensions.get('window'); //Get screen size
 
@@ -202,16 +202,6 @@ function ProfileSettings({route, navigation}) {
                 const nameChanged = response.data;
                 if (nameChanged) { //Success
                     //route.params.name = newName;
-                    const userData = {
-                        name: newName,
-                        username: username,
-                        email: email,
-                        id: userID,
-                    }
-                    //Save user info again
-                    saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(userData))
-                        .then((success) => console.log("Profile settings page: Updated user storage info."))
-                        .catch((error) => console.log("Profile settings page: " + error))
                     setInfoPrompt(true);
                     setInfoMessage("You changed your name!");
                     setErrorMessageName('');
@@ -358,11 +348,6 @@ function ProfileSettings({route, navigation}) {
                     {!loading && <BackButton
                         size={50}
                         navigation={navigation}
-                        destination={"Profile"}
-                        params={{
-                            ...route.params,
-                            name: newName,
-                        }}
                     />}
                 </View>
                 <View style={{
