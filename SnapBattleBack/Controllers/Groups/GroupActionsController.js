@@ -296,3 +296,61 @@ module.exports.deleteGroup = async(req, res) => {
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
+
+/**
+ * get the profile page of a person in a group w you
+ * /user/:userID/groups/:groupID/visit-member-profile
+ *
+ *  @params groupID
+ *
+ **/
+module.exports.visitFriendProfile = async (req, res) => {
+    try {
+        const {userID} = req.params
+        const {searchID} = req.body;
+        const searchUser = await User.findById(searchID)
+        if (searchUser) {
+            if (searchUser._id.toString() === userID) {
+                return res.status(202).json({message: "self"})
+            }
+
+            //check if searched user is already a friend -> display profile without add friend button using viewType = 1
+            for (let i = 0; i < searchUser.friends.length; i++) {
+                if (searchUser.friends[i]._id.toString() === userID) {
+                    return res.status(200).json({
+                        searchName: searchUser.name,
+                        searchUsername: searchUser.username,
+                        searchBio: searchUser.biography,
+                        searchID: searchUser._id.toString(),
+                        viewType: 0
+                    });
+                }
+            }
+
+            // check if searched user has already been sent a friend request -> viewType = 2
+            for (let i = 0; i < searchUser.requests.length; i++) {
+                if (searchUser.friends[i]._id.toString() === userID) {
+                    return res.status(200).json({
+                        searchName: searchUser.name,
+                        searchUsername: searchUser.username,
+                        searchBio: searchUser.biography,
+                        searchID: searchUser._id.toString(),
+                        viewType: 2
+                    });
+                }
+            }
+
+            return res.status(200).json({
+                searchName: searchUser.name,
+                searchUsername: searchUser.username,
+                searchBio: searchUser.biography,
+                searchID: searchUser._id.toString(),
+                viewType: 1
+            });
+        } else {
+            return res.status(404).json({errorMessage: "User could not be found."});
+        }
+    } catch (error) {
+        return res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}

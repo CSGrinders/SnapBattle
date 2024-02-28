@@ -107,7 +107,6 @@ function GroupMembers({route, navigation}) {
         setInvBoxVisibility(false);
     }
 
-
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -194,13 +193,19 @@ function GroupMembers({route, navigation}) {
                             >
                                 <GroupMemberInfoCard
                                     navigation={navigation}
-                                    name={member.name}
-                                    username={member.username}
-                                    email={member.email}
-                                    userID={member._id}
-                                    admin={adminUser === member._id}
-                                    isAdmin={adminUser === userID ? (adminUser !== member._id) : false}
+                                    groupID={groupID}
+                                    name={name}
+                                    username={username}
+                                    email={email}
+                                    userID={userID}
+                                    searchName={member.name}
+                                    searchUsername={member.username}
+                                    searchID={member._id}
                                     width={width * 0.84}
+                                    isAdmin={adminUser === member._id}
+                                    setError={setErrorServer}
+                                    setErrorMessage={setErrorMessageServer}
+                                    adminPerms={adminUser === userID ? (adminUser !== member._id) : false}
                                 />
                             </View>
                         )

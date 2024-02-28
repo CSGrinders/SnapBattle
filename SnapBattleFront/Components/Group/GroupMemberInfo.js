@@ -4,10 +4,59 @@ import {View} from "react-native";
 import Profile from "../../assets/default-profile-picture.webp";
 import {Image} from "expo-image";
 import KickButton from "../Button/KickButton";
+import axios from "axios";
+const {EXPO_PUBLIC_API_URL} = process.env
 
-function GroupMemberInfo({navigation, name, username, email, userID, width, admin, isAdmin}) {
+function GroupMemberInfo({navigation,
+                             groupID,
+                             name,
+                             username,
+                             email,
+                             userID,
+                             searchName,
+                             searchUsername,
+                             searchID,
+                             width,
+                             isAdmin,
+                             adminPerms,
+                             setError,
+                             setErrorMessage}) {
     // TODO: PFP @hojin
-    let adminStr = admin ? "Administrator" : "Member";
+    function handleOnPress() {
+        try {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/visit-member-profile`, {
+                searchID: searchID
+            }).then((response) => {
+                let {status, data} = response;
+                if (status === 202) {
+                    navigation.navigate("Profile", {
+                        name: name,
+                        username: username,
+                        email: email,
+                        userID: userID
+                    })
+                } else {
+                    navigation.navigate("OtherProfile", {
+                        name: name,
+                        username: username,
+                        email: email,
+                        userID: userID,
+                        searchName: data.searchName,
+                        searchUsername: data.searchUsername,
+                        searchBio: data.searchBio,
+                        searchID: data.searchID,
+                        viewType: data.viewType
+                    })
+                }
+            })
+        } catch (error) {
+            let {status, data} = error;
+            setError(true);
+            setErrorMessage(data.errorMessage);
+        }
+    }
+    let adminStr = isAdmin ? "Administrator" : "Member";
+    console.log(adminPerms)
     return (
         <Card wrapperStyle={{
             width: width,
@@ -16,12 +65,7 @@ function GroupMemberInfo({navigation, name, username, email, userID, width, admi
                 flexDirection: "row",
             }}>
                 <TouchableOpacity
-                    onPress={() => navigation.navigate("OtherProfile", {
-                        name: name,
-                        username: username,
-                        email: email,
-                        userID: userID
-                    })}
+                    onPress={handleOnPress}
                     style={{
                         flex: 1,
                     }}
@@ -40,15 +84,15 @@ function GroupMemberInfo({navigation, name, username, email, userID, width, admi
                             <Text style={{
                                 fontSize: 20,
                                 fontWeight: 'bold'
-                            }}> {name} </Text>
-                            <Text> @{username} </Text>
+                            }}> {searchName} </Text>
+                            <Text> @{searchUsername} </Text>
                             <Text> {adminStr} </Text>
                         </View>
                     </View>
                 </TouchableOpacity>
                 <View style={{
                     justifyContent: "center",
-                    display: !isAdmin
+                    display: !adminPerms
                 }}>
                     <KickButton size={50}/>
                 </View>
