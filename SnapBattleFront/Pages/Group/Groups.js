@@ -9,7 +9,7 @@
  * @return {JSX.Element} Renders the main groups.
  */
 
-import {useCallback, useReducer, useState} from "react";
+import {useCallback, useContext, useEffect, useLayoutEffect, useReducer, useState} from "react";
 import {
     Dimensions,
     Pressable,
@@ -32,10 +32,11 @@ import {getUserInfo} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
+import socket, {SocketContext} from "../../Storage/Socket";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
-function Groups({navigation}) {
+function Groups({route, navigation}) {
 
     //user information
     const [name, setName] = useState('');
@@ -61,41 +62,69 @@ function Groups({navigation}) {
     const [confirmGroup, setConfirmGroup] = useState('');
     const [confirmStatus, setConfirmStatus] = useState('');
 
-    const [refresh, applyRefresh] = useState(false)
+    const [refresh, applyRefresh] = useState(false);
+    const socket = useContext(SocketContext);
+    const [createdGroup, setCreatedGroup] = useState(false);
+
+    const { getGroupsState } = route.params || {};
 
     //getting user information
     useFocusEffect(
         useCallback(() => {
-            getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-                if (info) {
-                    const userData = JSON.parse(info);
-                    if (userData.name) setName(userData.name);
-                    if (userData.username) setUsername(userData.username);
-                    if (userData.email) setEmail(userData.email);
-                    if (userData.id) setUserID(userData.id);
-                }
-            })
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
                 if (info) {
+                    socket.emit("groupUpdate", info, "groupsMain", null);
                     setToken(info);
                 }
             })
+
+            socket.on("groupUpdate", (updateDetails) => {
+                if (updateDetails.type === "groupInvite") {
+                    console.log("New group invite received:", updateDetails.updateDetails.groupInvites);
+                    setGroupInvites(updateDetails.updateDetails.groupInvites);
+                } else if (updateDetails.type === "groups") {
+                    if (updateDetails.updateDetails.groups != null) {
+                        console.log("New groups update: " + JSON.stringify(updateDetails.updateDetails.groups));
+                        setGroups(updateDetails.updateDetails.groups);
+                    } else {
+                        setGroups([-1]);
+                    }
+                }
+            });
+
+            return () => {
+                socket.off('groupUpdate');
+            };
         }, [])
     )
 
-    //getting information necessary for page display
-    useFocusEffect(
-        useCallback(() => {
-                getGroups()
-        }, [userID])
-    );
 
+    //getting information necessary for page display
+    useEffect(() => {
+        console.log("Only")
+        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
+            if (info) {
+                const userData = JSON.parse(info);
+                if (userData.name) setName(userData.name);
+                if (userData.username) setUsername(userData.username);
+                if (userData.email) setEmail(userData.email);
+                if (userData.id) setUserID(userData.id);
+            }
+        })
+        getGroups();
+    }, [userID]);
+
+    //Getting info
+    useEffect(() => {
+        if (getGroupsState) {
+            console.log("Getting info");
+            getGroups();
+        }
+    }, [getGroupsState]);
 
     //get user's list of groups and the user's pending group invites
     function getGroups() {
         if (!userID) return
-        console.log(userID);
-        console.log("test3")
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
@@ -103,7 +132,6 @@ function Groups({navigation}) {
                 const {invites, groups} = res.data;
                 setGroups(groups);
                 setGroupInvites(invites);
-                console.log("testCOM")
             })
             .catch((error) => {
                 const {status, data} = error.response;
@@ -324,7 +352,7 @@ function Groups({navigation}) {
                                 </Pressable>
                             </View>
                         )
-                    }) : <ActivityIndicator size="large" color="#000000"/>}
+                    }) : (errorServer && <ActivityIndicator size="large" color="#000000"/>)}
                 </ScrollView>
             </View>
 
@@ -336,7 +364,7 @@ function Groups({navigation}) {
                 alignItems: 'center'
             }}>
                 <TouchableOpacity style={{alignItems: 'center'}}
-                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
+                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID, createdGroup: createdGroup})}>
                     <Image
                         source={PlusButton}
                         style={{

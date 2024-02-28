@@ -18,15 +18,23 @@
 const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
-const app = express()
+const socketIo = require("socket.io");
 const bodyParser = require('body-parser');
 const groupsRouter = require('./Routes/User/GroupsRoutes')
 const authRouter = require('./Routes/AuthRoute')
 const profileRouter = require('./Routes/User/ProfileRoutes')
 const friendsRouter = require('./Routes/User/FriendsRoutes')
 const {userVerification} = require("./Controllers/Auth/AuthController");
+const jwt = require("jsonwebtoken");
 require("dotenv").config()
-const {MONGO_URL, PORT} = process.env
+const {MONGO_URL, PORT} = process.env;
+const {createServer} = require("http");
+const {groupUpdates} = require("./ServerSocketControllers/GroupSocket");
+const app = express()
+const server = createServer(app);
+const io = socketIo(server);
+groupUpdates(io, server);
+
 
 // Connect to MongoDB
 mongoose
@@ -35,14 +43,17 @@ mongoose
     .catch((err) => console.error(err))
 
 // Start the server and listen on the  PORT(Env file)
-app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`)
-})
+server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+});
+
+
+
 
 // Configure CORS middleware
 app.use(
     cors({
-        origin: [`http://localhost:3000`],
+        origin: [`http://localhost:8000`],
         methods: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     }

@@ -14,6 +14,7 @@
 
 const {User} = require("../../Models/User");
 const Group = require("../../Models/Group");
+const { sendGroupInvites } = require('../../ServerSocketControllers/GroupSocket');
 
 
 /**
@@ -83,6 +84,13 @@ module.exports.inviteToGroup = async(req, res)=> {
         //add group to the friend's group invites
         inviteFriend.invites.push(groupID);
         await inviteFriend.save();
+        await inviteFriend.populate('invites', 'name');
+
+        let invites = inviteFriend.invites.map(invite => ({
+            groupID: invite._id.toString(),
+            name: invite.name
+        }));
+        sendGroupInvites(inviteFriend._id.toString(), { groupInvites: invites });
         return res.status(200).json({message: "Group invite sent successfully!"});
 
     } catch (error) {

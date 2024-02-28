@@ -25,6 +25,7 @@ const {
     getDownloadURL
 } = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
+const {sendGroups} = require("../../ServerSocketControllers/GroupSocket");
 
 /**
  * desc
@@ -114,7 +115,13 @@ module.exports.createGroup = async(req, res) => {
 
             user.groups.push(newGroup._id);
             await user.save();
-    
+
+            let groupInfo =  {
+                groupID: newGroup._id.toString(),
+                name: newGroup.name,
+            };
+
+            sendGroups(userID, groupInfo);
             res.status(200).json({groupCreated: true});
         } else {
             res.status(404).json({errorMessage: "User not found."});
@@ -159,7 +166,7 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
         //add user to group
         if (group.userList.length < group.maxUsers) {
             group.userList.push(userID)
-            await group.save()
+            await group.save();
         }
         else {
             console.log("acceptGroupsInvite module: group has max number of users")
@@ -176,7 +183,7 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
         }
         await user.save()
         //get user's new groups and group invites and send back to client
-        next()
+        next();
 
     } catch (error) {
         console.log("acceptGroupsInvite module: " + error);
@@ -286,14 +293,53 @@ module.exports.deleteGroup = async(req, res) => {
 
         if (group) {
             const users = group.userList;
-
+            const groupId = group._id.toString();
+            await Group.deleteOne(group);
             // Iterate through users in groups and delete group from user
             for (let i = 0; i < users.length; i++) {
-                users[i].groups = users[i].groups.filter((groupID) => groupID.toString() !== group._id.toString());
-                users[i].save();
+                users[i].groups = users[i].groups.filter((groupID) => groupID !== groupId);
+                await users[i].save();
+                console.log(users[i]);
+                let result = await User.aggregate([
+                    {
+                        $match: {_id: users[i]._id} // Make sure users[i] is correctly formatted as ObjectId
+                    },
+                    {
+                        $lookup: {
+                            from: "groups",
+                            localField: "groups",
+                            foreignField: "_id",
+                            as: "groupDetails"
+                        }
+                    },
+                    {
+                        $project: {
+                            groupInfo: {
+                                $map: {
+                                    input: "$groupDetails",
+                                    as: "group",
+                                    in: {
+                                        groupID: "$$group._id",
+                                        name: "$$group.name"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]);
+                if (result && result.length > 0) {
+                    let groupsInfo = [];
+                    result[0].groupInfo.forEach(group => {
+                        groupsInfo.push({
+                            groupID: group.groupID.toString(),
+                            name: group.name,
+                        });
+                    });
+                    sendGroups(users[i]._id.toString(), { groups: groupsInfo })
+                } else {
+                    sendGroups(users[i]._id.toString(), {groups: null});
+                }
             }
-
-            await Group.findByIdAndDelete(groupID);
             res.status(200).json({groupDeleted: true});
         } else {
             console.log("deleteGroup module: Group not found");
@@ -304,6 +350,7 @@ module.exports.deleteGroup = async(req, res) => {
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
+
 
 /**
  * get the profile page of a person in a group w you
@@ -362,3 +409,4 @@ module.exports.visitFriendProfile = async (req, res) => {
         return res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
+

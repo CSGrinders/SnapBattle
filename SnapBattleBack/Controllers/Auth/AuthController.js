@@ -177,7 +177,7 @@ module.exports.SignIn = async (req, res) => {
 
     } catch (error) {
         console.log("SignIn module: " + error);
-        res.status(500).json({errorMessage: "Something went wrong..."});
+        return res.status(500).json({errorMessage: "Something went wrong..."});
     }
 
 }
@@ -194,18 +194,18 @@ module.exports.Auth = async (req, res) => {
     try {
         const { token } = req.body;
         if (!token) { //Token required, return null
-            res.status(400).json({errorMessage: "Something went wrong..."});
+            return res.status(400).json({errorMessage: "Something went wrong..."});
         }
         const user_session = await Session.findOne({token: token});
         if (!user_session) { //User session not found, return null
-            res.status(401).json({errorMessage: "Something went wrong..."});
+            return res.status(401).json({errorMessage: "Something went wrong..."});
         }
         const findUser = await User.findOne({ _id: user_session.userID});
         if (!findUser) { //User not found by ID, return null
-            res.status(500).json({errorMessage: "Something went wrong..."});
+            return res.status(500).json({errorMessage: "Something went wrong..."});
         }
 
-        await verifyToken(token, process.env.TOKEN_KEY)
+        await verifyToken(token, process.env.TOKEN_KEY);
         return res.status(200).json({ //Use found.
             isAuthenticated: true,
         });
@@ -303,16 +303,23 @@ module.exports.userVerification = (req, res, next) => {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
+            const userID = req.url.split('/')[1];
+
             // Extract token from header
             token = req.headers.authorization.split(' ')[1];
             // Verify token
             req.user = jwt.verify(token, process.env.TOKEN_KEY);
-            next();
+            if (userID) {
+                if (req.user.userId !== userID) {
+                    return res.status(401).json({ errorMessage: "Something went wrong..." });
+                }
+                next();
+            }
         } catch (error) {
-            res.status(401).json({ errorMessage: "Something went wrong..." });
+            return res.status(401).json({ errorMessage: "Something went wrong..." });
         }
     }
     if (!token) {
-        res.status(401).json({ errorMessage: "Something went wrong..." });
+        return res.status(401).json({ errorMessage: "Something went wrong..." });
     }
 };

@@ -25,7 +25,7 @@ import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function CreateNewGroup({route, navigation}) {
-    const {userID} = route.params;
+    let {userID, createdGroup} = route.params;
     const {width, height} = Dimensions.get("window");
 
     // input fields
@@ -103,7 +103,7 @@ function CreateNewGroup({route, navigation}) {
                     setInfoPrompt(true);
                     setInfoMessage(`Group created successfully!`);
                     setTimeout(() => {
-                        navigation.navigate("Groups", {userID: userID});
+                        navigation.navigate("Groups", {getGroupsState: true});
                     }, 2000);
                 }
             }).catch((error) => {

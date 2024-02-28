@@ -15,6 +15,9 @@
  */
 
 const Group = require('../../Models/Group')
+const {sendGroups} = require("../../ServerSocketControllers/GroupSocket");
+const {populateAndSendGroups} = require("./GroupActionsController");
+const {User} = require("../../Models/User");
 
 /**
  * desc
@@ -36,8 +39,51 @@ module.exports.editGroupName = async(req, res) => {
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
             }
+            const users = group.userList;
             group.name = groupName;
             await group.save();
+
+            for (let i = 0; i < users.length; i++) {
+                let result = await User.aggregate([
+                    {
+                        $match: {_id: users[i]} // Make sure users[i] is correctly formatted as ObjectId
+                    },
+                    {
+                        $lookup: {
+                            from: "groups",
+                            localField: "groups",
+                            foreignField: "_id",
+                            as: "groupDetails"
+                        }
+                    },
+                    {
+                        $project: {
+                            groupInfo: {
+                                $map: {
+                                    input: "$groupDetails",
+                                    as: "group",
+                                    in: {
+                                        groupID: "$$group._id",
+                                        name: "$$group.name"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]);
+                console.log(result);
+                if (result && result.length > 0) {
+                    let groupsInfo = [];
+                    result[0].groupInfo.forEach(group => {
+                        groupsInfo.push({
+                            groupID: group.groupID.toString(),
+                            name: group.name,
+                        });
+                    });
+                    sendGroups(users[i].toString(), { groups: groupsInfo })
+                }
+            }
+
             return res.status(200).json({nameChanged: true});
         }
         else {
@@ -48,6 +94,8 @@ module.exports.editGroupName = async(req, res) => {
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
+
+
 
 /**
  * desc
@@ -151,7 +199,6 @@ module.exports.editSubmissionTime = async(req, res) => {
             }
             group.timeEnd = submissionTime;
             await group.save();
-            console.log(group)
             return res.status(200).json({submissionTimeChanged: true});
         }
     } catch (error) {
