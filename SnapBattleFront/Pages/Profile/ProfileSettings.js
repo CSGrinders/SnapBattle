@@ -142,6 +142,7 @@ function ProfileSettings({route, navigation}) {
     }
 
     function handleDeleteAccount() {
+        console.log(username, confirmUsername);
         if (username !== confirmUsername) { //Different usernames
             setConfirmStatus('Username does not match.');
             return;

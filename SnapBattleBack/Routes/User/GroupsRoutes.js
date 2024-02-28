@@ -26,7 +26,7 @@ const {
 } = require("../../Controllers/Groups/GroupInviteController");
 
 const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup, acceptGroupInvite, rejectGroupInvite, visitFriendProfile, checkAdmin, transferAdmin} = require("../../Controllers/Groups/GroupActionsController");
-const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime } = require("../../Controllers/Groups/GroupSettingsController");
+const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVotingLength } = require("../../Controllers/Groups/GroupSettingsController");
 
 router.get('/', getGroups);
 
@@ -43,6 +43,8 @@ router.post('/:groupID/groupsize', editGroupSize)
 router.post('/:groupID/prompttime', editPromptTime)
 
 router.post('/:groupID/submissiontime', editSubmissionTime)
+
+router.post('/:groupID/votingLength', editVotingLength)
 
 router.post('/:groupID/acceptInvite', acceptGroupInvite, getGroups)
 
