@@ -32,7 +32,6 @@ import {deleteUserInfo, getUserInfo} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
-import TransferPermsPrompt from "../../Components/Prompts/TransferPermsPrompt"
 import socket, {SocketContext} from "../../Storage/Socket";
 import CloseButton from "../../assets/close.webp";
 

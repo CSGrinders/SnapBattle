@@ -7,11 +7,12 @@
  * @return {JSX.Element} Renders a user page for managing the settings of a group.
  */
 
-import {KeyboardAvoidingView, Dimensions, Text, View, Platform, Modal, Pressable} from "react-native";
+import {KeyboardAvoidingView, Dimensions, Text, View, Platform, Modal, Pressable, ScrollView} from "react-native";
 import SubmitIcon from "../../Components/Group/SubmitSettingsIcon.js";
 import {Button, Input} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 import SelectTimeButton from "../../Components/Group/SelectTime";
+import SelectPeriodButton from "../../Components/Group/SelectPeriod";
 import {useState} from "react";
 import axios from "axios";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
@@ -44,11 +45,18 @@ function GroupSettings({route, navigation}) {
     const [submissionTime, setSubmissionTime] = useState("");
     const [submissionDate, setSubmissionDate] = useState(new Date());
 
+    // voting length
+    const [isLengthVisible, setLengthVisible] = useState(false);
+    const [lengthTitle, setLengthTitle] = useState("Select Duration")
+    const [length, setLength] = useState("")
+    const [lengthDate, setLengthDate] = useState(new Date())
+
     // error messages
     const [groupNameError, setGroupNameError] = useState("");
     const [groupSizeError, setGroupSizeError] = useState("");
     const [promptTimeError, setPromptTimeError] = useState("");
     const [submissionTimeError, setSubmissionTimeError] = useState("");
+    const [lengthError, setLengthError] = useState("")
 
     // success prompts
     const [successMessage, setSuccessMessage] = useState("");
@@ -213,6 +221,10 @@ function GroupSettings({route, navigation}) {
         }
     }
 
+    function submitVotingLength() {
+        console.log(length);
+    }
+
     function deleteGroup() {
         setConfirm(false);
         axios.post(
@@ -265,12 +277,12 @@ function GroupSettings({route, navigation}) {
             <View style={{
                 width: width,
                 height: height * 0.6,
-                justifyContent: "center",
-                marginHorizontal: 20
+                marginHorizontal: 20,
+                justifyContent: "center"
             }}>
                 <Text style={{
-                    marginTop: 20,
-                    marginBottom: 10,
+                    marginTop: 10,
+                    marginBottom: 5,
                     marginLeft: 10,
                     fontSize: 22,
                     fontWeight: 'bold',
@@ -296,8 +308,8 @@ function GroupSettings({route, navigation}) {
                     <SubmitIcon size={50} submitPressed={submitGroupName}/>
                 </View>
                 <Text style={{
-                    marginTop: 10,
-                    marginBottom: 10,
+                    marginTop: 5,
+                    marginBottom: 5,
                     marginLeft: 10,
                     fontSize: 22,
                     fontWeight: 'bold',
@@ -323,8 +335,8 @@ function GroupSettings({route, navigation}) {
                     <SubmitIcon size={50} submitPressed={submitGroupSize}/>
                 </View>
                 <Text style={{
-                    marginTop: 10,
-                    marginBottom: 10,
+                    marginTop: 5,
+                    marginBottom: 5,
                     marginLeft: 5,
                     fontSize: 22,
                     fontWeight: 'bold'
@@ -352,7 +364,7 @@ function GroupSettings({route, navigation}) {
                 <Text
                     style={{
                         marginLeft: 8,
-                        marginBottom: 10,
+                        marginBottom: 5,
                         fontSize: 12,
                         color: "red",
                     }}
@@ -360,8 +372,8 @@ function GroupSettings({route, navigation}) {
                     {promptTimeError}
                 </Text>
                 <Text style={{
-                    marginTop: 10,
-                    marginBottom: 10,
+                    marginTop: 5,
+                    marginBottom: 5,
                     marginLeft: 5,
                     fontSize: 22,
                     fontWeight: 'bold',
@@ -389,12 +401,49 @@ function GroupSettings({route, navigation}) {
                 <Text
                     style={{
                         marginLeft: 8,
-                        marginBottom: 20,
+                        marginBottom: 5,
                         fontSize: 12,
                         color: "red",
                     }}
                 >
                     {submissionTimeError}
+                </Text>
+                <Text style={{
+                    marginTop: 5,
+                    marginBottom: 5,
+                    marginLeft: 5,
+                    fontSize: 22,
+                    fontWeight: 'bold',
+                }}>
+                    Change Voting Length
+                </Text>
+                <View style={{
+                    alignItems: 'flex-start',
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    marginBottom: 6
+                }}>
+                    <SelectPeriodButton
+                        width={width * 0.75}
+                        visibility={isLengthVisible}
+                        setVisibility={setLengthVisible}
+                        title={lengthTitle}
+                        setTitle={setLengthTitle}
+                        date={lengthDate}
+                        setDate={setLengthDate}
+                        setTime={setLength}>
+                    </SelectPeriodButton>
+                    <SubmitIcon size={50} submitPressed={submitVotingLength}/>
+                </View>
+                <Text
+                    style={{
+                        marginLeft: 8,
+                        marginBottom: 10,
+                        fontSize: 12,
+                        color: "red",
+                    }}
+                >
+                    {lengthError}
                 </Text>
             </View>
             <View style={{
