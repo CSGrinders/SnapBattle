@@ -198,6 +198,7 @@ module.exports.Auth = async (req, res) => {
         return res.status(200).json({ //Use found.
             isAuthenticated: true,
             profilePicture: findUser.profilePicture,
+            userID: findUser._id.toString(),
         });
     } catch (error) {
         console.log("Auth module: " + error);
