@@ -85,15 +85,27 @@ module.exports.createGroup = async(req, res) => {
         if (user) {
             let newHr = parseInt(timeStart.substring(0, 2));
             let subHr = parseInt(timeEnd.substring(0,2));
+            let newMin = parseInt(timeStart.substring(3));
+            let subMin = parseInt(timeEnd.substring(3));
             if (newHr > subHr) {
                 return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
             } else if (newHr === subHr) {
-                let newMin = parseInt(timeStart.substring(3));
-                let subMin = parseInt(timeEnd.substring(3));
                 if (newMin > subMin) {
                     return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
                 }
             }
+
+            let hrsUsed = subHr - newHr;
+            let minUsed = subMin - newMin + (hrsUsed * 60);
+            let minAvail = 60 * 24 - minUsed;
+
+            let lengthHr = parseInt(timeToVote.substring(0,2));
+            let lengthMin = (parseInt(timeToVote.substring(3)) + (lengthHr * 60)) * 2;
+
+            if (minAvail < lengthMin) {
+                return res.status(402).json({errorMessage: "Not enough time to do weekly and daily votes!"});
+            }
+
             const userList = [];
             userList.push(user._id);
     
