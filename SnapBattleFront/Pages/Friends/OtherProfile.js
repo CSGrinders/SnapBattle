@@ -24,7 +24,8 @@ const {EXPO_PUBLIC_API_URL} = process.env
 function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID, viewType} = route.params;
+    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID, viewType, url} = route.params;
+
 
     const [image, setImage] = useState('');
 
@@ -111,7 +112,7 @@ function OtherProfile({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.15,
             }}>
-                <OtherProfilePicture size={150} searchID={searchID}/>
+                <OtherProfilePicture size={150} searchID={searchID} imageUrl={url}/>
                 <Text style={{fontWeight: 'bold', fontSize: 24}}>{searchName}</Text>
                 <Text>@{searchUsername}</Text>
             </View>

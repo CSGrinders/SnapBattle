@@ -201,6 +201,7 @@ function GroupMembers({route, navigation}) {
                                     searchName={member.name}
                                     searchUsername={member.username}
                                     searchID={member._id}
+                                    pfpURL={member.profilePicture}
                                     width={width * 0.84}
                                     isAdmin={adminUser === member._id}
                                     setError={setErrorServer}

@@ -34,7 +34,7 @@ function App() {
     return (
         <ThemeProvider theme={theme}>
             <NavigationContainer>
-                <Stack.Navigator screenOptions={{headerShown: false, animation: 'none'}} initialRouteName="SignIn" >
+                <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="SignIn" >
                     <Stack.Screen name="SignIn" component={SignIn}/>
                     <Stack.Screen name="SignUp" component={SignUp}/>
                     <Stack.Screen name="Profile" component={Profile}/>

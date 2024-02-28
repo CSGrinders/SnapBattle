@@ -30,6 +30,8 @@ import {Button} from "@rneui/themed";
 import {useFocusEffect} from "@react-navigation/native";
 import {getUserInfo} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
+import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -51,7 +53,15 @@ function Groups({navigation}) {
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
 
-    const [refresh, applyRefresh]  = useState(false)
+
+    const [infoMessage, setInfoMessage] = useState('');
+    const [infoPrompt, setInfoPrompt] = useState(false);
+
+    const [confirm, setConfirm] = useState(false);
+    const [confirmGroup, setConfirmGroup] = useState('');
+    const [confirmStatus, setConfirmStatus] = useState('');
+
+    const [refresh, applyRefresh] = useState(false)
 
     //getting user information
     useFocusEffect(
@@ -76,23 +86,28 @@ function Groups({navigation}) {
     //getting information necessary for page display
     useFocusEffect(
         useCallback(() => {
-            getGroups()
+                getGroups()
         }, [userID])
     );
 
 
     //get user's list of groups and the user's pending group invites
     function getGroups() {
+        if (!userID) return
+        console.log(userID);
+        console.log("test3")
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
             .then((res) => {
-                const {invites, groups} = res.data
-                setGroups(groups)
-                setGroupInvites(invites)
+                const {invites, groups} = res.data;
+                setGroups(groups);
+                setGroupInvites(invites);
+                console.log("testCOM")
             })
             .catch((error) => {
                 const {status, data} = error.response;
+                console.log(error);
                 if (error.response) {
                     if (status !== 500) {
                         setErrorMessageServer("Something went wrong...");
@@ -117,8 +132,22 @@ function Groups({navigation}) {
             const {invites, groups} = res.data
             setGroups(groups)
             setGroupInvites(invites)
-        }).catch(err => {
-            console.log(err)
+        }).catch(error => {
+            const {status, data} = error.response;
+            if (error.response) {
+                if (status !== 500) {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                } else {
+                    console.log("Main Group page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
+            } else {
+                console.log("Main Group page: " + error);
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
+            }
         })
     }
 
@@ -129,8 +158,22 @@ function Groups({navigation}) {
             const {invites, groups} = res.data
             setGroups(groups)
             setGroupInvites(invites)
-        }).catch(err => {
-            console.log(err)
+        }).catch(error => {
+            const {status, data} = error.response;
+            if (error.response) {
+                if (status !== 500) {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                } else {
+                    console.log("Main Group page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
+            } else {
+                console.log("Main Group page: " + error);
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
+            }
         })
     }
 
@@ -140,11 +183,25 @@ function Groups({navigation}) {
         )
             .then((res) => {
                 setGroups(res.data.groups);
+                setInfoPrompt(true);
+                setInfoMessage("You left the group.");
             })
             .catch((error) => {
-                console.log("Main Group page: " + error);
-                setErrorMessageServer("Something went wrong...");
-                setErrorServer(true);
+                const {status, data} = error.response;
+                if (error.response) {
+                    if (status !== 500) {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    } else {
+                        console.log("Main Group page: " + error);
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                } else {
+                    console.log("Main Group page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
             })
     }
 
@@ -173,11 +230,11 @@ function Groups({navigation}) {
                                 email: email,
                                 userID: userID
                             })}>
-                        <ProfilePicture size={50}/>
+                        <ProfilePicture size={50} userID={userID}/>
                     </Pressable>
                 </View>
             </View>
-
+            {groupInvites.length !== 0 ?
             <View style={{
                 height: height * 0.15,
                 marginLeft: 10,
@@ -224,8 +281,7 @@ function Groups({navigation}) {
                         )
                     }) : <ActivityIndicator size="large" color="#000000"/>}
                 </ScrollView>
-            </View>
-
+            </View> : <></> }
 
             <View style={{
                 marginLeft: 10,
@@ -253,7 +309,11 @@ function Groups({navigation}) {
                                 >
                                     {group.name}
                                 </Button>
-                                <Pressable style={{marginRight: 10}} onPress={() => leaveGroup(group.groupID)}>
+                                <Pressable style={{marginRight: 10}} onPress={() => {
+                                    setConfirm(true);
+                                    setConfirmStatus("Are you sure?");
+                                    setConfirmGroup(group.groupID);
+                                }}>
                                     <Image
                                         source={LeaveButton}
                                         style={{
@@ -276,7 +336,7 @@ function Groups({navigation}) {
                 alignItems: 'center'
             }}>
                 <TouchableOpacity style={{alignItems: 'center'}}
-                           onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
+                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
                     <Image
                         source={PlusButton}
                         style={{
@@ -288,6 +348,12 @@ function Groups({navigation}) {
                 </TouchableOpacity>
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
+            <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}></InfoPrompt>
+            <ConfirmPrompt Message={confirmStatus} state={confirm} setState={setConfirm}
+                           command={() => {
+                               setConfirm(false);
+                               leaveGroup(confirmGroup);
+                           }}></ConfirmPrompt>
         </View>
     )
 }

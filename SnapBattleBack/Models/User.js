@@ -34,6 +34,7 @@ const User = new mongoose.Schema({
     },
     profilePicture: {
         type: String,
+        default: ''
     },
     friends: [{
         type: mongoose.Types.ObjectId,

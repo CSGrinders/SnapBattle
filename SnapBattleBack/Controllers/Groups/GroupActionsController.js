@@ -17,9 +17,14 @@
  *
  */
 
-const { nextTick } = require('process');
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
+const {getPhoto} = require("../Profile/ProfileController");
+const {
+    ref,
+    getDownloadURL
+} = require("firebase/storage");
+const storage = require("../../Firebase/Firebase");
 
 /**
  * desc
@@ -37,7 +42,7 @@ module.exports.getGroups = async(req, res)=> {
         //get user's group invites as an array of {_id, name}
         const user = await User.findById(userID, 'groups invites -_id')
             .populate('groups', 'name')
-            .populate('invites', 'name')
+            .populate('invites', 'name');
         if (user) {
             let groups = user.groups;
             groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name}));
@@ -48,8 +53,6 @@ module.exports.getGroups = async(req, res)=> {
         else {
             res.status(404).json({errorMessage: "Groups or group invites could not be found."});
         }
-
-
     }
     catch (error) {
         console.log("getGroups module: " + error);
@@ -136,15 +139,14 @@ module.exports.listUsers = async(req, res) => {
         const group = await Group.findById(groupID).populate('userList');
 
         if (group) {
-            console.log("listUsers module: " + group.userList);
-            console.log("adminUser: " + group.adminUserID);
-            res.status(200).json({list: group.userList, adminUser: group.adminUserID})
+            console.log(group.userList)
+            return res.status(200).json({list: group.userList, adminUser: group.adminUserID})
         } else {
-            res.status(404).json({errorMessage: "Group not found."})
+            return res.status(404).json({errorMessage: "Group not found."})
         }
     } catch (error) {
         console.log("listUsers module: " + error);
-        res.status(500).json({errorMessage: "Something went wrong..."});
+        return res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
 
@@ -160,6 +162,7 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
             await group.save()
         }
         else {
+            console.log("acceptGroupsInvite module: group has max number of users")
             return res.status(404).json({errorMessage: "You cannot join because the group has the max number of users"})
         }
 
@@ -172,7 +175,6 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
             }
         }
         await user.save()
-
         //get user's new groups and group invites and send back to client
         next()
 
@@ -232,16 +234,22 @@ module.exports.leaveGroup = async(req, res, next) => {
         }
 
         // Check if group is in user's group
-        if (user.groups.filter((groupID) => groupID.toString() === group._id.toString()).length !== 1) {
-            console.log(user.groups)
-            console.log("group not in user's groups");
+        let found = false
+        for (let i = 0; i < user.groups.length; i++) {
+            if (user.groups[i]._id.toString() === groupID) {
+                found = true
+            }
+        }
+        if (!found) {
+            //console.log(user.groups)
+            console.log("leaveGroup module: group not in user's groups");
             return res.status(404).json({errorMessage: "Group not in users's group"});
         }
 
         // Remove group from user's group list
-        console.log("before:",user.groups);
+        //console.log("before:",user.groups);
         user.groups = user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
-        console.log("after:",user.groups);
+        //console.log("after:",user.groups);
         await user.save();
         
 

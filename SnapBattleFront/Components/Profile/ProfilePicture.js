@@ -1,59 +1,40 @@
-import {View, Text} from "react-native";
+import {View} from "react-native";
 import {Image} from 'expo-image';
 import default_image_source from '../../assets/default-profile-picture.webp'
-import {getUserInfo} from "../../Storage/Storage";
-import {useCallback, useEffect, useState} from "react";
-import {getProfilePhoto} from "../../Storage/Cloud";
+import {useCallback, useState} from "react";
+import {getProfileImageCache, getProfilePhoto, setProfileImageCache} from "../../Storage/Cloud";
 import {useFocusEffect} from "@react-navigation/native";
-const {EXPO_PUBLIC_USER_INFO} = process.env
 
 
 /**
  * @returns {JSX.Element} - User profile picture
  */
 
-const ProfilePicture = ({size, temp_image}) => {
+const ProfilePicture = ({size, temp_image, userID}) => {
 
-    const [userID, setUserID] = useState('');
     const [image, setImage] = useState('');
-
-
 
     useFocusEffect(
         useCallback(() => {
-            getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-                if (info) {
-                    const userData = JSON.parse(info);
-                    if (userData.id) setUserID(userData.id);
-                    getProfilePhoto(userData.id)
-                        .then((data) => {
-                            try {
-                                setImage(data.url);
-                            } catch {
-                                setImage('');
-                            }
-                        });
-                }
-            })
-        }, [])
-    )
-
-    useEffect(() => {
-        getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-            if (info) {
-                const userData = JSON.parse(info);
-                if (userData.id) setUserID(userData.id);
-                getProfilePhoto(userData.id)
+            const url = getProfileImageCache()
+            if (url === '' || url ===  undefined) {
+                console.log("restart")
+                console.log(`id: ${userID}`)
+                getProfilePhoto(userID)
                     .then((data) => {
                         try {
+                            console.log("pfpicture getProfilePhoto ", data.url);
                             setImage(data.url);
+                            setProfileImageCache(data.url);
                         } catch {
-                            setImage('');
+                            setImage('default');
+                            setProfileImageCache('default');
                         }
                     });
             }
-        });
-    }, [image]);
+            setImage(url)
+        }, [userID])
+    )
 
     return (
         <View>
@@ -65,7 +46,7 @@ const ProfilePicture = ({size, temp_image}) => {
                                              borderWidth: size / 35
                                          }}
             />) : (<View>
-                {image !== '' ? (<Image source={{uri: image}}
+                {image !== 'default' ? (<Image source={{uri: image}}
                                         style={{
                                             width: size,
                                             height: size,

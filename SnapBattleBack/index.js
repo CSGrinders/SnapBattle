@@ -40,12 +40,13 @@ app.listen(PORT, () => {
 })
 
 // Configure CORS middleware
-//pp.use(
-//    cors({
- //       origin: [`http://localhost:3000`],
-//        methods: ["GET", "POST", "PUT", "DELETE"],
-//        credentials: true,
- ///)
+app.use(
+    cors({
+        origin: [`http://localhost:3000`],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true,
+    }
+ ))
 
 //parses json data from request body and makes it available in req.body
 app.use(bodyParser.json({ limit: '50mb' }));

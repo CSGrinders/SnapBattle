@@ -58,7 +58,6 @@ function Profile({route, navigation}) {
                     console.log("Profile page: " + error);
                 }
             })
-
     }
 
     return (
@@ -97,7 +96,7 @@ function Profile({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.15,
             }}>
-                <ProfilePicture size={150} temp_image={''}/>
+                <ProfilePicture size={150} temp_image={''} userID={userID}/>
                 <Text style={{
                     fontWeight: 'bold',
                     fontSize: 24,

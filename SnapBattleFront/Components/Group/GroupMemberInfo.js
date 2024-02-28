@@ -1,8 +1,7 @@
 import { Card, Text } from '@rneui/themed';
 import { TouchableOpacity } from "react-native";
 import {View} from "react-native";
-import Profile from "../../assets/default-profile-picture.webp";
-import {Image} from "expo-image";
+import OtherProfilePicture from "../Profile/OtherProfilePicture";
 import KickButton from "../Button/KickButton";
 import axios from "axios";
 const {EXPO_PUBLIC_API_URL} = process.env
@@ -19,6 +18,7 @@ function GroupMemberInfo({navigation,
                              width,
                              isAdmin,
                              adminPerms,
+                             pfpURL,
                              setError,
                              setErrorMessage}) {
     // TODO: PFP @hojin
@@ -57,6 +57,7 @@ function GroupMemberInfo({navigation,
     }
     let adminStr = isAdmin ? "Administrator" : "Member";
     console.log(adminPerms)
+
     return (
         <Card wrapperStyle={{
             width: width,
@@ -75,9 +76,7 @@ function GroupMemberInfo({navigation,
                         alignContent: "center",
                         maxHeight: 200
                     }}>
-                        <View>
-                            <Image source={Profile} style={{width:55, height:55}}/>
-                        </View>
+                        <OtherProfilePicture size={55} imageUrl={pfpURL}/>
                         <View style={{
                             marginLeft: 5
                         }}>

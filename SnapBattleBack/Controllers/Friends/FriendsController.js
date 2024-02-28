@@ -19,6 +19,8 @@
  */
 
 const {User} = require("../../Models/User");
+const {ref, getDownloadURL} = require("firebase/storage");
+const storage = require("../../Firebase/Firebase");
 
 /**
  * Add small desc.
@@ -29,9 +31,19 @@ const {User} = require("../../Models/User");
  */
 
 module.exports.searchUser = async(req, res) => {
+
     try {
         const {userID, searchUsername} = req.params;
         const searchUser = await User.findOne({username: searchUsername})
+        let pfpURL = '';
+        try {
+            const searchUserID = searchUser._id;
+            const imageRef = ref(storage, `profileImage/${searchUserID}.jpeg`);
+            pfpURL = await getDownloadURL(imageRef);
+        } catch (error) {
+            console.log("getPhoto in Friends: " + error);
+        }
+        console.log("friends Controller for checking pfp:@@@@@@@2", pfpURL);
 
         if (searchUser) {
 
@@ -46,13 +58,13 @@ module.exports.searchUser = async(req, res) => {
             //check if searched user is already a friend -> display profile without add friend button using viewType = 1
             for (let i = 0; i < searchUser.friends.length; i++) {
                 if (searchUser.friends[i]._id.toString() === userID) {
-                    console.log("huh")
                     return res.status(200).json({
                         searchName: searchUser.name,
                         searchUsername: searchUser.username,
                         searchBio: searchUser.biography,
                         searchID: searchUser._id.toString(),
-                        viewType: 0
+                        viewType: 0,
+                        url: pfpURL
                     });
                 }
             }
@@ -63,7 +75,8 @@ module.exports.searchUser = async(req, res) => {
                 searchUsername: searchUser.username,
                 searchBio: searchUser.biography,
                 searchID: searchUser._id.toString(),
-                viewType: 1
+                viewType: 1,
+                url: pfpURL
             });
         }
         else {

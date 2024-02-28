@@ -44,12 +44,14 @@ module.exports.uploadPhoto = async(req, res)=> {
 
         const fileName = userID + ".jpeg";
         const imageRef = ref(storage, `profileImage/${fileName}`);
-        uploadBytesResumable(imageRef, blob).then(() => {
-            return res.status(200).json({status: "Image uploaded successfully."});
-        });
-        // const storageRef = storage.ref().child("/")
-        // storageRef.put(blob)
+        await uploadBytesResumable(imageRef, blob)
 
+        //save the downloadable url to MongoDB
+        const user = await User.findById(userID)
+        user.profilePicture = await getDownloadURL(imageRef)
+        await user.save()
+
+        return res.status(200).json({status: "Image uploaded successfully."});
     } catch (error) {
         console.log("uploadPhoto module: " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});
