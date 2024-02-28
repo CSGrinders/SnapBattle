@@ -43,7 +43,7 @@ function GroupMemberInfo({navigation,
                         searchName: data.searchName,
                         searchUsername: data.searchUsername,
                         searchBio: data.searchBio,
-                        searchID: data.searchID,
+                        url: data.searchPFP,
                         viewType: data.viewType
                     })
                 }
