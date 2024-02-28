@@ -19,8 +19,10 @@ import {
 import axios from "axios";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import SelectTimeButton from "../../Components/Group/SelectTime";
+import SelectPeriodButton from "../../Components/Group/SelectPeriod";
 import BackButton from "../../Components/Button/BackButton";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
+import SubmitIcon from "../../Components/Group/SubmitSettingsIcon";
 
 const {EXPO_PUBLIC_API_URL} = process.env;
 
@@ -38,16 +40,24 @@ function CreateNewGroup({route, navigation}) {
     const [isPromptVisible, setPromptVisible] = useState(false);
     const [promptTitle, setPromptTitle] = useState("Select Prompt Time");
     const [promptDate, setPromptDate] = useState(new Date());
+
     // submit prompt time
     const [isSubmitVisible, setSubmitVisible] = useState(false);
     const [submissionTitle, setSubmissionTitle] = useState("Select Submission Time");
     const [submissionDate, setSubmissionDate] = useState(new Date());
+
+    // voting length
+    const [isLengthVisible, setLengthVisible] = useState(false);
+    const [lengthTitle, setLengthTitle] = useState("Select Duration")
+    const [length, setLength] = useState("")
+    const [lengthDate, setLengthDate] = useState(new Date(Date.parse("2001-01-01T00:00:00")))
 
     // input field error messages
     const [errorMessageGroupName, setErrorMessageGroupName] = useState("");
     const [errorMessageGroupSize, setErrorMessageGroupSize] = useState("");
     const [errorMessagePromptTime, setErrorMessagePromptTime] = useState("");
     const [errorMessageSubmissionTime, setErrorMessageSubmissionTime] = useState("");
+    const [lengthError, setLengthError] = useState("");
 
     // server error messages
     const [errorMessageServer, setErrorMessageServer] = useState("");
@@ -86,6 +96,10 @@ function CreateNewGroup({route, navigation}) {
             error = true;
         }
 
+        if (!length) {
+            setLengthError("Empty field.")
+        }
+
         if (!error) {
             axios.post(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/create`,
@@ -95,7 +109,7 @@ function CreateNewGroup({route, navigation}) {
                     maxUsers: groupSize,
                     timeStart: promptTime,
                     timeEnd: submissionTime,
-                    timeToVote: submissionTime,
+                    timeToVote: length,
                 }
             ).then((response) => {
                 const groupCreated = response.data;
@@ -111,6 +125,8 @@ function CreateNewGroup({route, navigation}) {
                 if (status === 400) {
                     setErrorMessagePromptTime(data.errorMessage)
                     setErrorMessageSubmissionTime(data.errorMessage)
+                } else if (status === 402) {
+                    setLengthError(data.errorMessage)
                 } else {
                     setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
@@ -149,8 +165,8 @@ function CreateNewGroup({route, navigation}) {
                 marginHorizontal: 20
             }}>
                 <Text style={{
-                    marginTop: 20,
-                    marginBottom: 10,
+                    marginTop: 10,
+                    marginBottom: 5,
                     marginLeft: 10,
                     fontSize: 22,
                     fontWeight: 'bold',
@@ -169,8 +185,8 @@ function CreateNewGroup({route, navigation}) {
                     errorMessage={errorMessageGroupName}
                 />
                 <Text style={{
-                    marginTop: 10,
-                    marginBottom: 10,
+                    marginTop: 5,
+                    marginBottom: 5,
                     marginLeft: 10,
                     fontSize: 22,
                     fontWeight: 'bold',
@@ -189,8 +205,8 @@ function CreateNewGroup({route, navigation}) {
                     errorMessage={errorMessageGroupSize}
                 />
                 <Text style={{
-                    marginTop: 10,
-                    marginBottom: 10,
+                    marginTop: 5,
+                    marginBottom: 5,
                     marginLeft: 5,
                     fontSize: 22,
                     fontWeight: 'bold'
@@ -224,8 +240,8 @@ function CreateNewGroup({route, navigation}) {
                     </Text>
                 </View>
                 <Text style={{
-                    marginTop: 10,
-                    marginBottom: 10,
+                    marginTop: 5,
+                    marginBottom: 5,
                     marginLeft: 5,
                     fontSize: 22,
                     fontWeight: 'bold',
@@ -258,6 +274,42 @@ function CreateNewGroup({route, navigation}) {
                         {errorMessageSubmissionTime}
                     </Text>
                 </View>
+                <Text style={{
+                    marginTop: 5,
+                    marginBottom: 5,
+                    marginLeft: 5,
+                    fontSize: 22,
+                    fontWeight: 'bold',
+                }}>
+                    Change Voting Length
+                </Text>
+                <View style={{
+                    alignItems: 'flex-start',
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    marginBottom: 6
+                }}>
+                    <SelectPeriodButton
+                        width={width * 0.87}
+                        visibility={isLengthVisible}
+                        setVisibility={setLengthVisible}
+                        title={lengthTitle}
+                        setTitle={setLengthTitle}
+                        date={lengthDate}
+                        setDate={setLengthDate}
+                        setTime={setLength}>
+                    </SelectPeriodButton>
+                </View>
+                <Text
+                    style={{
+                        marginLeft: 8,
+                        marginBottom: 10,
+                        fontSize: 12,
+                        color: "red",
+                    }}
+                >
+                    {lengthError}
+                </Text>
             </View>
             <View
                 style={{
