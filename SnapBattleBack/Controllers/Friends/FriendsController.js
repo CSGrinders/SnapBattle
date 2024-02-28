@@ -21,6 +21,7 @@
 const {User} = require("../../Models/User");
 const {ref, getDownloadURL} = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
+const {sendFriendRequest} = require("../../ServerSocketControllers/FriendsSocket");
 
 /**
  * Add small desc.
@@ -118,7 +119,7 @@ module.exports.sendFriendRequest = async(req, res) => {
             }
             for (let i = 0; i < userA.requests.length; i++) {
                 if (userA.requests[i].username === receivingUsername) {
-                    requestExists = true
+                    requestExists = true;
                 }
             }
             if (requestExists) {
@@ -127,6 +128,13 @@ module.exports.sendFriendRequest = async(req, res) => {
             else {
                 userB.requests.push(userID);
                 await userB.save();
+                await userB.populate('requests', 'username');
+                let friendsR = userB.requests;
+                console.log(friendsR);
+                friendsR = friendsR.map((request) => ({
+                    username: request.username,
+                }))
+                sendFriendRequest(userB._id.toString(), friendsR);
                 res.status(200).json({message: "Friend request sent successfully."});
             }
         }
@@ -180,18 +188,22 @@ module.exports.getFriendRequests = async (req, res) => {
  * @param {object} res - Express response object.
  */
 
-module.exports.getFriends = async (req, res) => {
+module.exports.getFriendsAndRequests = async (req, res) => {
     try {
         const {userID} = req.params;
-        const user = await User.findById(userID, 'friends').populate('friends');
+        const user = await User.findById(userID, 'friends').populate('friends').populate('requests');
 
         if (user) {
             let friends = user.friends;
             friends = friends.map((friend) => ({
                 username: friend.username,
-                //TODO: profile picture
             }))
-            res.status(200).json({friends});
+            let requests = user.requests;
+            requests = requests.map((request) => ({
+                username: request.username,
+            }))
+
+            res.status(200).json({friends, requests});
         }
         else {
             res.status(404).json({errorMessage: "User could not be found."});

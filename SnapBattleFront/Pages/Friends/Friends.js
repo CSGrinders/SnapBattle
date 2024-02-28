@@ -22,16 +22,14 @@ import BlockedFriendsIcon from "../../assets/blocked.webp"
 import SearchIcon from "../../assets/search-icon.webp"
 import {HeaderTheme} from "../../Theme/Theme";
 import {Button, Input} from "@rneui/themed";
-import {useCallback, useState} from "react";
+import {useCallback, useContext, useEffect, useState} from "react";
 import axios from "axios";
 import uuid from "react-native-uuid";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {useFocusEffect} from "@react-navigation/native";
 import AcceptIcon from "../../assets/check.webp"
 import RejectIcon from "../../assets/reject.webp"
-import RemoveFriendIcon from "../../assets/close.webp"
-import BlockFriendIcon from "../../assets/block.webp"
-import SettingIcon from "../../assets/profile-setting-icon.webp";
+import {SocketContext} from "../../Storage/Socket";
 
 const {EXPO_PUBLIC_API_URL} = process.env;
 
@@ -52,6 +50,7 @@ function Friends({route, navigation}) {
     //TODO: add profile pictures
     const [friendReqs, setFriendReqs] = useState([]);
     const [friends, setFriends] = useState([]);
+    const socket = useContext(SocketContext);
 
     function searchUser() {
         axios.get(
@@ -112,24 +111,8 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/get-friends`
         )
             .then((res) => {
-                const {friends} = res.data;
+                const {friends, requests} = res.data;
                 setFriends(friends);
-            })
-            .catch((error) => {
-                console.log("Friends page: " + error);
-                if (error.response) {
-                    setErrorMessageServer(error.response.data.errorMessage);
-                    setErrorServer(true);
-                }
-            })
-    }
-
-    function getFriendRequests() {
-        axios.get(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/get-requests`
-        )
-            .then((res) => {
-                const {requests} = res.data;
                 setFriendReqs(requests);
             })
             .catch((error) => {
@@ -180,10 +163,18 @@ function Friends({route, navigation}) {
 
     useFocusEffect(
         useCallback(() => {
-            getFriendRequests();
             getFriends();
+            socket.emit("friendsUpdate", userID);
+            socket.on("friendsUpdate", (updateDetails) => {
+                console.log(updateDetails);
+                if (updateDetails.type === "friendRequest") {
+                    console.log("New friend req received:", updateDetails.updateDetails);
+                    setFriendReqs(updateDetails.updateDetails);
+                }
+            });
         }, [])
     )
+
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
