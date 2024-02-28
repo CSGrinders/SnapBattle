@@ -23,6 +23,7 @@ import {deleteUserInfo, getUserInfo, saveUserInfo, setAuthToken} from "../../Sto
 import LoadingScreen from "../../Components/Auth/LoadingScreen";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {useFocusEffect} from "@react-navigation/native";
+import {setProfileImageCache} from "../../Storage/Cloud";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env;
 
@@ -91,6 +92,7 @@ function SignIn({navigation}) {
                         //user contains
                         // Object contains: id (MongDB object id), username, email, name
                         // Note: it will saved in JSON, so make sure to use JSON.parse of you want to obtain the data
+                        setProfileImageCache(user.profilePicture)
                         saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(user)).then(() => {
                             console.log("Sign in page: Success saving user data.");
                         })
