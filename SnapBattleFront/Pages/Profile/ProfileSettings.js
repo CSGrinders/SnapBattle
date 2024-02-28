@@ -202,16 +202,6 @@ function ProfileSettings({route, navigation}) {
                 const nameChanged = response.data;
                 if (nameChanged) { //Success
                     //route.params.name = newName;
-                    const userData = {
-                        name: newName,
-                        username: username,
-                        email: email,
-                        id: userID,
-                    }
-                    //Save user info again
-                    saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(userData))
-                        .then((success) => console.log("Profile settings page: Updated user storage info."))
-                        .catch((error) => console.log("Profile settings page: " + error))
                     setInfoPrompt(true);
                     setInfoMessage("You changed your name!");
                     setErrorMessageName('');
