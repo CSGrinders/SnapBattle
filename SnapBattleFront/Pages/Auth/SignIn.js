@@ -105,7 +105,7 @@ function SignIn({navigation}) {
                     }
                     setAuthToken(token).then((success) => {console.log("Sign in page: Saved token in the anxios header.")});
                     resetFields();
-                    navigation.navigate('Groups'); //Success and navigating to groups screen
+                    navigation.navigate('Groups', {userID: userID}); //Success and navigating to groups screen
                 }
             }).catch((error) => {
                 const {status, data} = error.response;
@@ -151,13 +151,14 @@ function SignIn({navigation}) {
                         (response) => {
                             //Server response
                             resetFields();
-                            const {isAuthenticated, profilePicture} = response.data;
+                            const {isAuthenticated, profilePicture, userID} = response.data;
                             if (isAuthenticated) { //No error, but checking if user is authenticated
                                 console.log("Sign in page: User verified with token.");
                                 setProfileImageCache(profilePicture);
+
                                 setAuthToken(token).then(() => {});
                                 setTimeout(() => {
-                                    navigation.navigate('Groups'); //Success and navigating to groups screen after 3 seconds
+                                    navigation.navigate('Groups', {userID: userID}); //Success and navigating to groups screen after 3 seconds
                                 }, 2000);
                             }
                         })

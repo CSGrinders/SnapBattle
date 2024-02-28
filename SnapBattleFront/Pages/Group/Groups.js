@@ -36,14 +36,12 @@ import socket, {SocketContext} from "../../Storage/Socket";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
-function Groups({navigation}) {
+function Groups({route, navigation}) {
 
+    const {userID} = route.params;
     //user information
-    const [name, setName] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [userID, setUserID] = useState('');
     const [token, setToken] = useState('');
+    const [username, setUsername] = useState('')
 
     //groups are in format [{groupID: ?, name: ?}, ...]
     const [groups, setGroups] = useState([-1]);
@@ -70,12 +68,7 @@ function Groups({navigation}) {
     //getting user information
     useFocusEffect(
         useCallback(() => {
-            getGroups();
-            getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
-                if (info) {
-                    setUserID(info);
-                }
-            })
+            getGroups()
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
                 if (info) {
                     socket.emit("groupUpdate", info, "groupsMain", null);
@@ -100,8 +93,9 @@ function Groups({navigation}) {
             return () => {
                 socket.off('groupUpdate');
             };
-        }, [userID])
+        }, [])
     )
+
 
 
     //get user's list of groups and the user's pending group invites
@@ -111,7 +105,8 @@ function Groups({navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
             .then((res) => {
-                const {invites, groups} = res.data;
+                const {username, invites, groups} = res.data;
+                setUsername(username)
                 setGroups(groups);
                 setGroupInvites(invites);
             })
@@ -234,9 +229,6 @@ function Groups({navigation}) {
                     <Pressable
                         onPress={() => navigation.navigate("Profile",
                             {
-                                name: name,
-                                username: username,
-                                email: email,
                                 userID: userID
                             })}>
                         <ProfilePicture size={50} userID={userID}/>
@@ -309,11 +301,9 @@ function Groups({navigation}) {
                                 <Button
                                     buttonStyle={{width: 200}}
                                     onPress={() => navigation.navigate("GroupHome", {
-                                        name: name,
-                                        username: username,
-                                        email: email,
                                         userID: userID,
-                                        groupID: group.groupID
+                                        groupID: group.groupID,
+                                        username: username
                                     })}
                                 >
                                     {group.name}
@@ -345,7 +335,7 @@ function Groups({navigation}) {
                 alignItems: 'center'
             }}>
                 <TouchableOpacity style={{alignItems: 'center'}}
-                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID, createdGroup: createdGroup})}>
+                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
                     <Image
                         source={PlusButton}
                         style={{
