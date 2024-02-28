@@ -58,7 +58,7 @@ function Friends({route, navigation}) {
         )
             .then((res) => {
                 const {searchName, searchUsername, searchBio, viewType, url} = res.data;
-                navigation.navigate("OtherProfile", res.data);
+                navigation.navigate("OtherProfile", {...res.data, userID: userID});
             })
             .catch((error) => {
                 const {status, data} = error.response;

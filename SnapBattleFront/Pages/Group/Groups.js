@@ -39,11 +39,9 @@ const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = pro
 function Groups({navigation}) {
 
     //user information
-    const [name, setName] = useState('');
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
     const [userID, setUserID] = useState('');
     const [token, setToken] = useState('');
+    const [username, setUsername] = useState('')
 
     //groups are in format [{groupID: ?, name: ?}, ...]
     const [groups, setGroups] = useState([-1]);
@@ -111,7 +109,8 @@ function Groups({navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
             .then((res) => {
-                const {invites, groups} = res.data;
+                const {username, invites, groups} = res.data;
+                setUsername(username)
                 setGroups(groups);
                 setGroupInvites(invites);
             })
@@ -307,7 +306,8 @@ function Groups({navigation}) {
                                     buttonStyle={{width: 200}}
                                     onPress={() => navigation.navigate("GroupHome", {
                                         userID: userID,
-                                        groupID: group.groupID
+                                        groupID: group.groupID,
+                                        username: username
                                     })}
                                 >
                                     {group.name}

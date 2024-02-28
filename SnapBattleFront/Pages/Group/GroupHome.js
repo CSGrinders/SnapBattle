@@ -2,7 +2,8 @@ import {View, Text} from "react-native";
 import {Button} from "@rneui/themed";
 
 function GroupHome({route, navigation}) {
-    const {name, username, email, userID, groupID} = route.params
+    const {username, userID, groupID} = route.params
+    console.log(username)
     return (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
             <Text>GROUP HOME</Text>
