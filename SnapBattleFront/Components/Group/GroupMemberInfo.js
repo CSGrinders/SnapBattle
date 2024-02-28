@@ -21,7 +21,6 @@ function GroupMemberInfo({navigation,
                              pfpURL,
                              setError,
                              setErrorMessage}) {
-    // TODO: PFP @hojin
     function handleOnPress() {
         try {
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/visit-member-profile`, {
@@ -56,7 +55,6 @@ function GroupMemberInfo({navigation,
         }
     }
     let adminStr = isAdmin ? "Administrator" : "Member";
-    console.log(adminPerms)
 
     return (
         <Card wrapperStyle={{
