@@ -74,7 +74,7 @@ function SignIn({navigation}) {
                     password: password,
                 }
             ).then((response) => {
-                const {isAuthenticated, token, user} = response.data;
+                const {isAuthenticated, token, profilePicture,  userID} = response.data;
                 if (isAuthenticated) { //No error, but checking if user is authenticated
                     //Storing userdata and token in system device
                     if (token != null) {
@@ -88,12 +88,12 @@ function SignIn({navigation}) {
                                 }
                             );
                     }
-                    if (user != null) {
+                    if (userID != null) {
                         //user contains
                         // Object contains: id (MongDB object id), username, email, name
                         // Note: it will saved in JSON, so make sure to use JSON.parse of you want to obtain the data
-                        setProfileImageCache(user.profilePicture)
-                        saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(user)).then(() => {
+                        setProfileImageCache(profilePicture);
+                        saveUserInfo(EXPO_PUBLIC_USER_INFO, userID).then(() => {
                             console.log("Sign in page: Success saving user data.");
                         })
                             .catch((error) => {//There was an error storing the user
@@ -151,11 +151,11 @@ function SignIn({navigation}) {
                         (response) => {
                             //Server response
                             resetFields();
-                            const {isAuthenticated} = response.data;
+                            const {isAuthenticated, profilePicture} = response.data;
                             if (isAuthenticated) { //No error, but checking if user is authenticated
                                 console.log("Sign in page: User verified with token.");
-                                setAuthToken(token).then(() => {
-                                });
+                                setProfileImageCache(profilePicture);
+                                setAuthToken(token).then(() => {});
                                 setTimeout(() => {
                                     navigation.navigate('Groups'); //Success and navigating to groups screen after 3 seconds
                                 }, 2000);

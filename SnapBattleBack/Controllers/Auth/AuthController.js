@@ -94,17 +94,12 @@ module.exports.SignUp = async (req, res) => {
         });
 
         //Return object to client
-        const objUser = {
-            id: newUser._id.toString(),
-            name: newUser.name.toLowerCase(),
-            email: newUser.email.toLowerCase(),
-            username: newUser.username.toLowerCase(),
-        };
 
         return res.status(200).json({ //User Created.
             isAuthenticated: true,
             token: token,
-            user: objUser
+            profilePicture: newUser.profilePicture,
+            userID: newUser._id.toString(),
         });
 
 
@@ -162,17 +157,11 @@ module.exports.SignIn = async (req, res) => {
         }
 
         //Return object to client
-        const objUser = {
-            id: findUser._id.toString(),
-            name: findUser.name.toLowerCase(),
-            email: findUser.email.toLowerCase(),
-            username: findUser.username.toLowerCase(),
-        }
-
-        return res.status(200).json({ //Use found.
+        return res.status(200).json({ //User Created.
             isAuthenticated: true,
             token: token,
-            user: objUser
+            profilePicture: findUser.profilePicture,
+            userID: findUser._id.toString(),
         });
 
     } catch (error) {
@@ -208,6 +197,7 @@ module.exports.Auth = async (req, res) => {
         await verifyToken(token, process.env.TOKEN_KEY);
         return res.status(200).json({ //Use found.
             isAuthenticated: true,
+            profilePicture: findUser.profilePicture,
         });
     } catch (error) {
         console.log("Auth module: " + error);
