@@ -149,15 +149,28 @@ module.exports.editPromptTime = async(req, res) => {
             // check if prompt time isn't before submission time
             let newHr = parseInt(promptTime.substring(0, 2));
             let subHr = parseInt(submissionTime.substring(0,2));
+            let newMin = parseInt(promptTime.substring(3));
+            let subMin = parseInt(submissionTime.substring(3));
             if (newHr > subHr) {
                 return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
             } else if (newHr === subHr) {
-                let newMin = parseInt(promptTime.substring(3));
-                let subMin = parseInt(submissionTime.substring(3));
                 if (newMin > subMin) {
                     return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
                 }
             }
+            let lengthHr = parseInt(group.timeToVote.substring(0, 2))
+            let totalVotingMin = (parseInt(group.timeToVote.substring(3)) + lengthHr * 60) * 2;
+            console.log(totalVotingMin)
+
+            let hrsUsed = subHr - newHr
+            let minUsed = subMin - newMin + (hrsUsed * 60)
+            let minAvailable = 60 * 24 - minUsed
+            console.log(minAvailable)
+
+            if (minAvailable - totalVotingMin < 0) {
+                return res.status(402).json({errorMessage: "Shorten voting length or push back prompt time."})
+            }
+
             group.timeStart = promptTime;
             await group.save();
             return res.status(200).json({promptTimeChanged: true});
@@ -188,15 +201,26 @@ module.exports.editSubmissionTime = async(req, res) => {
             // check if prompt time isn't before submission time
             let newHr = parseInt(submissionTime.substring(0, 2));
             let startHr = parseInt(promptTime.substring(0,2));
+            let newMin = parseInt(submissionTime.substring(3));
+            let startMin = parseInt(promptTime.substring(3));
             if (newHr < startHr) {
                 return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
             } else if (newHr === startHr) {
-                let newMin = parseInt(submissionTime.substring(3));
-                let startMin = parseInt(promptTime.substring(3));
                 if (newMin > startMin) {
                     return res.status(400).json({errorMessage: "Submission time cannot start before prompt time!"});
                 }
             }
+            let lengthHr = parseInt(group.timeToVote.substring(0, 2))
+            let totalVotingMin = (parseInt(group.timeToVote.substring(3)) + lengthHr * 60) * 2;
+
+            let hrsUsed = newHr - startHr
+            let minUsed = newMin - startMin + (hrsUsed * 60)
+            let minAvailable = 60 * 24 - minUsed
+
+            if (minAvailable - totalVotingMin < 0) {
+                return res.status(402).json({errorMessage: "Shorten voting length or push forward submission time."})
+            }
+
             group.timeEnd = submissionTime;
             await group.save();
             return res.status(200).json({submissionTimeChanged: true});

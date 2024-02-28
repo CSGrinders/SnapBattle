@@ -49,7 +49,7 @@ function GroupSettings({route, navigation}) {
     const [isLengthVisible, setLengthVisible] = useState(false);
     const [lengthTitle, setLengthTitle] = useState("Select Duration")
     const [length, setLength] = useState("")
-    const [lengthDate, setLengthDate] = useState(new Date())
+    const [lengthDate, setLengthDate] = useState(new Date(Date.parse("2000-01-01T00:00:00")))
 
     // error messages
     const [groupNameError, setGroupNameError] = useState("");
