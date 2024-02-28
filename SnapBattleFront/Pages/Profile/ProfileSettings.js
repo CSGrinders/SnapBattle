@@ -38,7 +38,7 @@ const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = pro
 
 function ProfileSettings({route, navigation}) {
 
-    const {name, username, email, userID} = route.params;
+    const {name, username, userID} = route.params;
 
     let {width, height} = Dimensions.get('window'); //Get screen size
 

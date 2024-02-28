@@ -86,7 +86,10 @@ function Profile({route, navigation}) {
                     }}>Profile Page</Text>
                 </View>
                 <View style={{marginRight: 20}}>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings', route.params)}>
+                    <TouchableOpacity
+                        onPress={
+                        () => navigation.navigate('ProfileSettings', {userID: userID, name: name, username: username})}
+                    >
                         <Image
                             source={SettingIcon}
                             style={{
@@ -146,7 +149,7 @@ function Profile({route, navigation}) {
                 width: width,
                 height: height * 0.5
             }}>
-                <Button onPress={() => navigation.navigate("Friends", route.params)}>
+                <Button onPress={() => navigation.navigate("Friends", {userID: userID})}>
                     Friends
                 </Button>
             </View>

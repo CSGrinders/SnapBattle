@@ -37,7 +37,7 @@ const {EXPO_PUBLIC_API_URL} = process.env;
 
 function Friends({route, navigation}) {
 
-    const {name, username, email, userID} = route.params;
+    const {userID} = route.params;
 
     const {width, height} = Dimensions.get('window');
 
@@ -58,8 +58,8 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search}`,
         )
             .then((res) => {
-                const {searchName, searchUsername, searchEmail, searchBio, viewType, url} = res.data;
-                navigation.navigate("OtherProfile", {...route.params, ...res.data, viewType: viewType});
+                const {searchName, searchUsername, searchBio, viewType, url} = res.data;
+                navigation.navigate("OtherProfile", res.data);
             })
             .catch((error) => {
                 const {status, data} = error.response;

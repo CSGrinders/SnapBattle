@@ -24,7 +24,7 @@ const {EXPO_PUBLIC_API_URL} = process.env
 function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {name, username, email, userID, searchName, searchUsername, searchEmail, searchBio, searchID, viewType, url} = route.params;
+    const {searchName, searchUsername, searchBio, viewType, url} = route.params;
 
 
     const [image, setImage] = useState('');

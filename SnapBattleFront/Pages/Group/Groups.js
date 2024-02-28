@@ -235,9 +235,6 @@ function Groups({navigation}) {
                     <Pressable
                         onPress={() => navigation.navigate("Profile",
                             {
-                                name: name,
-                                username: username,
-                                email: email,
                                 userID: userID
                             })}>
                         <ProfilePicture size={50} userID={userID}/>
@@ -310,9 +307,6 @@ function Groups({navigation}) {
                                 <Button
                                     buttonStyle={{width: 200}}
                                     onPress={() => navigation.navigate("GroupHome", {
-                                        name: name,
-                                        username: username,
-                                        email: email,
                                         userID: userID,
                                         groupID: group.groupID
                                     })}
@@ -346,7 +340,7 @@ function Groups({navigation}) {
                 alignItems: 'center'
             }}>
                 <TouchableOpacity style={{alignItems: 'center'}}
-                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID, createdGroup: createdGroup})}>
+                                  onPress={() => navigation.navigate("CreateGroup", {userID: userID})}>
                     <Image
                         source={PlusButton}
                         style={{
