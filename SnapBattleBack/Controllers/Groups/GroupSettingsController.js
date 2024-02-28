@@ -206,3 +206,49 @@ module.exports.editSubmissionTime = async(req, res) => {
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
+
+module.exports.editVotingLength = async (req, res) => {
+    try {
+        const {userID, groupID} = req.params;
+        const {votingLength} = req.body;
+        const group = await Group.findById(groupID);
+
+
+        if (group) {
+
+            if (group.adminUserID.toString() !== userID) {
+                return res.status(401).json({errorMessage: "You are not an administrator!"});
+            }
+
+            //convert voting time to minutes, multiply by 2 b/c of 2 voting periods
+            const votingHours = parseInt(votingLength.substring(0, 2))
+            console.log("voting hours: ", votingHours)
+            const votingMin = parseInt(votingLength.substring(3))
+            console.log("voting minutes: ", votingMin)
+            const totalVotingMin = 2 * (votingHours * 60 + votingMin)
+
+            //calculate minutes available after the prompt to submission time
+            const startTime = group.timeStart
+            const endTime = group.timeEnd
+            const startHours = parseInt(startTime.substring(0, 2));
+            const startMin = parseInt(startTime.substring(3));
+            const endHours = parseInt(endTime.substring(0, 2))
+            const endMin = parseInt(endTime.substring(3))
+            let hrsUsed = endHours - startHours
+            let minUsed = endMin - startMin + (hrsUsed * 60)
+            let minAvailable = 60 * 24 - minUsed
+
+            if (minAvailable - totalVotingMin < 0) {
+                return res.status(400).json({errorMessage: "not enough time in the day"})
+            }
+
+            group.votingLength = votingLength
+            await group.save()
+            return res.status(200).json({votingLengthChanged: true})
+
+        }
+    } catch (error) {
+        console.log("editVotingLength module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
