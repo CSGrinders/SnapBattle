@@ -357,7 +357,7 @@ module.exports.deleteGroup = async(req, res) => {
  * get the profile page of a person in a group w you
  * /user/:userID/groups/:groupID/visit-member-profile
  *
- *  @params groupID
+ *  @params userID, searchID
  *
  **/
 module.exports.visitFriendProfile = async (req, res) => {
@@ -397,7 +397,6 @@ module.exports.visitFriendProfile = async (req, res) => {
                     });
                 }
             }
-
             return res.status(200).json({
                 searchName: searchUser.name,
                 searchUsername: searchUser.username,
@@ -411,6 +410,31 @@ module.exports.visitFriendProfile = async (req, res) => {
         }
     } catch (error) {
         return res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+/**
+ * check if user is admin when leaving a group
+ * /user/:userID/groups/:groupID/check-admin
+ *
+ *  @params userID, groupID
+ **/
+module.exports.checkAdmin = async(req, res) => {
+    try {
+        const {userID, groupID} = req.params;
+        const group = await Group.findById(groupID);
+        if (group) {
+            if (group.adminUserID === userID) {
+                return res.status(200).json({admin: true})
+            }
+            else {
+                return res.status(200).json({admin: false})
+            }
+        } else {
+            return res.status(404).json({errorMessage: "Group not found"})
+        }
+    } catch (e) {
+        return res.status(500).json({errorMessage: "Something went wrong..."})
     }
 }
 
