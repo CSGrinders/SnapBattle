@@ -26,7 +26,7 @@ const {EXPO_PUBLIC_API_URL} = process.env;
 function Profile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {userID} = route.params;
+    const {userID} = route.params; // actually route/params does not pass username and name from group page
     const [name, setName] = useState('')
     const [username, setUsername] = useState('')
     const [bio, setBio] = useState('');
@@ -86,7 +86,9 @@ function Profile({route, navigation}) {
                     }}>Profile Page</Text>
                 </View>
                 <View style={{marginRight: 20}}>
-                    <TouchableOpacity onPress={() => navigation.navigate('ProfileSettings', route.params)}>
+                    <TouchableOpacity onPress={() => {
+                        navigation.navigate('ProfileSettings', {userID: userID, username: username, name: name})
+                    }}>
                         <Image
                             source={SettingIcon}
                             style={{

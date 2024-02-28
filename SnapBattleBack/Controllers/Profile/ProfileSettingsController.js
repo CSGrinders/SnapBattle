@@ -17,6 +17,8 @@
 
 const {User, Session} = require("../../Models/User");
 const {compare} = require("bcrypt");
+const {ref, deleteObject} = require("firebase/storage");
+const storage = require("../../Firebase/Firebase");
 
 
 /**
@@ -156,6 +158,12 @@ module.exports.deleteAccount = async(req, res)=> {
         const { userID } = req.params;
         const user = await User.findById(userID); //Find user
         if (user) {
+            const imageRef = ref(storage, `profileImage/${userID}.jpeg`);
+            try {
+                await deleteObject(imageRef);
+            } catch (error) {
+                console.log("this user does not have profile image");
+            }
             await User.deleteOne(user);
             const session = await Session.findOne({ userID: userID}); //Find session
             await session.deleteOne(session);

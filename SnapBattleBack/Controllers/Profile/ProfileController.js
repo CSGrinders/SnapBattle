@@ -24,7 +24,7 @@ const {
 
 const storage = require("../../Firebase/Firebase");
 const {User} = require("../../Models/User");
-
+const sharp = require('sharp');
 
 /**
  * add desc
@@ -40,7 +40,11 @@ module.exports.uploadPhoto = async(req, res)=> {
         const base64data = req.body.base64data;
         const userID = req.params.userID;
         const buffer = Buffer.from(base64data, 'base64');
-        const blob = new Blob([buffer], { type: 'image/jpeg' });
+
+        //compress the image by sharp
+        const compressedBuffer = await sharp(buffer).resize({ width: 600, height: 600 }).jpeg({ quality: 1 }).toBuffer();
+
+        const blob = new Blob([compressedBuffer], { type: 'image/jpeg' });
 
         const fileName = userID + ".jpeg";
         const imageRef = ref(storage, `profileImage/${fileName}`);
