@@ -5,7 +5,7 @@ import default_image_source from '../../assets/default-profile-picture.webp'
 /**
  * @returns {JSX.Element} - Other users Profile pictures
  */
-const OtherProfilePicture = ({size, searchID, imageUrl}) => {
+const OtherProfilePicture = ({size, imageUrl}) => {
     return (
         <View>
             {imageUrl!=='' ? (<Image source={{uri: imageUrl}}

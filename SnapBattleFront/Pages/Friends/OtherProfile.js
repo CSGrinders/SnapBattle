@@ -112,7 +112,7 @@ function OtherProfile({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.15,
             }}>
-                <OtherProfilePicture size={150} searchID={searchID} imageUrl={url}/>
+                <OtherProfilePicture size={150} imageUrl={url}/>
                 <Text style={{fontWeight: 'bold', fontSize: 24}}>{searchName}</Text>
                 <Text>@{searchUsername}</Text>
             </View>
