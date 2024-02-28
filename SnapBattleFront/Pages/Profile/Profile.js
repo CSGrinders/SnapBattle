@@ -26,7 +26,9 @@ const {EXPO_PUBLIC_API_URL} = process.env;
 function Profile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {name, username, email, userID} = route.params;
+    const {userID} = route.params;
+    const [name, setName] = useState('')
+    const [username, setUsername] = useState('')
     const [bio, setBio] = useState('');
     const [achievements, setAchievements] = useState('');
 
@@ -47,8 +49,11 @@ function Profile({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/getProfileInfo`
         )
             .then((res) => {
-                setAchievements(res.data.achievements);
-                setBio(res.data.bio);
+                const {name, username, profilePicture, achievements, bio} = res.data
+                setName(name)
+                setUsername(username)
+                setAchievements(achievements);
+                setBio(bio);
             })
             .catch((error) => {
                 if (error.response) {
@@ -72,7 +77,7 @@ function Profile({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={50} navigation={navigation} destination={"Groups"}/>
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{

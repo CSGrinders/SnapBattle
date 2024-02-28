@@ -99,12 +99,7 @@ function OtherProfile({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton
-                                size={50}
-                                navigation={navigation}
-                                destination={"Friends"}
-                                params={{name: name, username: username, email: email, userID: userID}}
-                    />
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
             </View>
             <View style={{

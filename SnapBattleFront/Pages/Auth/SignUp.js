@@ -205,7 +205,7 @@ function SignUp({navigation}) {
                     paddingLeft: 20,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={50} navigation={navigation} destination="SignIn"/>
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{
                     flex: 1,

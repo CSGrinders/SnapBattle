@@ -391,6 +391,7 @@ module.exports.visitFriendProfile = async (req, res) => {
                         searchUsername: searchUser.username,
                         searchBio: searchUser.biography,
                         searchID: searchUser._id.toString(),
+                        searchPFP: searchUser.profilePicture,
                         viewType: 2
                     });
                 }
@@ -401,6 +402,7 @@ module.exports.visitFriendProfile = async (req, res) => {
                 searchUsername: searchUser.username,
                 searchBio: searchUser.biography,
                 searchID: searchUser._id.toString(),
+                searchPFP: searchUser.profilePicture,
                 viewType: 1
             });
         } else {

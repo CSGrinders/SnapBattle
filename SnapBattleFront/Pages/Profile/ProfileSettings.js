@@ -358,11 +358,6 @@ function ProfileSettings({route, navigation}) {
                     {!loading && <BackButton
                         size={50}
                         navigation={navigation}
-                        destination={"Profile"}
-                        params={{
-                            ...route.params,
-                            name: newName,
-                        }}
                     />}
                 </View>
                 <View style={{

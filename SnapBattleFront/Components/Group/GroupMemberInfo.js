@@ -37,10 +37,6 @@ function GroupMemberInfo({navigation,
                     })
                 } else {
                     navigation.navigate("OtherProfile", {
-                        name: name,
-                        username: username,
-                        email: email,
-                        userID: userID,
                         searchName: data.searchName,
                         searchUsername: data.searchUsername,
                         searchBio: data.searchBio,

@@ -133,7 +133,7 @@ function CreateNewGroup({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={50} navigation={navigation} destination={"Groups"}/>
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
                     <Text style={{
