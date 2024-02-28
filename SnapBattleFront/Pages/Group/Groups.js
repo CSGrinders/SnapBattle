@@ -101,7 +101,7 @@ function Groups({route, navigation}) {
 
     //getting information necessary for page display
     useEffect(() => {
-        console.log("Only")
+        console.log("Only");
         getUserInfo(EXPO_PUBLIC_USER_INFO).then((info) => {
             if (info) {
                 const userData = JSON.parse(info);
