@@ -117,7 +117,6 @@ function Groups({navigation}) {
             })
             .catch((error) => {
                 const {status, data} = error.response;
-                console.log(error);
                 if (error.response) {
                     if (status !== 500) {
                         setErrorMessageServer("Something went wrong...");
