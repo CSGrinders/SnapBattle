@@ -17,7 +17,7 @@ import {
     View,
     Image,
     ScrollView,
-    ActivityIndicator, TouchableOpacity,
+    ActivityIndicator, TouchableOpacity, Modal,
 } from "react-native";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import PlusButton from "../../assets/plus.webp";
@@ -26,13 +26,15 @@ import AcceptButton from "../../assets/check.webp"
 import RejectButton from "../../assets/close.webp"
 import axios from "axios";
 import uuid from 'react-native-uuid';
-import {Button} from "@rneui/themed";
+import {Button, Input} from "@rneui/themed";
 import {useFocusEffect} from "@react-navigation/native";
 import {deleteUserInfo, getUserInfo} from "../../Storage/Storage";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
+import TransferPermsPrompt from "../../Components/Prompts/TransferPermsPrompt"
 import socket, {SocketContext} from "../../Storage/Socket";
+import CloseButton from "../../assets/close.webp";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -59,6 +61,10 @@ function Groups({route, navigation}) {
     const [confirm, setConfirm] = useState(false);
     const [confirmGroup, setConfirmGroup] = useState('');
     const [confirmStatus, setConfirmStatus] = useState('');
+
+    const [transferVisible, setTransferVisible] = useState(false);
+    const [transferError, setTransferError] = useState('')
+    const [newAdminUsername, setNewAdminUsername] = useState('')
 
     const [refresh, applyRefresh] = useState(false);
     const socket = useContext(SocketContext);
@@ -209,6 +215,45 @@ function Groups({route, navigation}) {
             })
     }
 
+    function checkAdmin(groupID) {
+        axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/checkadmin`)
+            .then((res) => {
+                if (res.data.admin) {
+                    console.log("is admin")
+                    setTransferVisible(true);
+                    console.log(transferVisible)
+                } else {
+                    console.log("is not admin")
+                    leaveGroup(confirmGroup);
+                }
+            }).catch((error) => {
+                const {status, data} = error.response;
+                console.log(data)
+                setErrorMessageServer(data.errorMessage);
+                setErrorServer(true);
+        })
+    }
+
+    function transferPermissions(groupID) {
+        axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/transfer-admin`, {
+            newAdminUsername: newAdminUsername,
+        }).then((res) => {
+            console.log("works?")
+            if (res.data.adminChange) {
+                setTransferVisible(false);
+                leaveGroup(confirmGroup);
+            }
+        }).catch((error) => {
+            const {status, data} = error.response;
+            if (status === 400 || status === 404) {
+                setTransferError(data.errorMessage);
+            } else {
+                setErrorServer(true);
+                setErrorMessageServer(data.errorMessage);
+            }
+        })
+    }
+
     return (
         <View style={{flex: 1}}>
             <View style={{
@@ -351,8 +396,69 @@ function Groups({route, navigation}) {
             <ConfirmPrompt Message={confirmStatus} state={confirm} setState={setConfirm}
                            command={() => {
                                setConfirm(false);
-                               leaveGroup(confirmGroup);
-                           }}></ConfirmPrompt>
+                               checkAdmin(confirmGroup);
+                           }}>
+            </ConfirmPrompt>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={transferVisible}
+                onRequestClose={() => {
+                    setTransferVisible(false);
+                    setTransferError('');
+                }}>
+                <View style={{
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}>
+                    <View style={{
+                        backgroundColor: 'white',
+                        borderColor: 'black',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        padding: 10,
+                    }}>
+                        <Pressable onPress={() => {
+                            setTransferVisible(false);
+                            setNewAdminUsername('');
+                            setTransferError('');
+                        }}>
+                            <Image
+                                source={CloseButton}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    marginLeft: 'auto',
+                                }}
+                                rcontentFit="cover"
+                                transition={500}
+                            />
+                        </Pressable>
+                        <View style={{
+                            flex: 0,
+                            alignItems: 'center'
+
+                        }}>
+                            <View style={{marginBottom: 10}}>
+                                <Text>You are the administrator. To leave, type the username of an existing member to transfer your permissions to. </Text>
+                            </View>
+                            <Input
+                                placeholder='username'
+                                onChangeText={username => {
+                                    setNewAdminUsername(username);
+                                    setTransferError('');
+                                }}
+                                autoCapitalize="none"
+                                errorMessage={transferError}
+                            />
+                            <View style={{marginTop: 10}}>
+                                <Button onPress={() => transferPermissions(confirmGroup)}>Confirm</Button>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     )
 }

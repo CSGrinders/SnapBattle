@@ -18,7 +18,6 @@ function GroupMemberInfo({navigation,
                              pfpURL,
                              setError,
                              setErrorMessage}) {
-    // TODO: PFP @hojin
     function handleOnPress() {
         try {
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/visit-member-profile`, {
