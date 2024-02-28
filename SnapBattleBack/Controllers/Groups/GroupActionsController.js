@@ -423,8 +423,10 @@ module.exports.checkAdmin = async(req, res) => {
     try {
         const {userID, groupID} = req.params;
         const group = await Group.findById(groupID);
+        console.log(group.adminUserID)
+        console.log(userID)
         if (group) {
-            if (group.adminUserID === userID) {
+            if (group.adminUserID.toString() === userID) {
                 return res.status(200).json({admin: true})
             }
             else {
@@ -437,4 +439,42 @@ module.exports.checkAdmin = async(req, res) => {
         return res.status(500).json({errorMessage: "Something went wrong..."})
     }
 }
+
+/**
+ * check if user is admin when leaving a group
+ * /user/:userID/groups/:groupID/transfer-admin
+ *
+ *  @params userID, groupID, newAdminUsername
+ **/
+module.exports.transferAdmin = async (req, res) => {
+    try {
+        const {userID, groupID} = req.params;
+        const newAdminUsername = req.body.newAdminUsername;
+        console.log(newAdminUsername)
+        const newAdminUser = await User.findOne({username: newAdminUsername})
+        console.log(newAdminUser)
+        const group = await Group.findById(groupID);
+        console.log(group)
+        if (newAdminUser) {
+            // check that user did not input themselves
+            if (newAdminUser._id === userID) {
+                return res.status(400).json({errorMessage: "You cannot select yourself!"})
+            }
+            // set new admin if admin is a valid user of group
+            for (let i = 0; i < group.userList.length; i++) {
+                if (newAdminUser._id.toString() === group.userList[i]._id.toString()) {
+                    group.adminUserID = newAdminUser._id;
+                    await group.save();
+                    return res.status(200).json({adminChange: true});
+                }
+            }
+            return res.status(404).json({errorMessage: "User does not exist in this group"})
+        } else {
+            return res.status(404).json({errorMessage: "User does not exist"})
+        }
+    } catch (e) {
+        return res.status(500).json({errorMessage: "Something went wrong..."})
+    }
+}
+
 
