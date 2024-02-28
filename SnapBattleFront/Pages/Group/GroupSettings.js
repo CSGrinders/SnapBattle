@@ -222,7 +222,7 @@ function GroupSettings({route, navigation}) {
                 setSuccessState(true);
                 setSuccessMessage("Group Deleted successfully...");
                 setTimeout(() => {
-                    navigation.navigate("Groups", {getGroupsState: true});
+                    navigation.navigate("Groups", {userID: userID});
                 }, 2000);
             })
             .catch((error) => {
