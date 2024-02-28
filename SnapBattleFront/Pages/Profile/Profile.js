@@ -41,7 +41,7 @@ function Profile({route, navigation}) {
     useFocusEffect(
         useCallback(() => {
             getUserInfo();
-        }, [userID])
+        }, [])
     );
 
     function getUserInfo() {
