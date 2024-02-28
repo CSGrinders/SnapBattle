@@ -18,6 +18,7 @@ import axios from "axios";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {deleteUserInfo, saveUserInfo, setAuthToken} from "../../Storage/Storage";
 import BackButton from "../../Components/Button/BackButton";
+import {setProfileImageCache} from "../../Storage/Cloud";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_USER_INFO} = process.env;
 
 
@@ -123,7 +124,7 @@ function SignUp({navigation}) {
             ).then((response) => {
 
                     //Server response
-                    const {isAuthenticated, token, user} = response.data;
+                    const {isAuthenticated, token, profilePicture, userID} = response.data;
                     if (isAuthenticated) { //No error, but checking if user is authenticated
                         //Storing userdata and token in system device
                         if (token != null) {
@@ -137,11 +138,12 @@ function SignUp({navigation}) {
                                     }
                                 );
                         }
-                        if (user != null) {
+                        if (userID != null) {
                             //user contains
                             // Object contains: id (MongDB object id), username, email, name
                             // Note: it will saved in JSON, so make sure to use JSON.parse of you want to obtain the data
-                            saveUserInfo(EXPO_PUBLIC_USER_INFO, JSON.stringify(user)).then(() => {
+                            setProfileImageCache(profilePicture);
+                            saveUserInfo(EXPO_PUBLIC_USER_INFO, userID).then(() => {
                                 console.log("Sign up page: Success saving user data.");
                             })
                                 .catch((error) => {//There was an error storing the user
