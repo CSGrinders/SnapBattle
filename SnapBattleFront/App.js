@@ -2,6 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import OpenSansRegular from './assets/fonts/OpenSansRegular.ttf';
 import OpenSansBold from './assets/fonts/OpenSansSemiBold.ttf';
+
 const Stack = createNativeStackNavigator()
 import {ThemeProvider} from "@rneui/themed";
 import {theme} from "./Theme/Theme.js"
@@ -17,6 +18,7 @@ import Friends from "./Pages/Friends/Friends";
 import Groups from "./Pages/Group/Groups";
 import GroupHome from "./Pages/Group/GroupHome";
 import OtherProfile from "./Pages/Friends/OtherProfile";
+import {SocketProvider} from "./Storage/Socket";
 
 
 function App() {
@@ -32,23 +34,25 @@ function App() {
 
     //Don't touch unless you want add a page
     return (
-        <ThemeProvider theme={theme}>
-            <NavigationContainer>
-                <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="SignIn" >
-                    <Stack.Screen name="SignIn" component={SignIn}/>
-                    <Stack.Screen name="SignUp" component={SignUp}/>
-                    <Stack.Screen name="Profile" component={Profile}/>
-                    <Stack.Screen name="ProfileSettings" component={ProfileSettings}/>
-                    <Stack.Screen name="GroupSettings" component={GroupSettings}/>
-                    <Stack.Screen name="CreateGroup" component={createNewGroup}/>
-                    <Stack.Screen name="GroupMembers" component={GroupMembers}/>
-                    <Stack.Screen name="Friends" component={Friends}/>
-                    <Stack.Screen name="Groups" component={Groups} />
-                    <Stack.Screen name="GroupHome" component={GroupHome} />
-                    <Stack.Screen name="OtherProfile" component={OtherProfile} />
-                </Stack.Navigator>
-            </NavigationContainer>
-        </ThemeProvider>
+        <SocketProvider>
+            <ThemeProvider theme={theme}>
+                <NavigationContainer>
+                    <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="SignIn">
+                        <Stack.Screen name="SignIn" component={SignIn}/>
+                        <Stack.Screen name="SignUp" component={SignUp}/>
+                        <Stack.Screen name="Profile" component={Profile}/>
+                        <Stack.Screen name="ProfileSettings" component={ProfileSettings}/>
+                        <Stack.Screen name="GroupSettings" component={GroupSettings}/>
+                        <Stack.Screen name="CreateGroup" component={createNewGroup}/>
+                        <Stack.Screen name="GroupMembers" component={GroupMembers}/>
+                        <Stack.Screen name="Friends" component={Friends}/>
+                        <Stack.Screen name="Groups" component={Groups}/>
+                        <Stack.Screen name="GroupHome" component={GroupHome}/>
+                        <Stack.Screen name="OtherProfile" component={OtherProfile}/>
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </ThemeProvider>
+        </SocketProvider>
     );
 }
 

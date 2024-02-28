@@ -411,7 +411,7 @@ function ProfileSettings({route, navigation}) {
                     autoCapitalize="none"
                     errorMessage={errorMessageName}
                 ></Input>
-                {!loading && <SubmitIcon size={50} submitPressed={handleChangeName}/>}
+                {!loading ? <SubmitIcon size={50} submitPressed={handleChangeName}/> : <SubmitIcon size={50}/> }
             </View>
             <Text style={{
                 marginHorizontal: 30,
@@ -439,7 +439,7 @@ function ProfileSettings({route, navigation}) {
                     autoCapitalize="none"
                     errorMessage={errorMessageBio}
                 ></Input>
-                {!loading && <SubmitIcon size={50} submitPressed={handleChangeBio}/>}
+                {!loading ? <SubmitIcon size={50} submitPressed={handleChangeBio}/> : <SubmitIcon size={50}/> }
             </View>
             <Text style={{
                 marginHorizontal: 30,
@@ -468,7 +468,7 @@ function ProfileSettings({route, navigation}) {
                     autoCapitalize="none"
                     errorMessage={errorMessagePassword}
                 ></Input>
-                {!loading && <SubmitIcon size={50} submitPressed={handleOption}/>}
+                {!loading ? <SubmitIcon size={50} submitPressed={handleOption}/> : <SubmitIcon size={50}/> }
             </View>
             <View style={{
                 justifyContent: 'center',
