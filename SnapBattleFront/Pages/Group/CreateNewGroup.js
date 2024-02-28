@@ -106,11 +106,16 @@ function CreateNewGroup({route, navigation}) {
                         navigation.navigate("Groups", {getGroupsState: true});
                     }, 2000);
                 }
-
             }).catch((error) => {
-                setErrorMessageServer("Something went wrong...");
-                setErrorServer(true);
-                console.log("CreateGroup page: " + error);
+                const {status, data} = error.response;
+                if (status === 400) {
+                    setErrorMessagePromptTime(data.errorMessage)
+                    setErrorMessageSubmissionTime(data.errorMessage)
+                } else {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                    console.log("CreateGroup page: " + error);
+                }
             })
         }
     }
@@ -132,9 +137,9 @@ function CreateNewGroup({route, navigation}) {
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
                     <Text style={{
-                        fontSize: 40,
+                        fontSize: 32,
                         fontFamily: 'OpenSansBold'
-                    }}>Create a Group</Text>
+                    }}>Create New Group</Text>
                 </View>
             </View>
             <View style={{
