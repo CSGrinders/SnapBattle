@@ -161,7 +161,7 @@ function GroupSettings({route, navigation}) {
                     const {status, data} = error.response;
                     if (error.response) {
                         if (status !== 500) {
-                            setGroupNameError(data.errorMessage);
+                            setPromptTimeError(data.errorMessage);
                         } else {
                             console.log("Group Settings page: " + error);
                             setErrorMessage(data.errorMessage);
@@ -188,8 +188,8 @@ function GroupSettings({route, navigation}) {
                 submissionTime: submissionTime,
             })
                 .then((response) => {
-                    const {submissionTimeChange} = response.data;
-                    if (submissionTimeChange) {
+                    const {submissionTimeChanged} = response.data;
+                    if (submissionTimeChanged) {
                         setSuccessMessage("Submission time has been changed!");
                         setSuccessState(true);
                     }
@@ -198,7 +198,7 @@ function GroupSettings({route, navigation}) {
                     const {status, data} = error.response;
                     if (error.response) {
                         if (status !== 500) {
-                            setGroupNameError(data.errorMessage);
+                            setSubmissionTimeError(data.errorMessage);
                         } else {
                             console.log("Group Settings page: " + error);
                             setErrorMessage(data.errorMessage);
@@ -245,7 +245,7 @@ function GroupSettings({route, navigation}) {
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-                              enabled={false} style={{flex: 1}}>
+                              enabled={false} style={{fle: 1}}>
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -259,7 +259,7 @@ function GroupSettings({route, navigation}) {
                     <BackButton size={50} navigation={navigation} destination={"GroupHome"} params={route.params}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 20}}>
-                    <Text style={{fontSize: 40, fontFamily: 'OpenSansBold'}}>Group Settings</Text>
+                    <Text style={{fontSize: 32, fontFamily: 'OpenSansBold'}}>Group Settings</Text>
                 </View>
             </View>
             <View style={{

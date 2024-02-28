@@ -25,7 +25,7 @@ const {
     inviteToGroup
 } = require("../../Controllers/Groups/GroupInviteController");
 
-const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup, acceptGroupInvite, rejectGroupInvite } = require("../../Controllers/Groups/GroupActionsController");
+const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup, acceptGroupInvite, rejectGroupInvite, visitFriendProfile } = require("../../Controllers/Groups/GroupActionsController");
 const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime } = require("../../Controllers/Groups/GroupSettingsController");
 
 router.get('/', getGroups);
@@ -51,6 +51,8 @@ router.post('/:groupID/rejectInvite', rejectGroupInvite, getGroups)
 router.post('/:groupID/leave-group', leaveGroup, getGroups)
 
 router.post('/:groupID/delete-group', deleteGroup)
+
+router.post('/:groupID/visit-member-profile', visitFriendProfile)
 
 
 

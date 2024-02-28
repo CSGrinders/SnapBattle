@@ -1,12 +1,63 @@
 import { Card, Text } from '@rneui/themed';
 import { TouchableOpacity } from "react-native";
 import {View} from "react-native";
-import {Image} from "expo-image";
-import KickButton from "../Button/KickButton";
 import OtherProfilePicture from "../Profile/OtherProfilePicture";
+import KickButton from "../Button/KickButton";
+import axios from "axios";
+const {EXPO_PUBLIC_API_URL} = process.env
 
-function GroupMemberInfo({navigation, name, pfpURL, username, email, userID, width, admin}) {
-    let adminStr = admin ? "Administrator" : "Member";
+function GroupMemberInfo({navigation,
+                             groupID,
+                             name,
+                             username,
+                             email,
+                             userID,
+                             searchName,
+                             searchUsername,
+                             searchID,
+                             width,
+                             isAdmin,
+                             adminPerms,
+                             pfpURL,
+                             setError,
+                             setErrorMessage}) {
+    // TODO: PFP @hojin
+    function handleOnPress() {
+        try {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/visit-member-profile`, {
+                searchID: searchID
+            }).then((response) => {
+                let {status, data} = response;
+                if (status === 202) {
+                    navigation.navigate("Profile", {
+                        name: name,
+                        username: username,
+                        email: email,
+                        userID: userID
+                    })
+                } else {
+                    navigation.navigate("OtherProfile", {
+                        name: name,
+                        username: username,
+                        email: email,
+                        userID: userID,
+                        searchName: data.searchName,
+                        searchUsername: data.searchUsername,
+                        searchBio: data.searchBio,
+                        searchID: data.searchID,
+                        viewType: data.viewType
+                    })
+                }
+            })
+        } catch (error) {
+            let {status, data} = error;
+            setError(true);
+            setErrorMessage(data.errorMessage);
+        }
+    }
+    let adminStr = isAdmin ? "Administrator" : "Member";
+    console.log(adminPerms)
+
     return (
         <Card wrapperStyle={{
             width: width,
@@ -15,12 +66,7 @@ function GroupMemberInfo({navigation, name, pfpURL, username, email, userID, wid
                 flexDirection: "row",
             }}>
                 <TouchableOpacity
-                    onPress={() => navigation.navigate("Profile", {
-                        name: name,
-                        username: username,
-                        email: email,
-                        userID: userID
-                    })}
+                    onPress={handleOnPress}
                     style={{
                         flex: 1,
                     }}
@@ -37,14 +83,15 @@ function GroupMemberInfo({navigation, name, pfpURL, username, email, userID, wid
                             <Text style={{
                                 fontSize: 20,
                                 fontWeight: 'bold'
-                            }}> {name} </Text>
-                            <Text> @{username} </Text>
+                            }}> {searchName} </Text>
+                            <Text> @{searchUsername} </Text>
                             <Text> {adminStr} </Text>
                         </View>
                     </View>
                 </TouchableOpacity>
                 <View style={{
-                    justifyContent: "center"
+                    justifyContent: "center",
+                    display: !adminPerms
                 }}>
                     <KickButton size={50}/>
                 </View>
