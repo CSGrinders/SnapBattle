@@ -97,7 +97,11 @@ function CreateNewGroup({route, navigation}) {
         }
 
         if (!length) {
-            setLengthError("Empty field.")
+            setLengthError("Empty field.");
+            error = true;
+        } else if (length == "00:00") {
+            setLengthError("Length must be greater than 00:00");
+            error = true;
         }
 
         if (!error) {
@@ -281,7 +285,7 @@ function CreateNewGroup({route, navigation}) {
                     fontSize: 22,
                     fontWeight: 'bold',
                 }}>
-                    Change Voting Length
+                    Voting Length
                 </Text>
                 <View style={{
                     alignItems: 'flex-start',
