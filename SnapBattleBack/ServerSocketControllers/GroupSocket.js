@@ -1,13 +1,16 @@
 const jwt = require("jsonwebtoken");
-const socketIo = require("socket.io");
 
 let io_s;
-exports.groupUpdates = (io, server) => {
+exports.groupUpdates = (io) => {
     io_s = io;
     io.on("connection", (socket) => {
         socket.on("groupUpdate", (token, mode, groupID) => {
             try {
-                const user = jwt.verify(token, process.env.TOKEN_KEY);
+                let user;
+                if (mode !== "leave") {
+                    user =jwt.verify(token, process.env.TOKEN_KEY);
+                    if (!user) return socket.disconnect();
+                }
                 switch (mode) {
                     case "groupsMain":
                         socket.join(user.userId);
@@ -17,14 +20,17 @@ exports.groupUpdates = (io, server) => {
                         const groupRoom = `group_${groupID}_user_${user.userId}`;
                         socket.join(groupRoom);
                         console.log(`User ${user.userId} joined ${groupID} group update room.`);
+                        break;
+                    case "leave":
+                        console.log(`${token} left their group main room.`);
+                        socket.leave(token);
+                        break;
                 }
             } catch (error) {
                 socket.disconnect();
+                console.log(error);
                 console.log("Server: Something went wrong updating information to client.");
             }
-        });
-        socket.on("disconnect", () => {
-            console.log("Client disconnected from group updates");
         });
     })
 };

@@ -31,6 +31,7 @@ const {MONGO_URL, PORT} = process.env;
 const {createServer} = require("http");
 const {groupUpdates} = require("./ServerSocketControllers/GroupSocket");
 const {friendUpdates} = require("./ServerSocketControllers/FriendsSocket");
+const {otherUpdates} = require("./ServerSocketControllers/ProfileSocket");
 const app = express()
 const server = createServer(app);
 const io = socketIo(server);
@@ -38,6 +39,7 @@ const io = socketIo(server);
 //WebSockets
 groupUpdates(io, server);
 friendUpdates(io, server);
+otherUpdates(io, server);
 
 // Connect to MongoDB
 mongoose

@@ -14,20 +14,26 @@
 import {Dimensions, Text, View} from "react-native";
 import {Button} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
-import {useState} from "react";
+import {useCallback, useContext, useState} from "react";
 import axios from "axios";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
-const {EXPO_PUBLIC_API_URL} = process.env
+import {useFocusEffect} from "@react-navigation/native";
+import {getUserInfo} from "../../Storage/Storage";
+import {SocketContext} from "../../Storage/Socket";
+const {EXPO_PUBLIC_API_URL} = process.env;
 
 function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {searchName, searchUsername, searchBio, viewType, url, userID} = route.params;
-
+    const {searchName, searchUsername, searchBio, viewType, url, requestExists, userID, token} = route.params;
+    const socket = useContext(SocketContext);
 
     const [image, setImage] = useState('');
+
+    const [existRqFriend, setExistRqFriend] = useState(requestExists);
+    const [view, setView] = useState(viewType);
 
     //Server error
     const [errorMessageServer, setErrorMessageServer] = useState('');
@@ -44,6 +50,7 @@ function OtherProfile({route, navigation}) {
             }
         ).then((res) => {
             setInfoPrompt(true);
+            setExistRqFriend(true);
             setInfoMessage(res.data.message);
         }).catch((error) => {
             const {status, data} = error.response;
@@ -51,6 +58,9 @@ function OtherProfile({route, navigation}) {
                 if (status !== 500) {
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
+                    setTimeout(() => {
+                        navigation.navigate("Friends", {userID})
+                    }, 1000)
                 } else {
                     console.log("Friends page: " + error);
                     setErrorMessageServer("Something went wrong...");
@@ -59,6 +69,53 @@ function OtherProfile({route, navigation}) {
             } else {
                 console.log("Friends page: " + error);
                 setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
+            }
+        })
+    }
+
+    useFocusEffect(
+        useCallback(() => {
+            socket.emit("otherProfile", token, "otherprofile");
+            socket.on("otherProfile", (updateDetails) => {
+                console.log("DOES NOT GET GERE")
+                console.log(updateDetails);
+                if (updateDetails.type === "exitProfile") {
+                    navigation.navigate("Friends", {userID: userID});
+                } else if (updateDetails.type === "otherAccept") {
+                    console.log("New other profile update: " + updateDetails.updateDetails);
+                    setView(updateDetails.updateDetails);
+                } else if (updateDetails.type === "otherDeny") {
+                    console.log("New other profile update: " + updateDetails.updateDetails);
+                    setExistRqFriend(updateDetails.updateDetails);
+                }
+            });
+            return () => {
+                socket.off('otherProfile');
+                socket.emit('otherProfile', userID, "leaveOther");
+            };
+        }, [])
+    )
+
+    function removeRequest() {
+        console.log("test");
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/remove-request`,
+            {
+                usernameReq: searchUsername,
+            },
+        ).then((response) => {
+            const {data} = response.data;
+            setExistRqFriend(data);
+        }).catch((err) => {
+            if (err.response.status !== 500) {
+                setErrorMessageServer(err.response.data.errorMessage);
+                setErrorServer(true);
+                setTimeout(() => {
+                    navigation.navigate("Friends", {userID})
+                }, 1000);
+            } else {
+                setErrorMessageServer(err.response.data.errorMessage);
                 setErrorServer(true);
             }
         })
@@ -74,12 +131,20 @@ function OtherProfile({route, navigation}) {
             setInfoPrompt(true);
             setInfoMessage(res.data.message);
             setTimeout(() => {
-                navigation.navigate("Friends", {userID: userID})
+                navigation.navigate("Friends", {userID})
             }, 1000)
         })
         .catch((err) => {
-            setErrorMessageServer(err.response.data.errorMessage);
-            setErrorServer(true);
+            if (err.response.status !== 500) {
+                setErrorMessageServer(err.response.data.errorMessage);
+                setErrorServer(true);
+                setTimeout(() => {
+                    navigation.navigate("Friends", {userID})
+                }, 1000)
+            } else {
+                setErrorMessageServer(err.response.data.errorMessage);
+                setErrorServer(true);
+            }
         })
     }
 
@@ -147,7 +212,7 @@ function OtherProfile({route, navigation}) {
                 height: height * 0.5,
                 gap: 10
             }}>
-                {viewType === 0 ?
+                {view === 0 ?
                     <>
                         <Button onPress={() => removeFriend(searchUsername)}>
                             Remove Friend
@@ -159,14 +224,21 @@ function OtherProfile({route, navigation}) {
                     :
                     <></>
                 }
-                {viewType === 1 ?
-                    <>
-                        <Button
-                            onPress={sendFriendRequest}
-                        >
-                            Send Friend Request
-                        </Button>
-                    </>
+                {view === 1 ?
+                    (existRqFriend ?
+                        <>
+                            <Button
+                                onPress={removeRequest}>
+                                Remove Friend Request
+                            </Button>
+                        </>
+                        :
+                        <>
+                            <Button
+                                onPress={sendFriendRequest}>
+                                Send Friend Request
+                            </Button>
+                    </>)
                     :
                     <></>
                 }

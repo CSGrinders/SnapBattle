@@ -41,11 +41,11 @@ module.exports.getGroups = async(req, res)=> {
 
         //get user's groups as an array of {_id, name}
         //get user's group invites as an array of {_id, name}
-        const user = await User.findById(userID, 'username groups invites -_id')
+        const user = await User.findById(userID)
             .populate('groups', 'name')
             .populate('invites', 'name');
         if (user) {
-            let username = user.username
+            let username = user.username;
             let groups = user.groups;
             groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name}));
             let invites = user.invites
@@ -312,7 +312,6 @@ module.exports.deleteGroup = async(req, res) => {
             for (let i = 0; i < users.length; i++) {
                 users[i].groups = users[i].groups.filter((groupID) => groupID !== groupId);
                 await users[i].save();
-                console.log(users[i]);
                 let result = await User.aggregate([
                     {
                         $match: {_id: users[i]._id} // Make sure users[i] is correctly formatted as ObjectId

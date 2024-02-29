@@ -16,9 +16,11 @@
  */
 
 const {User, Session} = require("../../Models/User");
+const Group = require('../../Models/Group');
 const {compare} = require("bcrypt");
 const {ref, deleteObject} = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
+const {sendFriendUpdate} = require("../../ServerSocketControllers/FriendsSocket");
 
 
 /**
@@ -164,7 +166,41 @@ module.exports.deleteAccount = async(req, res)=> {
             } catch (error) {
                 console.log("this user does not have profile image");
             }
-            await User.deleteOne(user);
+            await user.populate('groups', "_id userList adminUserID");
+            let groups = user.groups;
+            if (groups && groups.length > 0) {
+                for (let i = 0; i < groups.length; i++) {
+                    groups[i].userList = groups[i].userList.filter(userGroup => userGroup.toString() !== userID);
+                    if (groups[i].adminUserID.toString() === userID && groups[i].userList.length > 0) {
+                        groups[i].adminUserID = groups[i].userList[0];
+                        console.log(`New admin selected for group ${groups[i]._id}: ${groups[i].adminUserID}`);
+                    }
+                    if (groups[i].userList.length > 0) {
+                        await groups[i].save();
+                    } else {
+                        await Group.findByIdAndDelete(groups[i]._id.toString());
+                    }
+                }
+            }
+
+            await user.populate('friends');
+            let friends = user.friends;
+            if (friends && friends.length > 0) {
+                for (let i = 0; i < friends.length; i++) {
+                    friends[i].friends = friends[i].friends.filter(userGroup => userGroup.toString() !== userID);
+                    await friends[i].save();
+                    let friendList = [];
+                    await friends[i].populate('friends');
+                    if (friends[i].friends.length > 0) {
+                        friendList = friends[i].friends.map(userFriend => ({
+                            username: userFriend.username,
+                        }));
+                    }
+                    sendFriendUpdate(friends[i]._id.toString(), friendList);
+                }
+            }
+
+            await User.findByIdAndDelete(user._id.toString());
             const session = await Session.findOne({ userID: userID}); //Find session
             await session.deleteOne(session);
             res.status(200).json({isDeleted: true});

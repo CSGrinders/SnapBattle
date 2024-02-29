@@ -39,7 +39,7 @@ const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = pro
 
 function Groups({route, navigation}) {
 
-    const {userID} = route.params;
+    const { userID } = route.params;
     //user information
     const [token, setToken] = useState('');
     const [username, setUsername] = useState('')
@@ -73,10 +73,10 @@ function Groups({route, navigation}) {
     //getting user information
     useFocusEffect(
         useCallback(() => {
-            getGroups()
+            getGroups();
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
                 if (info) {
-                    socket.emit("groupUpdate", info, "groupsMain", null);
+                    socket.emit("groupUpdate", info, "groupsMain");
                     setToken(info);
                 }
             })
@@ -97,6 +97,7 @@ function Groups({route, navigation}) {
 
             return () => {
                 socket.off('groupUpdate');
+                socket.emit('groupUpdate', userID, "leave");
             };
         }, [])
     )
@@ -105,13 +106,12 @@ function Groups({route, navigation}) {
 
     //get user's list of groups and the user's pending group invites
     function getGroups() {
-        if (!userID) return
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
             .then((res) => {
                 const {username, invites, groups} = res.data;
-                setUsername(username)
+                setUsername(username);
                 setGroups(groups);
                 setGroupInvites(invites);
             })
@@ -324,7 +324,7 @@ function Groups({route, navigation}) {
                                 </TouchableOpacity>
                             </View>
                         )
-                    }) : <ActivityIndicator size="large" color="#000000"/>}
+                    }) : (errorServer && <ActivityIndicator size="large" color="#000000"/>)}
                 </ScrollView>
             </View> : <></> }
 

@@ -125,6 +125,7 @@ function SignUp({navigation}) {
 
                     //Server response
                     const {isAuthenticated, token, profilePicture, userID} = response.data;
+                    console.log(response.data)
                     if (isAuthenticated) { //No error, but checking if user is authenticated
                         //Storing userdata and token in system device
                         if (token != null) {
@@ -154,7 +155,7 @@ function SignUp({navigation}) {
                                 );
                         }
                         setAuthToken(token).then(null);
-                        navigation.navigate('Groups', {UserID: userID}); //Success and navigating to main screen
+                        navigation.navigate('Groups', {userID: userID}); //Success and navigating to main screen
                     }
                 }
             ).catch((error) => { //There was an error in fields or server connection
