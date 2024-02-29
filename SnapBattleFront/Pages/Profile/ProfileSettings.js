@@ -268,14 +268,6 @@ function ProfileSettings({route, navigation}) {
         setConfirm(false);
         setConfirmStatus('');
         setOption('');
-        if (newPassword === '') { //Empty field
-            setErrorMessagePassword("Empty field.");
-            return;
-        }
-        if (newPassword.includes(" ")) { //Check for invalid input
-            setErrorMessagePassword('Invalid password. (No spaces)');
-            return;
-        }
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/changepassword`,
             {
@@ -317,6 +309,14 @@ function ProfileSettings({route, navigation}) {
     }
 
     function handleOption() {
+        if (newPassword === '') { //Empty field
+            setErrorMessagePassword("Empty field.");
+            return;
+        }
+        if (newPassword.includes(" ")) { //Check for invalid input
+            setErrorMessagePassword('Invalid password. (No spaces)');
+            return;
+        }
         setOption("password");
         setConfirm(true);
     }
