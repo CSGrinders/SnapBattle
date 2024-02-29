@@ -18,7 +18,8 @@
  */
 
 const {searchUser, sendFriendRequest, getFriendRequests, getFriends, acceptFriendRequest, denyFriendRequest, removeFriend,
-    getFriendsAndRequests
+    getFriendsAndRequests,
+    removeRequest
 } = require("../../Controllers/Friends/FriendsController");
 const router = require("express").Router( { mergeParams: true });
 
@@ -26,7 +27,8 @@ router.get("/search/:searchUsername", searchUser);
 router.post("/send-request", sendFriendRequest);
 router.get("/get-friends", getFriendsAndRequests);
 router.post("/accept", acceptFriendRequest);
-router.post("/deny", denyFriendRequest, getFriendRequests);
-router.post("/remove", removeFriend)
+router.post("/deny", denyFriendRequest);
+router.post("/remove", removeFriend);
+router.post("/remove-request", removeRequest);
 
 module.exports = router;

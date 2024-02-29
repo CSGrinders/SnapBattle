@@ -128,6 +128,7 @@ function GroupMembers({route, navigation}) {
                         backgroundColor: 'white',
                         borderColor: 'black',
                         borderWidth: 2,
+                        borderRadius: 8,
                         padding: 10,
                     }}>
                         <Pressable onPress={closeInviteBox}>
@@ -146,7 +147,8 @@ function GroupMembers({route, navigation}) {
                             flex: 0,
                             alignItems: 'center'
                         }}>
-                            <Text>Enter the username of the friend you would like to invite</Text>
+                            <View style={{alignItems: 'center', justifyContent: 'center', marginBottom: 10}}>
+                                <Text>Enter the username of the friend you</Text><Text>would like to invite.</Text></View>
                             <Input
                                 placeholder='username'
                                 onChangeText={username => setInvUser(username)}

@@ -94,7 +94,6 @@ module.exports.SignUp = async (req, res) => {
         });
 
         //Return object to client
-
         return res.status(200).json({ //User Created.
             isAuthenticated: true,
             token: token,

@@ -21,7 +21,9 @@
 const {User} = require("../../Models/User");
 const {ref, getDownloadURL} = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
-const {sendFriendRequest} = require("../../ServerSocketControllers/FriendsSocket");
+const {sendFriendRequest, sendFriendUpdate} = require("../../ServerSocketControllers/FriendsSocket");
+const {sendUpdateProfileStatus} = require("../../ServerSocketControllers/ProfileSocket");
+const {findUser} = require("../Profile/ProfileController");
 
 /**
  * Add small desc.
@@ -35,7 +37,7 @@ module.exports.searchUser = async(req, res) => {
 
     try {
         const {userID, searchUsername} = req.params;
-        const searchUser = await User.findOne({username: searchUsername})
+        const searchUser = await User.findOne({username: searchUsername}).populate('requests')
         let pfpURL = '';
         try {
             const searchUserID = searchUser._id;
@@ -44,12 +46,9 @@ module.exports.searchUser = async(req, res) => {
         } catch (error) {
             console.log("getPhoto in Friends: " + error);
         }
-        console.log("friends Controller for checking pfp:@@@@@@@2", pfpURL);
 
         if (searchUser) {
 
-            console.log(userID)
-            console.log(searchUser._id)
 
             //user searched for themselves
             if (searchUser._id.toString() === userID) {
@@ -65,11 +64,13 @@ module.exports.searchUser = async(req, res) => {
                         searchBio: searchUser.biography,
                         searchID: searchUser._id.toString(),
                         viewType: 0,
-                        url: pfpURL
+                        url: pfpURL,
+                        requestExists: null,
                     });
                 }
             }
-
+            searchUser.populate('requests');
+            let requestExists = searchUser.requests.some(request => request._id.toString() === userID);
             //otherwise display profile with add friend button
             return res.status(200).json({
                 searchName: searchUser.name,
@@ -77,7 +78,8 @@ module.exports.searchUser = async(req, res) => {
                 searchBio: searchUser.biography,
                 searchID: searchUser._id.toString(),
                 viewType: 1,
-                url: pfpURL
+                url: pfpURL,
+                requestExists: requestExists,
             });
         }
         else {
@@ -87,6 +89,32 @@ module.exports.searchUser = async(req, res) => {
         console.log("SearchUser module: " + error);
         return res.status(500).json({errorMessage: "Something went wrong..."});
     }
+}
+
+module.exports.removeRequest = async(req, res) => {
+    try {
+        const {userID} = req.params;
+        const {usernameReq} = req.body;
+
+        const userReq = await User.findOne({username: usernameReq}).populate('requests');
+        if (!userReq) {
+            return res.status(404).json({errorMessage: "User could not be found."});
+        }
+
+        userReq.requests = userReq.requests.filter(user => user._id.toString() !== userID);
+        await userReq.save();
+        await userReq.populate('requests', 'username');
+        let requests = userReq.requests;
+        requests = requests.map((request) => ({
+            username: request.username,
+        }));
+        sendFriendRequest(userReq._id.toString(), requests);
+        return res.status(200).json({data: false});
+    } catch (error) {
+        console.log("SearchUser module: " + error);
+        return res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+
 }
 
 /**
@@ -130,7 +158,6 @@ module.exports.sendFriendRequest = async(req, res) => {
                 await userB.save();
                 await userB.populate('requests', 'username');
                 let friendsR = userB.requests;
-                console.log(friendsR);
                 friendsR = friendsR.map((request) => ({
                     username: request.username,
                 }))
@@ -149,37 +176,6 @@ module.exports.sendFriendRequest = async(req, res) => {
     }
 }
 
-/**
- * Add small desc.
- *
- * @param {object} req - Express request object.
- * @param {object} res - Express response object.
- */
-
-module.exports.getFriendRequests = async (req, res) => {
-    console.log("getFriendRequests module: Request received.");
-    try {
-        const {userID} = req.params;
-        const user = await User.findById(userID, 'requests').populate('requests');
-
-        if (user) {
-            let requests = user.requests;
-            requests = requests.map((request) => ({
-                username: request.username,
-                //TODO: profile picture
-            }))
-            res.status(200).json({requests});
-        }
-        else {
-            res.status(404).json({errorMessage: "User could not be found."});
-        }
-
-
-    } catch (error) {
-        console.log("getFriendRequests module: " + error);
-        res.status(500).json({errorMessage: "Something went wrong..."});
-    }
-}
 
 /**
  * Add small desc.
@@ -232,10 +228,37 @@ module.exports.acceptFriendRequest = async (req, res) => {
 
         //update the user that sent the friend request
         let user = await User.findOne({username: reqUsername});
+        if (!user)  {
+            user = await User.findById(userID).populate('friends requests');
+            let friendRequests = user.requests;
+            let friends = user.friends;
+            friendRequests = friendRequests.filter(request => request.username !== reqUsername);
+            friendRequests = friendRequests.map((user) => ({
+                username: user.username,
+                //TODO: profile picture
+            }))
+
+            friends = friends.map((user) => ({
+                username: user.username,
+                //TODO: profile picture
+            }))
+
+            console.log("acceptFriendRequest module: 200 returned. Req length: " + friendRequests.length);
+            return res.status(200).json({friends, friendRequests});
+        }
         let friends = user.friends;
         friends.push(userID);
         await user.save();
 
+        await user.populate('friends');
+        friends = user.friends;
+        friends = friends.map((user) => ({
+            username: user.username,
+            //TODO: profile picture
+        }))
+        sendFriendUpdate(user._id.toString(), friends);
+        const room = `${user._id.toString()}_otherprofile`
+        sendUpdateProfileStatus(room, 0, "accept");
         //update the user that received the friend request
         user = await User.findById(userID).populate('requests friends');
         let friendRequests = user.requests;
@@ -261,7 +284,6 @@ module.exports.acceptFriendRequest = async (req, res) => {
             //TODO: profile picture
         }))
 
-
         console.log("acceptFriendRequest module: 200 returned. Req length: " + friendRequests.length);
         res.status(200).json({friends, friendRequests});
     } catch (error) {
@@ -285,19 +307,43 @@ module.exports.denyFriendRequest = async (req, res, next) => {
         const {userID} = req.params
 
         //remove the friend request from the user that received the request
-        let user = await User.findById(userID).populate("requests")
+        let user = await User.findById(userID).populate("requests");
+        if (!user)  {
+            user = await User.findById(userID).populate('friends requests');
+            let friendRequests = user.requests;
+            let friends = user.friends;
+            friendRequests = friendRequests.filter(request => request.username !== reqUsername);
+            friendRequests = friendRequests.map((user) => ({
+                username: user.username,
+                //TODO: profile picture
+            }))
+
+            friends = friends.map((user) => ({
+                username: user.username,
+                //TODO: profile picture
+            }))
+
+            console.log("acceptFriendRequest module: 200 returned. Req length: " + friendRequests.length);
+            return res.status(200).json({friends, friendRequests});
+        }
         let requests = user.requests
+        let room;
         for (let i = 0; i < requests.length; i++) {
             if (requests[i].username === reqUsername) {
+                room = `${requests[i]._id.toString()}_otherprofile`
                 requests.splice(i, 1)
                 break
             }
         }
 
-        await user.save()
+        await user.save();
+        await user.populate('requests');
+        requests = requests.map((request) => ({
+            username: request.username,
+        }))
 
-        //call getFriendRequests() to return the new updated list of friend requests back to the client
-        next()
+        sendUpdateProfileStatus(room, false, "deny");
+        res.status(200).json({requests});
     }
     catch {
         return res.status(500).json({errorMessage: "Internal server error"})
@@ -353,8 +399,13 @@ module.exports.removeFriend = async (req, res, next) => {
                 break
             }
         }
-        await userB.save()
-
+        await userB.save();
+        await userB.populate('friends');
+        let friends = userB.friends;
+        friends = friends.map((friend) => ({
+            username: friend.username,
+        }))
+        sendFriendUpdate(userB._id.toString(), friends);
         return res.status(200).json({message: "Friend successfully removed"})
     }
     catch {

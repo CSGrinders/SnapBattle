@@ -30,8 +30,9 @@ import {useFocusEffect} from "@react-navigation/native";
 import AcceptIcon from "../../assets/check.webp"
 import RejectIcon from "../../assets/reject.webp"
 import {SocketContext} from "../../Storage/Socket";
+import {getUserInfo} from "../../Storage/Storage";
 
-const {EXPO_PUBLIC_API_URL} = process.env;
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function Friends({route, navigation}) {
 
@@ -50,6 +51,7 @@ function Friends({route, navigation}) {
     //TODO: add profile pictures
     const [friendReqs, setFriendReqs] = useState([]);
     const [friends, setFriends] = useState([]);
+    const [token, setToken] = useState([]);
     const socket = useContext(SocketContext);
 
     function searchUser() {
@@ -57,8 +59,7 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search}`,
         )
             .then((res) => {
-                const {searchName, searchUsername, searchBio, viewType, url} = res.data;
-                navigation.navigate("OtherProfile", {...res.data, userID: userID});
+                navigation.navigate("OtherProfile", {...res.data, userID: userID, token: token});
             })
             .catch((error) => {
                 const {status, data} = error.response;
@@ -84,8 +85,7 @@ function Friends({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${username}`,
         )
             .then((res) => {
-                const {searchName, searchUsername, searchEmail, searchBio} = res.data;
-                navigation.navigate("OtherProfile", {...route.params, ...res.data, viewType: viewType});
+                navigation.navigate("OtherProfile", {...res.data, ...route.params, viewType: viewType, token: token});
             })
             .catch((error) => {
                 const {status, data} = error.response;
@@ -150,8 +150,8 @@ function Friends({route, navigation}) {
                 reqUsername: reqUsername
             }
         ).then((res) => {
-            const {requests} = res.data
-            setFriendReqs(requests)
+            const {requests} = res.data;
+            setFriendReqs(requests);
         }).catch((error) => {
             console.log("Friends page: " + error);
             if (error.response) {
@@ -164,14 +164,25 @@ function Friends({route, navigation}) {
     useFocusEffect(
         useCallback(() => {
             getFriends();
-            socket.emit("friendsUpdate", userID);
+            getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
+                if (info) {
+                    socket.emit("friendsUpdate", info, "friendsPage");
+                    setToken(info);
+                }
+            })
             socket.on("friendsUpdate", (updateDetails) => {
-                console.log(updateDetails);
                 if (updateDetails.type === "friendRequest") {
-                    console.log("New friend req received:", updateDetails.updateDetails);
+                    console.log("New friend req received: " + updateDetails.updateDetails);
                     setFriendReqs(updateDetails.updateDetails);
+                } else if (updateDetails.type === "friendUpdate") {
+                    console.log("New friend update received: " + updateDetails.updateDetails);
+                    setFriends(updateDetails.updateDetails)
                 }
             });
+            return () => {
+                socket.off('friendsUpdate');
+                socket.emit('friendsUpdate', userID, "leaveProfile");
+            };
         }, [])
     )
 
