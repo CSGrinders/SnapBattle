@@ -438,7 +438,7 @@ module.exports.checkAdmin = async(req, res) => {
         console.log(group.adminUserID)
         console.log(userID)
         if (group) {
-            if (group.adminUserID.toString() === userID) {
+            if (group.adminUserID.toString() === userID && group.userList.length > 1) {
                 return res.status(200).json({admin: true})
             }
             else {
