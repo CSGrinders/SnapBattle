@@ -52,7 +52,11 @@ function Profile({route, navigation}) {
                 const {name, username, profilePicture, achievements, bio} = res.data
                 setName(name)
                 setUsername(username)
-                setAchievements(achievements);
+                if (achievements === 0) {
+                    setAchievements("No Achievements Yet!");
+                } else {
+                    setAchievements(achievements);
+                }
                 setBio(bio);
             })
             .catch((error) => {
