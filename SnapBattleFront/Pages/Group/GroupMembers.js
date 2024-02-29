@@ -14,12 +14,13 @@ import {Button, Input} from "@rneui/themed";
 import {useCallback, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
-const {EXPO_PUBLIC_API_URL} = process.env
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN} = process.env
 import {useFocusEffect} from "@react-navigation/native";
 import uuid from 'react-native-uuid'
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import GroupMemberInfoCard from "../../Components/Group/GroupMemberInfo";
 import BackButton from "../../Components/Button/BackButton";
+import {getUserInfo} from "../../Storage/Storage";
 
 function GroupMembers({route, navigation}) {
 
@@ -43,10 +44,16 @@ function GroupMembers({route, navigation}) {
     //state for group members
     const [groupMembers, setGroupMembers] = useState([-1]);
     const [adminUser, setAdminUser] = useState("");
+    const [token, setToken] = useState("");
 
         //getting information necessary for page display
      useFocusEffect(
         useCallback(() => {
+            getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
+                if (info) {
+                    setToken(info);
+                }
+            })
             getGroupMembers();
         }, [])
     )
@@ -202,6 +209,7 @@ function GroupMembers({route, navigation}) {
                                     pfpURL={member.profilePicture}
                                     width={width * 0.84}
                                     isAdmin={adminUser === member._id}
+                                    token={token}
                                     setError={setErrorServer}
                                     setErrorMessage={setErrorMessageServer}
                                     adminPerms={adminUser === userID ? (adminUser !== member._id) : false}

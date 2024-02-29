@@ -16,6 +16,7 @@ function GroupMemberInfo({navigation,
                              isAdmin,
                              adminPerms,
                              pfpURL,
+                             token,
                              setError,
                              setErrorMessage}) {
     function handleOnPress() {
@@ -32,7 +33,9 @@ function GroupMemberInfo({navigation,
                         searchUsername: data.searchUsername,
                         searchBio: data.searchBio,
                         url: data.searchPFP,
-                        viewType: data.viewType
+                        viewType: data.viewType,
+                        userID: userID,
+                        token: token,
                     })
                 }
             })
