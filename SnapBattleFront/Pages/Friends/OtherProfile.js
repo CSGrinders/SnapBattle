@@ -78,7 +78,6 @@ function OtherProfile({route, navigation}) {
         useCallback(() => {
             socket.emit("otherProfile", token, "otherprofile");
             socket.on("otherProfile", (updateDetails) => {
-                console.log("DOES NOT GET GERE")
                 console.log(updateDetails);
                 if (updateDetails.type === "exitProfile") {
                     navigation.navigate("Friends", {userID: userID});
@@ -98,7 +97,6 @@ function OtherProfile({route, navigation}) {
     )
 
     function removeRequest() {
-        console.log("test");
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/remove-request`,
             {
@@ -130,6 +128,8 @@ function OtherProfile({route, navigation}) {
         ).then((res) => {
             setInfoPrompt(true);
             setInfoMessage(res.data.message);
+            setView(1);
+            setExistRqFriend(false);
             setTimeout(() => {
                 navigation.navigate("Friends", {userID})
             }, 1000)
