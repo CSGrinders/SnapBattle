@@ -74,7 +74,7 @@ function OtherProfile({route, navigation}) {
             setInfoPrompt(true);
             setInfoMessage(res.data.message);
             setTimeout(() => {
-                navigation.navigate("Friends", {name: name, username: username, email: email, userID: userID})
+                navigation.navigate("Friends", {userID: userID})
             }, 1000)
         })
         .catch((err) => {
