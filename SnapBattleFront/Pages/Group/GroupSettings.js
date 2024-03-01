@@ -49,7 +49,7 @@ function GroupSettings({route, navigation}) {
     const [isLengthVisible, setLengthVisible] = useState(false);
     const [lengthTitle, setLengthTitle] = useState("Select Duration")
     const [length, setLength] = useState("")
-    const [lengthDate, setLengthDate] = useState(new Date(Date.parse("2000-01-01T00:00:00")))
+    const [lengthDate, setLengthDate] = useState(new Date())
 
     // error messages
     const [groupNameError, setGroupNameError] = useState("");
@@ -151,7 +151,7 @@ function GroupSettings({route, navigation}) {
         setPromptTimeError("");
         let error = false;
         if (!promptTime) {
-            setGroupNameError("Select a new prompt time.");
+            setPromptTimeError("Select a new prompt time.");
             error = true;
         }
         if (!error) {
@@ -188,7 +188,7 @@ function GroupSettings({route, navigation}) {
         setSubmissionTimeError("");
         let error = false;
         if (!submissionTime) {
-            setGroupNameError("Select a new submission time.");
+            setSubmissionTimeError("Select a new submission time.");
             error = true;
         }
         if (!error) {
@@ -222,7 +222,40 @@ function GroupSettings({route, navigation}) {
     }
 
     function submitVotingLength() {
-        console.log(length);
+        setLengthError("");
+        let error = false;
+        if (!length) {
+            setLengthError("Select a new length");
+            error = true;
+        }
+        if (!error) {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/votingLength`, {
+                votingLength: length,
+            })
+                .then((response) => {
+                    const {votingLengthChanged} = response.data;
+                    if (votingLengthChanged) {
+                        setSuccessMessage("Submission time has been changed!");
+                        setSuccessState(true);
+                    }
+                })
+                .catch((error) => {
+                    const {status, data} = error.response;
+                    if (error.response) {
+                        if (status !== 500) {
+                            setLengthError(data.errorMessage);
+                        } else {
+                            console.log("Group Settings page: " + error);
+                            setErrorMessage(data.errorMessage);
+                            setErrorState(true);
+                        }
+                    } else {
+                        console.log("Group Settings page: " + error);
+                        setErrorMessage("Something went wrong...");
+                        setErrorState(true);
+                    }
+                })
+        }
     }
 
     function deleteGroup() {
