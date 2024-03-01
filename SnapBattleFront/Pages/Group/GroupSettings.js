@@ -235,7 +235,7 @@ function GroupSettings({route, navigation}) {
                 .then((response) => {
                     const {votingLengthChanged} = response.data;
                     if (votingLengthChanged) {
-                        setSuccessMessage("Submission time has been changed!");
+                        setSuccessMessage("Voting length has been changed!");
                         setSuccessState(true);
                     }
                 })
