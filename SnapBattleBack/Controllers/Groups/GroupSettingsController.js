@@ -118,7 +118,7 @@ module.exports.editGroupSize = async(req, res) => {
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
             }
-            if (group.userList.size() > groupSize) {
+            if (group.userList.length > groupSize) {
                 return res.status(400).json({errorMessage: "Current member count exceeds maximum group users."})
             }
             group.maxUsers = groupSize;
