@@ -118,6 +118,9 @@ module.exports.editGroupSize = async(req, res) => {
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
             }
+            if (group.userList.size() > groupSize) {
+                return res.status(400).json({errorMessage: "Current member count exceeds maximum group users."})
+            }
             group.maxUsers = groupSize;
             await group.save();
             return res.status(200).json({sizeChanged: true});
@@ -263,7 +266,7 @@ module.exports.editVotingLength = async (req, res) => {
             let minAvailable = 60 * 24 - minUsed
 
             if (minAvailable - totalVotingMin < 0) {
-                return res.status(400).json({errorMessage: "not enough time in the day"})
+                return res.status(400).json({errorMessage: "Not enough time in the day"})
             }
 
             group.votingLength = votingLength
