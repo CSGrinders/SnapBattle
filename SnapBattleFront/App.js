@@ -20,6 +20,7 @@ import GroupHome from "./Pages/Group/GroupHome";
 import OtherProfile from "./Pages/Friends/OtherProfile";
 import {SocketProvider} from "./Storage/Socket";
 import SubmissionCamera from "./Pages/Group/SubmissionCamera";
+import GroupChat from "./Pages/Group/GroupChat";
 
 
 function App() {
@@ -51,6 +52,7 @@ function App() {
                         <Stack.Screen name="GroupHome" component={GroupHome}/>
                         <Stack.Screen name="OtherProfile" component={OtherProfile}/>
                         <Stack.Screen name="Camera" component={SubmissionCamera} />
+                        <Stack.Screen name="GroupChat" component={GroupChat} />
                     </Stack.Navigator>
                 </NavigationContainer>
             </ThemeProvider>
