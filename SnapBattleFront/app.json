@@ -35,6 +35,14 @@
             }
           ]
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow SnapBattle to access your camera",
+          "microphonePermission": "Allow SnapBattle to access your microphone",
+          "recordAudioAndroid": true
+        }
       ]
     ],
     "ios": {

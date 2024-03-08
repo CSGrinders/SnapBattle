@@ -41,6 +41,9 @@ function GroupHome({route, navigation}) {
             <Button onPress={() => navigation.navigate('GroupSettings', route.params)}>
                 GroupSettings
             </Button>
+            <Button onPress={() => navigation.navigate('Camera')}>
+                Camera Button
+            </Button>
             </View>
         </KeyboardAvoidingView>
     )
