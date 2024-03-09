@@ -50,33 +50,32 @@ const Post = new mongoose.Schema({
 })
 
 const Comment = new mongoose.Schema({
-    commentID: {
-        type: mongoose.Types.ObjectId,
-        ref: 'Comment'
-    },
     userID: {
         type: mongoose.Types.ObjectId,
         required: [true, "A userID is required"],
         ref: 'User'
     },
-    time: {
+    postID: {
+        type: mongoose.Types.ObjectId,
+        required: [true, "A postID is required"],
+        ref: 'Post'
+    },
+    timestamp: {
         type: Date,
         default: new Date(),
     },
-    content: {
+    body: {
         type: String
     },
     likes: {
-        type: Number
+        type: Number,
+        default: 0
     },
     replyTo: {
         type: mongoose.Types.ObjectId,
         ref: 'Comment'
     }
 })
-
-module.exports = mongoose.model("Post", Post)
-module.exports = mongoose.model("Comment", Comment)
 
 const PostModel = mongoose.model("Post", Post)
 const CommentModel = mongoose.model("Comment", Comment)
