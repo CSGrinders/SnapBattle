@@ -1,6 +1,6 @@
 const {
     ref,
-    uploadBytesResumable
+    uploadBytesResumable,
     getDownloadURL
 } = require("firebase/storage");
 
