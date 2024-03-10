@@ -1,12 +1,14 @@
-import {KeyboardAvoidingView, Platform, SafeAreaView, TouchableOpacity, View, Image} from "react-native";
-import {Camera, CameraType, FlashMode, getCameraPermissionsAsync, requestCameraPermissionsAsync} from "expo-camera";
+import {KeyboardAvoidingView, Platform, Text, TouchableOpacity, View, Image} from "react-native";
+import {Camera, CameraType, FlashMode} from "expo-camera";
 import {useFocusEffect, useIsFocused} from "@react-navigation/native";
-import {useEffect, useState} from "react";
-import {Button, Text} from "@rneui/themed";
+import {useEffect, useRef, useState} from "react";
+import {Button, Overlay} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 import CameraButton from '../../assets/take-photo.png'
 import CamSwitchButton from '../../assets/cam-switch.png'
 import FlashButton from '../../assets/flash.png'
+import * as MediaLibrary from 'expo-media-library'
+import AsyncAlert from "../../Components/AsyncAlert";
 
 function SubmissionCamera({navigation}) {
     const isFocused = useIsFocused()
@@ -15,6 +17,12 @@ function SubmissionCamera({navigation}) {
     //camera options
     const [flash, setFlash] = useState(FlashMode.off)
     const [direction, setDirection] = useState(CameraType.back)
+
+    //camera reference
+    const cameraRef = useRef(null)
+
+    //display status for pop-up message
+    const [overlayVisible, setOverlayVisible] = useState(false)
 
     //change flash mode from on->off or off->on
     function changeFlashMode() {
@@ -40,16 +48,44 @@ function SubmissionCamera({navigation}) {
     //request camera permissions from user
     const requestPermissions = async () => {
         console.log("Requesting camera permission");
-        const perm = await Camera.requestCameraPermissionsAsync();
+        const camPerm = await Camera.requestCameraPermissionsAsync();
 
-        if (perm && perm.granted !== true) {
+        if (camPerm && camPerm.granted !== true) {
             console.log("Not allowed to access camera");
+            return
         }
         else {
             console.log("Allowed to use camera")
         }
 
-        setPermission(perm.granted);
+        const libPerm = await MediaLibrary.requestPermissionsAsync();
+        if (libPerm && libPerm.granted !== true) {
+            console.log("Not allowed to access media library")
+            return
+        }
+        else {
+            console.log("Allowed to access library")
+        }
+
+
+        setPermission(true);
+    }
+
+    async function takePhoto() {
+        await cameraRef.current.takePictureAsync({
+            base64: true,
+            fixOrientation: true,
+            skipProcessing: false,
+            onPictureSaved: async (picture) => {
+                console.log(picture.uri)
+                await AsyncAlert("Picture Taken", "Save to Camera Roll?")
+                    .then((res) => {
+                        MediaLibrary.saveToLibraryAsync(picture.uri)
+                    })
+                    .catch((rej) => {
+                    })
+            }
+        })
     }
 
     useEffect(() => {
@@ -82,7 +118,7 @@ function SubmissionCamera({navigation}) {
                     </View>
                 </View>
 
-                <Camera type={direction} flashMode={flash} style={{width: '100%', flex: 10}} />
+                <Camera type={direction} flashMode={flash} ref={cameraRef} style={{width: '100%', flex: 10}} />
 
 
                 <View style={{
@@ -98,7 +134,7 @@ function SubmissionCamera({navigation}) {
                             style={{width: 50, height: 50}}
                          />
                     </TouchableOpacity>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={takePhoto}>
                         <Image
                             source={CameraButton}
                             style={{width: 50, height: 50}}
@@ -111,6 +147,14 @@ function SubmissionCamera({navigation}) {
                         />
                     </TouchableOpacity>
                 </View>
+                <Overlay isVisible={overlayVisible}>
+                    <Button onPress={() => {
+                        setOverlayVisible(false)
+                    }}/>
+                    <Button onPress={() => {
+                        setOverlayVisible(false)
+                    }}/>
+                </Overlay>
 
             </KeyboardAvoidingView>
         )
@@ -118,7 +162,7 @@ function SubmissionCamera({navigation}) {
     else {
         return (
             <View style={{justifyContent: 'center', alignItems: 'center'}}>
-                <Text>Allow Camera Permissions in Settings</Text>
+                <Text>Allow Camera and Photo Library Permissions in Settings</Text>
             </View>
         )
     }
