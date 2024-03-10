@@ -9,8 +9,12 @@ import CamSwitchButton from '../../assets/cam-switch.png'
 import FlashButton from '../../assets/flash.png'
 import * as MediaLibrary from 'expo-media-library'
 import AsyncAlert from "../../Components/AsyncAlert";
+import axios from "axios";
+const {EXPO_PUBLIC_API_URL} = process.env;
 
-function SubmissionCamera({navigation}) {
+function SubmissionCamera({route, navigation}) {
+    const {userID, groupID} = route.params
+
     const isFocused = useIsFocused()
     const [permission, setPermission] = useState(false)
 
@@ -76,14 +80,21 @@ function SubmissionCamera({navigation}) {
             base64: true,
             fixOrientation: true,
             skipProcessing: false,
+            quality: 0,
             onPictureSaved: async (picture) => {
-                console.log(picture.uri)
+                //console.log(picture.uri)
                 await AsyncAlert("Picture Taken", "Save to Camera Roll?")
                     .then((res) => {
                         MediaLibrary.saveToLibraryAsync(picture.uri)
                     })
                     .catch((rej) => {
                     })
+                axios.post(
+                    `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/post`,
+                    {
+                        base64: picture.base64
+                    }
+                )
             }
         })
     }
