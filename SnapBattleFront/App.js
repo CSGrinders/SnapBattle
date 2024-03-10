@@ -53,6 +53,7 @@ function App() {
                         <Stack.Screen name="OtherProfile" component={OtherProfile}/>
                         <Stack.Screen name="Camera" component={SubmissionCamera} />
                         <Stack.Screen name="GroupChat" component={GroupChat} />
+                        <Stack.Screen name="Prompts" component={GroupChat} />
                     </Stack.Navigator>
                 </NavigationContainer>
             </ThemeProvider>
