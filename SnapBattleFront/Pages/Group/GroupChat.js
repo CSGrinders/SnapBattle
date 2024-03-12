@@ -1,7 +1,7 @@
 import React, {useState, useCallback, useEffect, useRef} from 'react'
 import {Bubble, GiftedChat, InputToolbar, Send} from 'react-native-gifted-chat'
 import {getProfileImageCache, getProfilePhoto, setProfileImageCache} from "../../Storage/Cloud";
-import {Dimensions, SafeAreaView, View, Text, Pressable, StyleSheet} from "react-native";
+import {Dimensions, SafeAreaView, View, Text, Pressable, StyleSheet, Keyboard} from "react-native";
 import {Image} from 'expo-image';
 import BackButton from "../../Components/Button/BackButton";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
@@ -20,6 +20,7 @@ export interface IMessage {
 
 
 function GroupChat({route, navigation}) {
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
     const [messages, setMessages] = useState(null);
     const {userID, username, groupID} = route.params;
     const [replyMessage, setReplyMessage] = useState(null);
@@ -38,14 +39,14 @@ function GroupChat({route, navigation}) {
                     avatar: getProfileImageCache(),
                 },
                 replyMessage: {
-                    _id: 1,
+                    _id: 10,
                     name: username,
-                    text: 'This is the original message being replied to.',
+                    text: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
                 },
             },
             {
                 _id: 10,
-                text: 'Check space message ^',
+                text: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
                 createdAt: new Date(),
                 user: {
                     _id: userID,
@@ -168,6 +169,24 @@ function GroupChat({route, navigation}) {
         }
     }, [replyMessage]);
 
+    useEffect(() => {
+        // Listen for keyboard events
+        const keyboardWillShowListener = Keyboard.addListener(
+            'keyboardWillShow',
+            () => setKeyboardVisible(true),
+        );
+        const keyboardWillHideListener = Keyboard.addListener(
+            'keyboardWillHide',
+            () => setKeyboardVisible(false),
+        );
+
+        // Cleanup
+        return () => {
+            keyboardWillShowListener.remove();
+            keyboardWillHideListener.remove();
+        };
+    }, []);
+
 
     const updateRowRef = useCallback(
         (ref: any) => {
@@ -181,11 +200,12 @@ function GroupChat({route, navigation}) {
 
     const onSend = useCallback((messages = []) => {
         if (replyMessage) {
-            messages[0].replyMessage = { text: replyMessage.text };
+            messages[0].replyMessage = { name: replyMessage.user.name, text: replyMessage.text };
         }
         setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
         setReplyMessage(null);
     }, [replyMessage]);
+
 
 
     return (
@@ -241,25 +261,29 @@ function GroupChat({route, navigation}) {
                             const replyName = isMyName ? 'You' : props.currentMessage.replyMessage.name;
                             return (
                                 <View style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'flex-start',
                                     marginTop: 2,
-                                    paddingRight: 10,
+                                    paddingRight: 5,
                                     paddingVertical: 5,
                                     borderRadius: 5,
-                                    height: 50
                                 }}>
                                     <View style={{
                                         borderLeftWidth: 2,
+                                        //width: '100%',
                                         marginLeft: 6,
+                                        paddingTop: 6,
                                         paddingLeft: 6,
-                                        width: '100%',
+                                        paddingRight: 6,
+                                        //width: '100%',
                                         borderLeftColor: borderLeftColor,
                                         backgroundColor: backgroundColor,
                                         borderRadius: 5,
-                                        //height: '100%',
-                                        flex: 1,
+                                        height: '100%',
+                                        flexGrow: 1,
                                     }}>
                                         <Text style={{color: fontColorUser, fontWeight: 'bold'}}>{replyName}</Text>
-                                        <Text style={{fontSize: 12, color: fontColorMessage}}>{props.currentMessage.replyMessage.text}</Text>
+                                        <Text style={{fontSize: 12, color: fontColorMessage, paddingBottom: 5, paddingRight: 6}}>{props.currentMessage.replyMessage.text}</Text>
                                     </View>
                                 </View>
                             );
@@ -313,8 +337,8 @@ function GroupChat({route, navigation}) {
                             )
                         }}
                     renderInputToolbar={props => {
+                        const replyHeight = keyboardVisible ? 50 : 'auto';
                         return (
-
                             <InputToolbar {...props}
                                           containerStyle={{
                                               flexDirection: 'column-reverse',
@@ -323,9 +347,10 @@ function GroupChat({route, navigation}) {
                                               borderRadius: 30,
                                               marginRight: 60,
                                               marginLeft: 5,
-                                              marginBottom: 5
+                                              //marginTop: 0,
+                                              //marginBottom: keyboardVisible ? 0 : 5,
                                           }}
-                                          accessoryStyle={{height: 'auto'}}
+                                          accessoryStyle={{height: replyHeight}}
                             >
                             </InputToolbar>
 
