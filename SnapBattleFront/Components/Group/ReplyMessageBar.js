@@ -10,11 +10,10 @@ const ReplyMessageBar = ({ clearReply, message, ...props }) => {
     }
 
     return (
-        <View {...props} style={{
+        <View style={{
             flexDirection: 'row',
             alignItems: 'center',
             paddingVertical: 8,
-            height: 50,
         }}>
             <View style={{
                 paddingLeft: 8,
