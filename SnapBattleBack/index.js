@@ -32,6 +32,7 @@ const {createServer} = require("http");
 const {groupUpdates} = require("./ServerSocketControllers/GroupSocket");
 const {friendUpdates} = require("./ServerSocketControllers/FriendsSocket");
 const {otherUpdates} = require("./ServerSocketControllers/ProfileSocket");
+const {groupChatUpdates} = require("./ServerSocketControllers/ChatSocket");
 const app = express()
 const server = createServer(app);
 const io = socketIo(server);
@@ -40,12 +41,14 @@ const io = socketIo(server);
 groupUpdates(io, server);
 friendUpdates(io, server);
 otherUpdates(io, server);
+groupChatUpdates(io, server);
 
 // Connect to MongoDB
 mongoose
     .connect(MONGO_URL)
     .then(() => console.log("MongoDB is  connected successfully"))
     .catch((err) => console.error(err))
+
 
 // Start the server and listen on the  PORT(Env file)
 server.listen(PORT, () => {

@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useEffect, useRef} from 'react'
+import React, {useState, useCallback, useEffect, useRef, useContext} from 'react'
 import {Bubble, GiftedChat, InputToolbar, Send} from 'react-native-gifted-chat'
 import {getProfileImageCache, getProfilePhoto, setProfileImageCache} from "../../Storage/Cloud";
 import {Dimensions, SafeAreaView, View, Text, Pressable, StyleSheet, Keyboard} from "react-native";
@@ -7,8 +7,13 @@ import BackButton from "../../Components/Button/BackButton";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import ReplyMessageBar from "../../Components/Group/ReplyMessageBar";
 import ChatMessageBox from "../../Components/Group/ChatMessageBox";
-import default_image_source from '../../assets/default-profile-picture.webp'
+import defualt_img from '../../assets/default-profile-picture.webp'
+import {useFocusEffect} from "@react-navigation/native";
+import axios from "axios";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import {SocketContext} from "../../Storage/Socket";
 
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL} = process.env;
 
 export interface IMessage {
     replyMessage?: {
@@ -18,149 +23,72 @@ export interface IMessage {
 };
 
 
-
 function GroupChat({route, navigation}) {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
-    const [messages, setMessages] = useState(null);
-    const {userID, username, groupID} = route.params;
+    const [messages, setMessages] = useState([]);
+    const {userID, username, groupID, token} = route.params;
     const [replyMessage, setReplyMessage] = useState(null);
     const {width, height} = Dimensions.get('window');
     const swipeableRowRef = useRef(null);
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
+    const [avatar, setAvatar] = useState("");
+    const socket = useContext(SocketContext);
 
-    useEffect(() => {
-        setMessages([
-            {
-                _id: 11,
-                text: 'Test reply ^',
-                createdAt: new Date(),
-                user: {
-                    _id: userID,
-                    name: username,
-                    avatar: getProfileImageCache(),
-                },
-                replyMessage: {
-                    _id: 10,
-                    name: username,
-                    text: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                },
-            },
-            {
-                _id: 10,
-                text: 'Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',
-                createdAt: new Date(),
-                user: {
-                    _id: userID,
-                    name: username,
-                    avatar: getProfileImageCache(),
-                },
-            },
-            {
-                _id: 9,
-                text: 'Check space message ^',
-                createdAt: new Date(),
-                user: {
-                    _id: 43434343,
-                    name: 'other user name',
-                    avatar: getProfileImageCache(),
-                },
-            },
-            {
-                _id: 8,
-                text: 'Breh!',
-                createdAt: new Date(),
-                user: {
-                    _id: 585885,
-                    name: 'other user name 2',
-                    avatar: default_image_source,
-                },
-                replyMessage: {
-                    _id: 3,
-                    name: 'other user name',
-                    text: 'OMG :)',
-                },
-            },
-            {
-                _id: 7,
-                text: 'user 3',
-                createdAt: new Date(),
-                user: {
-                    _id: 585885,
-                    name: 'other user name 2',
-                    avatar: default_image_source,
-                },
-            },
-            {
-                _id: 6,
-                text: 'test reply space ^',
-                createdAt: new Date(),
-                user: {
-                    _id: userID,
-                    name: username,
-                    avatar: getProfileImageCache(),
-                },
-            },
-            {
-                _id: 5,
-                text: 'Uhm...',
-                createdAt: new Date(),
-                user: {
-                    _id: userID,
-                    name: username,
-                    avatar: getProfileImageCache(),
-                },
-                replyMessage: {
-                    _id: 3,
-                    name: 'other user name',
-                    text: 'OMG :)',
-                },
-            },
-            {
-                _id: 4,
-                text: 'test reply space ^',
-                createdAt: new Date(),
-                user: {
-                    _id: 43434343,
-                    name: 'other user name',
-                    avatar: getProfileImageCache(),
-                },
-            },
-            {
-                _id: 3,
-                text: 'OMG :)',
-                createdAt: new Date(),
-                user: {
-                    _id: 43434343, //OTHER USER
-                    name: 'other user name',
-                    avatar: getProfileImageCache(),
-                },
-                replyMessage: {
-                    _id: 1,
-                    name: username,
-                    text: 'This is the original message being replied to.',
-                },
-            },
-            {
-                _id: 2,
-                text: 'Hello people :)',
-                createdAt: new Date(),
-                user: {
-                    _id: userID,
-                    name: username,
-                    avatar: getProfileImageCache(),
-                },
-            },
-            {
-                _id: 1,
-                text: 'This is the original message being replied to.',
-                createdAt: new Date(),
-                user: {
-                    _id: userID,
-                    name: username,
-                    avatar: getProfileImageCache(),
-                },
-            },
-        ])
-    }, [])
+
+    useFocusEffect(
+        useCallback(() => {
+            let avatar_img = getProfileImageCache();
+            if (avatar_img === 'default') {
+                console.log("here");
+                setAvatar(EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL);
+            } else {
+                setAvatar(avatar_img);
+            }
+            socket.emit('joinGroupChatRoom', token, "", groupID);
+            axios.get(
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/getChat`
+            )
+                .then((res) => {
+                    const {isEmpty, messages} = res.data;
+                    if (!isEmpty && messages) {
+                        setMessages(messages);
+                    } else {
+                        setMessages([]);
+                    }
+                })
+                .catch((error) => {
+                    console.log("Group Settings page: " + error);
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                });
+
+            return () => {
+                socket.off('joinGroupChatRoom');
+                socket.emit('joinGroupChatRoom', userID, "leave", groupID);
+            };
+        }, [userID])
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            const handleMessageReceived = (newMessage) => {
+                setMessages((currentMessages) => {
+                    const messageExists = currentMessages.some(message => message._id === newMessage._id);
+                    if (!messageExists) {
+                        return GiftedChat.append(currentMessages, newMessage);
+                    }
+                    return currentMessages;
+                });
+            };
+
+            socket.on("joinGroupChatRoom", handleMessageReceived);
+
+            return () => {
+                socket.off("joinGroupChatRoom", handleMessageReceived);
+            };
+        }, [socket])
+    );
 
     useEffect(() => {
         if (replyMessage && swipeableRowRef.current) {
@@ -200,12 +128,15 @@ function GroupChat({route, navigation}) {
 
     const onSend = useCallback((messages = []) => {
         if (replyMessage) {
-            messages[0].replyMessage = { name: replyMessage.user.name, text: replyMessage.text };
+            messages[0].replyMessage = {name: replyMessage.user.name, text: replyMessage.text};
         }
+        socket.emit('sendMessage', messages[0], groupID);
         setMessages(previousMessages => GiftedChat.append(previousMessages, messages));
         setReplyMessage(null);
+        return () => {
+            socket.off('sendMessage');
+        };
     }, [replyMessage]);
-
 
 
     return (
@@ -247,6 +178,8 @@ function GroupChat({route, navigation}) {
                     messages={messages}
                     user={{
                         _id: userID,
+                        name: username,
+                        avatar: avatar,
                     }}
                     onSend={messages => onSend(messages)}
 
@@ -256,7 +189,7 @@ function GroupChat({route, navigation}) {
                             const fontColorMessage = isMessageFromCurrentUser ? '#ffffff' : '#000000';
                             const fontColorUser = isMessageFromCurrentUser ? '#ff8800' : '#2196F3';
                             const backgroundColor = isMessageFromCurrentUser ? 'rgba(3,51,10,0.79)' : '#ECECEC';
-                            const borderLeftColor = isMessageFromCurrentUser ? '#ff8800': '#2196F3';
+                            const borderLeftColor = isMessageFromCurrentUser ? '#ff8800' : '#2196F3';
                             const isMyName = username === props.currentMessage.replyMessage.name;
                             const replyName = isMyName ? 'You' : props.currentMessage.replyMessage.name;
                             return (
@@ -283,7 +216,12 @@ function GroupChat({route, navigation}) {
                                         flexGrow: 1,
                                     }}>
                                         <Text style={{color: fontColorUser, fontWeight: 'bold'}}>{replyName}</Text>
-                                        <Text style={{fontSize: 12, color: fontColorMessage, paddingBottom: 5, paddingRight: 6}}>{props.currentMessage.replyMessage.text}</Text>
+                                        <Text style={{
+                                            fontSize: 12,
+                                            color: fontColorMessage,
+                                            paddingBottom: 5,
+                                            paddingRight: 6
+                                        }}>{props.currentMessage.replyMessage.text}</Text>
                                     </View>
                                 </View>
                             );
@@ -347,8 +285,7 @@ function GroupChat({route, navigation}) {
                                               borderRadius: 30,
                                               marginRight: 60,
                                               marginLeft: 5,
-                                              //marginTop: 0,
-                                              //marginBottom: keyboardVisible ? 0 : 5,
+                                              marginTop: 5,
                                           }}
                                           accessoryStyle={{height: replyHeight}}
                             >
@@ -361,23 +298,25 @@ function GroupChat({route, navigation}) {
                         paddingBottom: 0
                     }}
 
-                    renderAccessory={ props => {
+                    renderAccessory={props => {
                         return (
-                            <ReplyMessageBar {...props} message={replyMessage} clearReply={() => setReplyMessage(null)} />
+                            <ReplyMessageBar {...props} message={replyMessage}
+                                             clearReply={() => setReplyMessage(null)}/>
                         )
                     }}
 
                     renderMessage={props => {
                         return (
-                            <ChatMessageBox {...props} setReplyOnSwipeOpen={setReplyMessage} updateRowRef={updateRowRef}/>
+                            <ChatMessageBox {...props} setReplyOnSwipeOpen={setReplyMessage}
+                                            updateRowRef={updateRowRef}/>
                         )
                     }}
                 />
             </View>
+            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
         </SafeAreaView>
     )
 }
-
 
 
 export default GroupChat;

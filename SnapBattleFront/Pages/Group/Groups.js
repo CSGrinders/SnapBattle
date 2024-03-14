@@ -347,7 +347,8 @@ function Groups({route, navigation}) {
                                     onPress={() => navigation.navigate("GroupHome", {
                                         userID: userID,
                                         groupID: group.groupID,
-                                        username: username
+                                        username: username,
+                                        token: token
                                     })}
                                 >
                                     {group.name}

@@ -314,7 +314,7 @@ module.exports.deleteGroup = async(req, res) => {
                 await users[i].save();
                 let result = await User.aggregate([
                     {
-                        $match: {_id: users[i]._id} // Make sure users[i] is correctly formatted as ObjectId
+                        $match: {_id: users[i]._id}
                     },
                     {
                         $lookup: {
