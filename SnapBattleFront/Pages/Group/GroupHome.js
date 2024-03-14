@@ -12,7 +12,7 @@ import PostComponent from "../../Components/DailyPrompt/PostComponent";
 import React from "react";
 
 function GroupHome({route, navigation}) {
-    const {username, userID, groupID} = route.params
+    const {username, userID, groupID, token} = route.params
     const {width, height} = Dimensions.get('window');
 
     return (

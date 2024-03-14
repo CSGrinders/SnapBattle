@@ -14,6 +14,7 @@ const ReplyMessageBar = ({ clearReply, message, ...props }) => {
             flexDirection: 'row',
             alignItems: 'center',
             paddingVertical: 8,
+            height: 50,
         }}>
             <View style={{
                 paddingLeft: 8,
