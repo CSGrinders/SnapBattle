@@ -4,9 +4,9 @@ import {useFocusEffect, useIsFocused} from "@react-navigation/native";
 import {useEffect, useRef, useState} from "react";
 import {Button, Overlay} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
-import CameraButton from '../../assets/take-photo.png'
-import CamSwitchButton from '../../assets/cam-switch.png'
-import FlashButton from '../../assets/flash.png'
+import CameraButton from '../../assets/take-photo.webp'
+import CamSwitchButton from '../../assets/cam-switch.webp'
+import FlashButton from '../../assets/flash.webp'
 import * as MediaLibrary from 'expo-media-library'
 import AsyncAlert from "../../Components/AsyncAlert";
 import axios from "axios";
