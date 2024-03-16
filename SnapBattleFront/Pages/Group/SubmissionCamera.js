@@ -51,24 +51,24 @@ function SubmissionCamera({route, navigation}) {
 
     //request camera permissions from user
     const requestPermissions = async () => {
-        console.log("Requesting camera permission");
+        //console.log("Requesting camera permission");
         const camPerm = await Camera.requestCameraPermissionsAsync();
 
         if (camPerm && camPerm.granted !== true) {
-            console.log("Not allowed to access camera");
+            //console.log("Not allowed to access camera");
             return
         }
         else {
-            console.log("Allowed to use camera")
+            //console.log("Allowed to use camera")
         }
 
         const libPerm = await MediaLibrary.requestPermissionsAsync();
         if (libPerm && libPerm.granted !== true) {
-            console.log("Not allowed to access media library")
+            //console.log("Not allowed to access media library")
             return
         }
         else {
-            console.log("Allowed to access library")
+            //console.log("Allowed to access library")
         }
 
 
@@ -95,6 +95,12 @@ function SubmissionCamera({route, navigation}) {
                         base64: picture.base64
                     }
                 )
+                    .then((res) => {
+                        navigation.goBack()
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
             }
         })
     }

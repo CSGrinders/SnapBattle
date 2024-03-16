@@ -301,6 +301,7 @@ module.exports.leaveGroup = async(req, res, next) => {
 module.exports.deleteGroup = async(req, res) => {
     try {
         const groupID = req.params.groupID;
+        const userID = req.params.userID
 
         // Find group
         const group = await Group.findById(groupID).populate('userList');
@@ -308,6 +309,10 @@ module.exports.deleteGroup = async(req, res) => {
         if (group) {
             const users = group.userList;
             const groupId = group._id.toString();
+
+            if (group.adminUserID.toString() !== userID) {
+                return res.status(404).json({errorMessage: "You are not an admin user"})
+            }
             await Group.deleteOne(group);
             // Iterate through users in groups and delete group from user
             for (let i = 0; i < users.length; i++) {

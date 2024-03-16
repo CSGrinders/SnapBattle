@@ -61,7 +61,17 @@ module.exports.getPrompt = async (req, res) => {
 
             return res.status(200).json({promptObj: todayPrompt, submissionAllowed: true})
         }
+
+        //today's prompt was found
         else {
+
+            //if the time has past the submission deadline, the user should not be able to submit
+            //TODO: need to consider voting times here next sprint
+            if (now.getHours() > promptSubmitHour || (now.getHours() === promptSubmitHour && now.getMinutes() >= promptSubmitMin)) {
+                return res.status(200).json({promptObj: todayPrompt, submissionAllowed: false})
+            }
+
+            //checking # of submissions by the user
             const posts = todayPrompt.posts
             for (let i = 0; i < posts.length; i++) {
                 if (posts[i].owner.toString() === userID && posts[i].submissionNumber >= 3) {

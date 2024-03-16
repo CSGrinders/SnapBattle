@@ -272,6 +272,8 @@ function GroupSettings({route, navigation}) {
             })
             .catch((error) => {
                 const {status, data} = error.response;
+                console.log(status)
+                console.log(data)
                 if (error.response) {
                     if (status !== 500) {
                         setGroupNameError(data.errorMessage);

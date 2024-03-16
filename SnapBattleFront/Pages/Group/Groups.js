@@ -367,7 +367,7 @@ function Groups({route, navigation}) {
                                         }}
                                     />
                                 </Pressable>
-                                <Pressable style={{marginRight: 20}} onPress={() => navigation.navigate("GroupSettings", {userID: userID, groupID: group.groupID})}>
+                                <Pressable style={{marginRight: 20}} onPress={() => navigation.navigate("GroupSettings", {userID: userID, groupID: group.groupID, username: username})}>
                                     <Image
                                         source={SettingsButton}
                                         style={{
