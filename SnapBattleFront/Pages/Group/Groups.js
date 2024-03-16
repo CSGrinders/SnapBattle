@@ -24,6 +24,7 @@ import PlusButton from "../../assets/plus.webp";
 import LeaveButton from "../../assets/leave.webp";
 import AcceptButton from "../../assets/check.webp"
 import RejectButton from "../../assets/close.webp"
+import SettingsButton from "../../assets/settings.png"
 import axios from "axios";
 import uuid from 'react-native-uuid';
 import {Button, Input} from "@rneui/themed";
@@ -353,13 +354,22 @@ function Groups({route, navigation}) {
                                 >
                                     {group.name}
                                 </Button>
-                                <Pressable style={{marginRight: 10}} onPress={() => {
+                                <Pressable onPress={() => {
                                     setConfirm(true);
                                     setConfirmStatus("Are you sure?");
                                     setConfirmGroup(group.groupID);
                                 }}>
                                     <Image
                                         source={LeaveButton}
+                                        style={{
+                                            width: 50,
+                                            height: 50
+                                        }}
+                                    />
+                                </Pressable>
+                                <Pressable style={{marginRight: 20}} onPress={() => navigation.navigate("GroupSettings", {userID: userID, groupID: group.groupID})}>
+                                    <Image
+                                        source={SettingsButton}
                                         style={{
                                             width: 50,
                                             height: 50

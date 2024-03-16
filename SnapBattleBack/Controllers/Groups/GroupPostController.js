@@ -17,7 +17,7 @@ module.exports.createPost = async(req, res) => {
     try {
         //compress the image by sharp
         const buffer = Buffer.from(base64, 'base64');
-        const compressedBuffer = await sharp(buffer).resize({ width: 600, height: 600 }).jpeg({ quality: 20 }).toBuffer();
+        const compressedBuffer = await sharp(buffer).resize({ width: 600, height: 800 }).jpeg({ quality: 20 }).toBuffer();
         const blob = new Blob([compressedBuffer], { type: 'image/jpeg' });
 
         //current time
