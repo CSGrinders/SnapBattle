@@ -1,11 +1,24 @@
 import {Dimensions, Text, TouchableOpacity, View} from "react-native";
-import {Image} from "expo-image";
-import KickIcon from "../../assets/kick.webp";
+import {useCallback, useState} from "react";
+import {useFocusEffect} from "@react-navigation/native";
+import CountDownTimer from "react-native-countdown-timer-hooks";
 
 const {width, height} = Dimensions.get('window');
 
 
-const DailyPrompt = ({size}) => {
+const DailyPrompt = ({prompt, timeStart, timeEnd}) => {
+
+    const [secondsLeft, setSecondsLeft] = useState(0)
+
+    useFocusEffect(
+        useCallback(() => {
+            const now = new Date()
+            if (timeEnd !== null && now.getTime() <= timeEnd.getTime()) {
+                setSecondsLeft(Math.abs(now.getTime() - timeEnd.getTime()) / 1000)
+            }
+        }, [timeEnd])
+    )
+
     return (
         <View style={{
             width: width * 0.9,
@@ -25,16 +38,18 @@ const DailyPrompt = ({size}) => {
                 fontWeight: 'bold',
                 fontSize: 30,
             }}>
-                Prompt here
+                {prompt}
             </Text>
             <Text style={{
                 fontWeight: 'bold',
                 fontSize: 30,
             }}>
-                Time Left
+                Seconds left: {secondsLeft}
             </Text>
+
         </View>
     )
 }
+
 
 export default DailyPrompt

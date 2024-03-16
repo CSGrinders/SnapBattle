@@ -39,7 +39,7 @@ const Group = new mongoose.Schema({
     },
     prompts: [{
         type: mongoose.Types.ObjectId,
-        ref: 'Prompts'
+        ref: 'Prompt'
     }],
     messages: [{
         _id: {
