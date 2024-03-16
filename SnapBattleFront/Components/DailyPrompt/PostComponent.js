@@ -35,7 +35,7 @@ const PostComponent = ({size, posts}) => {
         )
     }
     else {
-        console.log(posts)
+        //console.log(posts)
         return (
             <View style={{
                 width: width * 0.9,

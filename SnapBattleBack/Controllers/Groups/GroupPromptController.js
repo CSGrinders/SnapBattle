@@ -28,11 +28,12 @@ module.exports.getPrompt = async (req, res) => {
         }
 
         //yesterday's prompt could not be found (yesterdayPrompt = null) means that the group is new
-        return res.status(200).json({promptObj: yesterdayPrompt})
+        return res.status(200).json({promptObj: yesterdayPrompt, submissionAllowed: false})
     }
 
     //if current time has passed the prompt release time, get today's prompt
     else {
+        console.log("getting today's prompt")
         let todayPrompt = null
         for (let i = 0; i < prompts.length; i++) {
             if (prompts[i].timeEnd.getDay() === now.getDay()) {
@@ -42,6 +43,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //if not found, need to create a new prompt
         if (todayPrompt === null) {
+            console.log("creating new prompt")
             let timeStart = new Date(now)
             timeStart.setHours(promptReleaseHour, promptReleaseMin)
             let timeEnd = new Date(now)
@@ -57,10 +59,17 @@ module.exports.getPrompt = async (req, res) => {
             group.prompts.push(todayPrompt)
             await group.save()
 
-            return res.status(200).json({promptObj: todayPrompt})
+            return res.status(200).json({promptObj: todayPrompt, submissionAllowed: true})
         }
         else {
-            return res.status(200).json({promptObj: todayPrompt})
+            const posts = todayPrompt.posts
+            for (let i = 0; i < posts.length; i++) {
+                if (posts[i].owner.toString() === userID && posts[i].submissionNumber >= 3) {
+                    return res.status(200).json({promptObj: todayPrompt, submissionAllowed: false})
+                }
+            }
+
+            return res.status(200).json({promptObj: todayPrompt, submissionAllowed: true})
         }
     }
 }

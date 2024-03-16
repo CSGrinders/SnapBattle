@@ -21,13 +21,16 @@ const Post = new mongoose.Schema({
         default: '' //Change for default location
     },
     likes: {
-        type: Number
+        type: Number,
+        default: 0
     },
     isWeeklyWinner: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
     commentsAllowed: {
-        type: Boolean
+        type: Boolean,
+        default: true
     },
     comments: [{
         type: mongoose.Types.ObjectId,
@@ -36,6 +39,10 @@ const Post = new mongoose.Schema({
     owner: {
         type: mongoose.Types.ObjectId,
         ref: 'User'
+    },
+    submissionNumber: {
+        type: Number,
+        default: 1
     },
     time: {
         type: Date,

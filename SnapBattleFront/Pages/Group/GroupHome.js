@@ -22,6 +22,8 @@ function GroupHome({route, navigation}) {
     const [timeStart, setTimeStart] = useState(new Date())
     const [timeEnd, setTimeEnd] = useState(new Date())
     const [posts, setPosts] = useState([])
+    const [camDisabled, setCamDisabled] = useState(true)
+    const [camOpacity, setCamOpacity] = useState(0.5)
 
     //gets the prompt object and underlying post and comment data
     useFocusEffect(
@@ -30,7 +32,7 @@ function GroupHome({route, navigation}) {
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
             )
                 .then((res) => {
-                    const {promptObj} = res.data
+                    const {promptObj, submissionAllowed} = res.data
                     if (promptObj === null) {
                         setPrompt("Prompt has not been released yet")
                     }
@@ -38,8 +40,14 @@ function GroupHome({route, navigation}) {
                         setPrompt(promptObj.prompt)
                         setTimeStart(new Date(promptObj.timeStart))
                         setTimeEnd(new Date(promptObj.timeEnd))
-                        console.log(promptObj.posts)
                         setPosts(promptObj.posts)
+                        setCamDisabled(!submissionAllowed)
+                        if (submissionAllowed) {
+                            setCamOpacity(1)
+                        }
+                        else {
+                            setCamOpacity(0.5)
+                        }
                     }
                 })
                 .catch((err) => {
@@ -122,7 +130,10 @@ function GroupHome({route, navigation}) {
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}>
-                    <TouchableOpacity style={{width: '100%', height: '100%'}} onPress={() => navigation.navigate('Camera', route.params)}>
+                    <TouchableOpacity
+                        style={{width: '100%', height: '100%', opacity: camOpacity}}
+                        disabled={camDisabled}
+                        onPress={() => navigation.navigate('Camera', route.params)}>
                         <Image
                             style={{width: '80%', height: '80%'}}
                             source={Camera}
