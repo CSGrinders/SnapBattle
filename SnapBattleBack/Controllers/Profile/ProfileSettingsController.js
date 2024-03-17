@@ -21,6 +21,7 @@ const {compare} = require("bcrypt");
 const {ref, deleteObject} = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
 const {sendFriendUpdate} = require("../../ServerSocketControllers/FriendsSocket");
+const {Post, Comment} = require("../../Models/Post");
 
 
 /**
@@ -160,29 +161,61 @@ module.exports.deleteAccount = async(req, res)=> {
         const { userID } = req.params;
         const user = await User.findById(userID); //Find user
         if (user) {
+
+            //deleting profile picture
             const imageRef = ref(storage, `profileImage/${userID}.jpeg`);
             try {
                 await deleteObject(imageRef);
             } catch (error) {
                 console.log("this user does not have profile image");
             }
-            await user.populate('groups', "_id userList adminUserID");
+
+            //nested-populate to find all user's groups, containing all prompts, posts, and comments
+            await user.populate({path: 'groups', populate: {path: 'prompts', populate: {path: 'posts', populate: 'comments'}}});
             let groups = user.groups;
-            if (groups && groups.length > 0) {
+            if (groups) {
                 for (let i = 0; i < groups.length; i++) {
-                    groups[i].userList = groups[i].userList.filter(userGroup => userGroup.toString() !== userID);
-                    if (groups[i].adminUserID.toString() === userID && groups[i].userList.length > 0) {
-                        groups[i].adminUserID = groups[i].userList[0];
-                        console.log(`New admin selected for group ${groups[i]._id}: ${groups[i].adminUserID}`);
+                    let group = groups[i]
+
+                    //deleting all posts and comments associated w/ user
+                    for (let j = 0; j < group.prompts.length; j++) {
+                        let prompt = group.prompts[j]
+                        for (let k = 0; k < prompt.posts.length; k++) {
+                            let post = prompt.posts[k]
+
+                            //post is owned by user -> delete both post and all of its comments
+                            if (post.owner.toString() === userID) {
+
+                                //deleting from firebase //TODO: consider what to do if daily or weekly winner
+                                const postRef = ref(storage, post.picture)
+                                await deleteObject(postRef)
+
+                                //deleting from mongoDB
+                                await Comment.deleteMany({postID: post._id.toString()})
+                                await Post.findByIdAndDelete(post._id.toString())
+                            }
+
+                            //TODO: post has comment by user -> alter comment to show that it is from deleted account
+                        }
                     }
-                    if (groups[i].userList.length > 0) {
-                        await groups[i].save();
+
+
+                    //removes user from group's user list
+                    group.userList = group.userList.filter(userGroup => userGroup.toString() !== userID);
+                    if (group.adminUserID.toString() === userID && group.userList.length > 0) {
+                        group.adminUserID = group.userList[0];
+                        console.log(`New admin selected for group ${group._id}: ${group.adminUserID}`);
+                    }
+                    if (group.userList.length > 0) {
+                        await group.save();
                     } else {
-                        await Group.findByIdAndDelete(groups[i]._id.toString());
+                        //TODO: delete all referenced documents of the group (prompts, posts, comments, etc.)
+                        await Group.findByIdAndDelete(group._id.toString());
                     }
                 }
             }
 
+            //deleting user from other people's frineds
             await user.populate('friends');
             let friends = user.friends;
             if (friends && friends.length > 0) {
@@ -200,6 +233,7 @@ module.exports.deleteAccount = async(req, res)=> {
                 }
             }
 
+            //deleting user
             await User.findByIdAndDelete(user._id.toString());
             const session = await Session.findOne({ userID: userID}); //Find session
             await session.deleteOne(session);

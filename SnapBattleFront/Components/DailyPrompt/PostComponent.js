@@ -31,15 +31,6 @@ const PostComponent = ({size, posts}) => {
                         </View>
                     </View>
                     <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 10}}>
-                        <TouchableOpacity onPress={() => likePost(index)}>
-                            <Image
-                                source={LikeIcon}
-                                style={{
-                                    width: 30,
-                                    height: 30
-                                }}
-                            />
-                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => openComments(index)}>
                             <Image
                                 source={CommentIcon}
@@ -78,12 +69,6 @@ const PostComponent = ({size, posts}) => {
             />
         </View>
         )
-    }
-
-
-    //likes the post at the given index in the posts array
-    function likePost(index) {
-        console.log("liked post #" + index)
     }
 
     //opens the comment section for the post at the given index in the posts array
