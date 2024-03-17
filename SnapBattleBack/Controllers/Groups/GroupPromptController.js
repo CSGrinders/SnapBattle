@@ -5,7 +5,8 @@ const Prompt = require('../../Models/Prompt')
 module.exports.getPrompt = async (req, res) => {
     const {userID, groupID} = req.params
 
-    const group = await Group.findById(groupID).populate({path: 'prompts', populate: {path: 'posts'}})
+    //nested populate
+    const group = await Group.findById(groupID).populate({path: 'prompts', populate: {path: 'posts', populate: {path: 'owner'}}})
     const prompts = group.prompts
 
     const promptReleaseHour = parseInt(group.timeStart.substring(0, 2))
@@ -74,7 +75,7 @@ module.exports.getPrompt = async (req, res) => {
             //checking # of submissions by the user
             const posts = todayPrompt.posts
             for (let i = 0; i < posts.length; i++) {
-                if (posts[i].owner.toString() === userID && posts[i].submissionNumber >= 3) {
+                if (posts[i].owner._id.toString() === userID && posts[i].submissionNumber >= 3) {
                     return res.status(200).json({promptObj: todayPrompt, submissionAllowed: false})
                 }
             }

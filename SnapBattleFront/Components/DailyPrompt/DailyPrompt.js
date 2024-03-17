@@ -2,6 +2,7 @@ import {Dimensions, Text, TouchableOpacity, View} from "react-native";
 import {useCallback, useState} from "react";
 import {useFocusEffect} from "@react-navigation/native";
 import CountDownTimer from "react-native-countdown-timer-hooks";
+import {useCountdown} from "./useCountdown";
 
 const {width, height} = Dimensions.get('window');
 
@@ -9,15 +10,7 @@ const {width, height} = Dimensions.get('window');
 const DailyPrompt = ({prompt, timeStart, timeEnd}) => {
 
     const [secondsLeft, setSecondsLeft] = useState(0)
-
-    useFocusEffect(
-        useCallback(() => {
-            const now = new Date()
-            if (timeEnd !== null && now.getTime() <= timeEnd.getTime()) {
-                setSecondsLeft(Math.abs(now.getTime() - timeEnd.getTime()) / 1000)
-            }
-        }, [timeEnd])
-    )
+    const [days, hours, minutes, seconds] = useCountdown(timeEnd)
 
     return (
         <View style={{
@@ -40,12 +33,16 @@ const DailyPrompt = ({prompt, timeStart, timeEnd}) => {
             }}>
                 {prompt}
             </Text>
-            <Text style={{
-                fontWeight: 'bold',
-                fontSize: 30,
-            }}>
-                Seconds left: {secondsLeft}
-            </Text>
+            {hours >= 0 ?
+                <Text style={{
+                    fontWeight: 'bold',
+                    fontSize: 30,
+                }}>
+                    Time left: {hours}:{minutes}:{seconds}
+                </Text> :
+                <></>
+            }
+
 
         </View>
     )

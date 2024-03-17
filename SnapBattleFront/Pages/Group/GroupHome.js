@@ -109,51 +109,33 @@ function GroupHome({route, navigation}) {
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'space-evenly',
                 height: height * 0.1
             }}>
-                <View style={{
-                    width: width * 0.3,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <TouchableOpacity style={{width: '100%', height: '100%'}} onPress={() => navigation.navigate('GroupChat', route.params)}>
-                        <Image
-                            style={{width: '80%', height: '80%'}}
-                            source={Chat}
-                            contentFit="contain"
-                        />
-                    </TouchableOpacity>
-                </View>
-                <View style={{
-                    width: width * 0.3,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <TouchableOpacity
-                        style={{width: '100%', height: '100%', opacity: camOpacity}}
-                        disabled={camDisabled}
-                        onPress={() => navigation.navigate('Camera', route.params)}>
-                        <Image
-                            style={{width: '80%', height: '80%'}}
-                            source={Camera}
-                            contentFit="contain"
-                        />
-                    </TouchableOpacity>
-                </View>
-                <View style={{
-                    width: width * 0.3,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <TouchableOpacity style={{width: '100%', height: '100%'}} onPress={() => navigation.navigate('GroupMembers', route.params)}>
-                        <Image
-                        style={{width: '80%', height: '80%'}}
-                        source={Group}
+                <TouchableOpacity onPress={() => navigation.navigate('GroupChat', route.params)}>
+                    <Image
+                        style={{width: 60, height: 60}}
+                        source={Chat}
                         contentFit="contain"
-                        />
-                    </TouchableOpacity>
-                </View>
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={{opacity: camOpacity}}
+                    disabled={camDisabled}
+                    onPress={() => navigation.navigate('Camera', route.params)}>
+                    <Image
+                        style={{width: 75, height: 75}}
+                        source={Camera}
+                        contentFit="contain"
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('GroupMembers', route.params)}>
+                    <Image
+                    style={{width: 60, height: 60}}
+                    source={Group}
+                    contentFit="contain"
+                    />
+                </TouchableOpacity>
             </View>
         </View>
     )
