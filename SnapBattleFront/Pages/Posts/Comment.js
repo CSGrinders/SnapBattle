@@ -29,105 +29,105 @@ const Comment = ({size, route, navigation}) => {
         )
             .then((res) => {
                 console.log("comments:",res.data.comments)
-                // setComments(res.data.comments)
-                setComments([
-                    {
-                        _id: 1,
-                        timestamp: "12:30",
-                    userID: {
-                        username: "bruh"
-                    },
-                    body: "hello"
-                    },
-                    {
-                        _id: 2,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 3,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 4,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 5,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 6,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 7,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 8,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 9,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 10,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 11,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    },
-                    {
-                        _id: 12,
-                        timestamp: "12:30",
-                        userID: {
-                            username: "bruh"
-                        },
-                        body: "hello"
-                    }
-                ])
+                setComments(res.data.comments)
+                // setComments([
+                //     {
+                //         _id: 1,
+                //         timestamp: "12:30",
+                //     userID: {
+                //         username: "bruh"
+                //     },
+                //     body: "hello"
+                //     },
+                //     {
+                //         _id: 2,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 3,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 4,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 5,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 6,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 7,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 8,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 9,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 10,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 11,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     },
+                //     {
+                //         _id: 12,
+                //         timestamp: "12:30",
+                //         userID: {
+                //             username: "bruh"
+                //         },
+                //         body: "hello"
+                //     }
+                // ])
             })
             .catch((err) => {
                 console.log(err)
@@ -189,10 +189,11 @@ const Comment = ({size, route, navigation}) => {
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 height: height * 0.15,
+                marginTop: 10
             }}>
                 <View style={{
                     paddingLeft: 15,
-                    alignItems: 'flex-start'
+                    alignItems: 'flex-start',
                 }}>
                     <BackButton size={50} navigation={navigation}/>
                 </View>
@@ -204,7 +205,7 @@ const Comment = ({size, route, navigation}) => {
         </View>
         <View style={{
             overflow: 'scroll',
-            height: height * .70
+            height: height * .70,
         }}>
         {
             commentsEnabled 
@@ -212,7 +213,6 @@ const Comment = ({size, route, navigation}) => {
             (comments.length === 0 ?
                 <View style={{
                     flex: 1,
-                    marginBottom: 200,
                     justifyContent: 'center',
                     alignItems: 'center'
                 }}>
