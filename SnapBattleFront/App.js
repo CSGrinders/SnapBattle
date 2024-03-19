@@ -21,6 +21,7 @@ import OtherProfile from "./Pages/Friends/OtherProfile";
 import {SocketProvider} from "./Storage/Socket";
 import SubmissionCamera from "./Pages/Group/SubmissionCamera";
 import GroupChat from "./Pages/Group/GroupChat";
+import Comment from './Pages/Posts/Comment';
 
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
                         <Stack.Screen name="Camera" component={SubmissionCamera} />
                         <Stack.Screen name="GroupChat" component={GroupChat} />
                         <Stack.Screen name="Prompts" component={GroupChat} />
+                        <Stack.Screen name="Comments" component={Comment}/>
                     </Stack.Navigator>
                 </NavigationContainer>
             </ThemeProvider>
