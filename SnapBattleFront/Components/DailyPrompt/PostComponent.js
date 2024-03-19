@@ -10,7 +10,9 @@ import OptionsIcon from "../../assets/dotdotdot.png"
 
 
 
-const PostComponent = ({size, posts}) => {
+const PostComponent = ({size, posts, route, navigation}) => {
+
+    const {username, userID, groupID, token} = route.params
 
     //current index of the carousel
     const [activeIndex, setActiveIndex] = useState(0)
@@ -74,6 +76,8 @@ const PostComponent = ({size, posts}) => {
     //opens the comment section for the post at the given index in the posts array
     function openComments(index) {
         console.log("opening comments section for post #" + index)
+        console.log("postID: ", posts[index]._id)
+        navigation.navigate('Comments', {username, userID, groupID, token, postID: posts[index]._id})
     }
 
     //opens the share menu for the post at the given index in the posts array

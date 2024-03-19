@@ -24,7 +24,6 @@ function GroupHome({route, navigation}) {
     const [posts, setPosts] = useState([])
     const [camDisabled, setCamDisabled] = useState(true)
     const [camOpacity, setCamOpacity] = useState(0.5)
-
     //gets the prompt object and underlying post and comment data
     useFocusEffect(
         useCallback(() => {
@@ -104,7 +103,7 @@ function GroupHome({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.55
             }}>
-                <PostComponent posts={posts}/>
+                <PostComponent posts={posts} route={route} navigation={navigation}/>
             </View>
             <View style={{
                 flexDirection: 'row',

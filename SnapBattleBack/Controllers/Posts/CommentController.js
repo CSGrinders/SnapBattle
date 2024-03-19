@@ -25,7 +25,15 @@ module.exports.viewComments = async(req, res) => {
     try {
         const {postID} = req.params;
 
-        const post = await Post.findById(postID).populate('comments');
+        console.log("viewComments:",postID)
+
+        const post = await Post.findById(postID).populate({
+            path: 'comments',
+            populate: {
+                path: 'userID',
+                model: 'User'
+            }
+        });
         if (post) {
             const comments = post.comments;
             res.status(200).json({comments: comments});
@@ -162,5 +170,20 @@ module.exports.toggleComments = async(req, res) => {
     } catch (error) {
         res.status(500).json({errorMessage: "Something went wrong..."})
     }
+}
 
+module.exports.commentsEnabled = async(req, res) => {
+    try {
+        const {postID} = req.params
+        const post = await Post.findById(postID);
+        if (post) {
+            res.status(200).json({commentsAllowed: post.commentsAllowed})
+        } else {
+            console.log("Post not found")
+            res.status(404).json({errorMessage: "Post not found"})
+        }
+    } catch (error) {
+        console.log("Comment enabled: server error")
+        res.status(500).json({errorMessage: "Server error"})
+    }
 }
