@@ -201,31 +201,37 @@ const Comment = ({size, route, navigation}) => {
     );
   return (
       <View style={{
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          height: height,
       }}>
         <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'flex-start',
+                justifyContent: 'space-between',
                 height: height * 0.15,
+                marginTop: 20
             }}>
                 <View style={{
                     paddingLeft: 15,
                     alignItems: 'flex-start',
+                    width: width * 0.2
                 }}>
                     <BackButton size={50} navigation={navigation}/>
                 </View>
-                <View style={{width: width * 0.7, justifyContent: 'center', alignItems: 'center'}}>
-                    <Text style={{fontSize: 20, fontFamily: 'OpenSansBold'}}>
+                <View style={{width: width * 0.6, justifyContent: 'center', alignItems: 'center'}}>
+                    <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>
                         Comments
                     </Text>
+                </View>
+                <View style={{
+                    // something
+                    width: width * 0.2
+                }}>
                 </View>
         </View>
         <View style={{
             overflow: 'scroll',
             height: height * .70,
+            borderWidth: 3,
+            marginBottom: 5
         }}>
         {
             commentsEnabled 

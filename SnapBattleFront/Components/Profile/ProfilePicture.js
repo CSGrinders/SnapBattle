@@ -21,7 +21,7 @@ const ProfilePicture = ({size, temp_image, userID, currentUserID}) => {
             if (currentUserID === userID) {
                 url = getProfileImageCache()
             }
-            console.log(url)
+            // console.log(url)
             if (url === '' || url === undefined) {
                 console.log("restart")
                 console.log(`id: ${userID}`)
