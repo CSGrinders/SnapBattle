@@ -10,14 +10,19 @@ import {useFocusEffect} from "@react-navigation/native";
  * @returns {JSX.Element} - User profile picture
  */
 
-const ProfilePicture = ({size, temp_image, userID}) => {
+// currentUserID may be unnecessary but okay...
+const ProfilePicture = ({size, temp_image, userID, currentUserID}) => {
 
     const [image, setImage] = useState('');
 
     useFocusEffect(
         useCallback(() => {
-            const url = getProfileImageCache()
-            if (url === '' || url ===  undefined) {
+            let url = '';
+            if (currentUserID === userID) {
+                url = getProfileImageCache()
+            }
+            console.log(url)
+            if (url === '' || url === undefined) {
                 console.log("restart")
                 console.log(`id: ${userID}`)
                 getProfilePhoto(userID)
@@ -25,10 +30,14 @@ const ProfilePicture = ({size, temp_image, userID}) => {
                         try {
                             console.log("pfpicture getProfilePhoto ", data.url);
                             setImage(data.url);
-                            setProfileImageCache(data.url);
+                            if (currentUserID === userID) {
+                                setProfileImageCache(data.url);
+                            }
                         } catch {
                             setImage('default');
-                            setProfileImageCache('default');
+                            if (currentUserID === userID) {
+                                setProfileImageCache(data.url);
+                            }
                         }
                     });
             }

@@ -30,7 +30,7 @@ const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVo
 const { createPost } = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
 const {getPrompt} = require("../../Controllers/Groups/GroupPromptController");
-const { viewComments, commentsEnabled } = require("../../Controllers/Posts/CommentController");
+const { viewComments, commentsEnabled, postComment } = require("../../Controllers/Posts/CommentController");
 
 router.get('/', getGroups);
 router.get("/:groupID/getChat", getChat)
@@ -72,6 +72,8 @@ router.post("/:groupID/post", createPost)
 router.get('/:groupID/view-comments/:postID', viewComments)
 
 router.get('/:groupID/comments-allowed/:postID', commentsEnabled)
+
+router.post('/:groupID/create-comment/:postID', postComment)
 
 
 

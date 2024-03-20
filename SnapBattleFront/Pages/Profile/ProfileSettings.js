@@ -368,7 +368,7 @@ function ProfileSettings({route, navigation}) {
                 height: height * 0.1,
             }}>
                 <TouchableOpacity onPress={pfPressed} disabled={loading}>
-                    <ProfilePicture size={150} temp_image={image}/>
+                    <ProfilePicture size={150} temp_image={image} userID={userID} currentUserID={userID}/>
                 </TouchableOpacity>
             </View>
             <Text style={{

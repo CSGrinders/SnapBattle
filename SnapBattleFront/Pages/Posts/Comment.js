@@ -1,4 +1,14 @@
-import { View, Text, SafeAreaView, Dimensions, Image, FlatList } from 'react-native'
+import {
+    View,
+    Text,
+    SafeAreaView,
+    Dimensions,
+    Image,
+    FlatList,
+    Platform,
+    KeyboardAvoidingView,
+    TouchableOpacity
+} from 'react-native'
 import React, { useState, useEffect } from 'react'
 import BackButton from '../../Components/Button/BackButton';
 import Logo from "../../assets/logo.webp";
@@ -7,6 +17,8 @@ import { Input } from '@rneui/themed';
 import { Button } from '@rneui/base';
 import GroupSettingsSubmitIcon from '../../Components/Group/SubmitSettingsIcon';
 import ProfilePicture from '../../Components/Profile/ProfilePicture';
+import SendIcon from "../../assets/send-icon.webp";
+import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 const Comment = ({size, route, navigation}) => {
@@ -22,13 +34,15 @@ const Comment = ({size, route, navigation}) => {
 
     const [comments, setComments] = useState([])
     const [commentsEnabled, setCommentsEnabled] = useState(false)
+    const [commentTyped, setCommentTyped] = useState('');
+    const [commentToggle, setCommentToggle] = useState(false);
 
     useEffect(() => {
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/view-comments/${postID}`
         )
             .then((res) => {
-                console.log("comments:",res.data.comments)
+                // console.log("comments:",res.data.comments)
                 setComments(res.data.comments)
                 // setComments([
                 //     {
@@ -111,28 +125,12 @@ const Comment = ({size, route, navigation}) => {
                 //         },
                 //         body: "hello"
                 //     },
-                //     {
-                //         _id: 11,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 12,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     }
                 // ])
             })
             .catch((err) => {
                 console.log(err)
             })
-    }, [])
+    }, [commentToggle])
 
     useEffect(() => {
         axios.get(
@@ -145,7 +143,25 @@ const Comment = ({size, route, navigation}) => {
             .catch((err) => {
                 console.log(err)
             })
-    }, [])
+    }, [commentToggle])
+
+    const handleSubmitComment = async () => {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/create-comment/${postID}`,
+            {
+                commentBody: commentTyped,
+                replyTo: null // TODO
+            }
+        )
+            .then((res) => {
+                console.log("after submit: ", res.data);
+                setCommentToggle(!commentToggle)
+                setCommentTyped('');
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+    }
 
     const renderCommentItem = ({item}) => (
         <View style={{    
@@ -156,7 +172,8 @@ const Comment = ({size, route, navigation}) => {
             alignItems: 'center',
             gap: 30
             }}>
-            <ProfilePicture size={35} userID={item.userID}/>
+            <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
+            {/*<ProfilePicture size={35} userID={item.userID} currentUserID={userID}/>*/}
             <View>
                 <View style={{
                     flexDirection: 'row',
@@ -183,13 +200,16 @@ const Comment = ({size, route, navigation}) => {
         </View>
     );
   return (
-    <View style={{flex: 1}}>
+      <View style={{
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
+          height: height,
+      }}>
         <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 height: height * 0.15,
-                marginTop: 10
             }}>
                 <View style={{
                     paddingLeft: 15,
@@ -212,7 +232,7 @@ const Comment = ({size, route, navigation}) => {
             ?         
             (comments.length === 0 ?
                 <View style={{
-                    flex: 1,
+                    // flex: 1,
                     justifyContent: 'center',
                     alignItems: 'center'
                 }}>
@@ -228,7 +248,7 @@ const Comment = ({size, route, navigation}) => {
                 data = {comments}
                 renderItem = {renderCommentItem}
                 keyExtractor = {(comment) => comment._id.toString()}
-                style={{flex: 1}}
+                // style={{flex: 1}}
             />
             )
             :
@@ -248,19 +268,23 @@ const Comment = ({size, route, navigation}) => {
         }
         </View>
         <View style={{
-            flex: 1
+            height: 0.1 * height
         }}>
             <View style={{
-                flexDirection: 'row'
+                flexDirection: "row"
             }}>
                 <Input
                     placeholder='Type to comment'
+                    onChangeText={newComment => {
+                        setCommentTyped(newComment)
+                    }}
+                    value={commentTyped}
                 />
-                <GroupSettingsSubmitIcon size={50}/>
+                <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleSubmitComment}>
+                    <Image source={SendIcon} style={{width: 50, height: 50}}></Image>
+                </TouchableOpacity>
             </View>
         </View>
-
-
     </View>
   )
 }

@@ -108,7 +108,7 @@ function Profile({route, navigation}) {
                 alignItems: 'center',
                 height: height * 0.15,
             }}>
-                <ProfilePicture size={150} temp_image={''} userID={userID}/>
+                <ProfilePicture size={150} temp_image={''} userID={userID} currentUserID={userID}/>
                 <Text style={{
                     fontWeight: 'bold',
                     fontSize: 24,
