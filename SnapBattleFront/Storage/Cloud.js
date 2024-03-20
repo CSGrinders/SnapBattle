@@ -19,6 +19,7 @@ export function saveImageToCloud(userID, base64data) {
 
 export async function getProfilePhoto(userID) {
     try {
+        console.log("getProfilePhoto start:", userID);
         const response = await axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/get-photo`
         );

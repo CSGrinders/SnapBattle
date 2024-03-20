@@ -73,6 +73,7 @@ module.exports.uploadPhoto = async(req, res)=> {
 module.exports.getPhoto = async(req, res)=> {
     try {
         const userID = req.params.userID;
+        console.log("ProfileController, getPhoto:", userID);
         const imageRef = ref(storage, `profileImage/${userID}.jpeg`);
         getDownloadURL(imageRef)
             .then((url) => {

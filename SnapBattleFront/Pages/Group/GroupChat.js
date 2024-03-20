@@ -166,7 +166,7 @@ function GroupChat({route, navigation}) {
                             {
                                 userID: userID
                             })}>
-                        <ProfilePicture size={50} userID={userID}/>
+                        <ProfilePicture size={50} userID={userID} currentUserID={userID}/>
                     </Pressable>
                 </View>
             </View>

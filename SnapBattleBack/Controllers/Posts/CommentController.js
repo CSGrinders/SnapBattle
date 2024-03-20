@@ -48,10 +48,15 @@ module.exports.viewComments = async(req, res) => {
 
 module.exports.postComment = async(req, res) => {
     try {
-        const userID = req.body.userID;
-        const postID = req.body.postID;
-        const commentBody = req.body.commentBody;
-        const replyTo = req.body.replyTo;
+        const {userID, postID} = req.params;
+
+        // const userID = req.params.userID;
+        // const postID = req.params.postID;
+        const {commentBody, replyTo} = req.body;
+        // const commentBody = req.body.commentBody;
+        // let replyTo = req.body.replyTo;
+
+        console.log(userID, postID, commentBody, replyTo);
 
         const user = await User.findById(userID);
         const post = await Post.findById(postID);
@@ -65,7 +70,7 @@ module.exports.postComment = async(req, res) => {
         }
 
         if (!replyComment) {
-            replyTo = null;
+            // replyTo = null;
         }
 
         const newComment = new Comment({
