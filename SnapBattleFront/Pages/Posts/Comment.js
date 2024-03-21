@@ -18,6 +18,7 @@ import { Button } from '@rneui/base';
 import GroupSettingsSubmitIcon from '../../Components/Group/SubmitSettingsIcon';
 import ProfilePicture from '../../Components/Profile/ProfilePicture';
 import SendIcon from "../../assets/send-icon.webp";
+import HeartIcon from "../../assets/heart.png";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -42,90 +43,7 @@ const Comment = ({size, route, navigation}) => {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/view-comments/${postID}`
         )
             .then((res) => {
-                // console.log("comments:",res.data.comments)
                 setComments(res.data.comments)
-                // setComments([
-                //     {
-                //         _id: 1,
-                //         timestamp: "12:30",
-                //     userID: {
-                //         username: "bruh"
-                //     },
-                //     body: "hello"
-                //     },
-                //     {
-                //         _id: 2,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 3,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 4,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 5,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 6,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 7,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 8,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 9,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                //     {
-                //         _id: 10,
-                //         timestamp: "12:30",
-                //         userID: {
-                //             username: "bruh"
-                //         },
-                //         body: "hello"
-                //     },
-                // ])
             })
             .catch((err) => {
                 console.log(err)
@@ -144,6 +62,14 @@ const Comment = ({size, route, navigation}) => {
                 console.log(err)
             })
     }, [commentToggle])
+
+    const handleLikeComment = async () => {
+        console.log("like");
+    }
+
+    const handleDeleteComment = async () => {
+        console.log("delete");
+    }
 
     const handleSubmitComment = async () => {
         axios.post(
@@ -164,38 +90,72 @@ const Comment = ({size, route, navigation}) => {
     }
 
     const renderCommentItem = ({item}) => (
-        <View style={{    
-            padding: 12,
-            borderRadius: 8,
-            marginBottom: 8,
+        <View style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 30
+            justifyContent: 'flex-start'
+        }}>
+            <View style={{
+                padding: 12,
+                borderRadius: 8,
+                marginBottom: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                width: width * 0.7,
+                gap: 30
             }}>
-            <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
-            {/*<ProfilePicture size={35} userID={item.userID} currentUserID={userID}/>*/}
-            <View>
-                <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 10
-                }}>
-                    <Text style={{
-                        fontSize: 16,
-                        fontWeight: 'bold'
+                <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
+                {/*<ProfilePicture size={35} userID={item.userID} currentUserID={userID}/>*/}
+                <View>
+                    <View style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 10
                     }}>
-                        {item.userID.username}
+                        <Text style={{
+                            fontSize: 16,
+                            fontWeight: 'bold'
+                        }}>
+                            {item.userID.username}
+                        </Text>
+                        <Text style={{
+                            fontSize: 12,
+                            color: 'grey',
+                        }}>
+                            {item.timestamp}
+                        </Text>
+                    </View>
+                    <Text>
+                        {item.body}
                     </Text>
-                    <Text style={{
-                        fontSize: 12,
-                        color: 'grey',
-                    }}>
-                        {item.timestamp}
-                    </Text>
+                    <View style={{flexDirection: 'row', gap: 10}}>
+                        <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                            <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                reply
+                            </Text>
+                        </TouchableOpacity>
+                        {item.userID._id === userID &&
+                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                                <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                    delete
+                                </Text>
+                            </TouchableOpacity>
+                        }
+                    </View>
                 </View>
-                <Text>
-                    {item.body}
-                </Text>
+            </View>
+            <View style={{
+                flex: 1,
+                flexDirection: 'row',
+                justifyContent: 'flex-end',
+                marginRight: 15
+            }}>
+                <View style={{flexDirection: 'column', alignItems: 'center'}}>
+                    <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                        <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
+                    </TouchableOpacity>
+                    <Text>0</Text>
+                </View>
             </View>
         </View>
     );
