@@ -7,7 +7,7 @@ import {
     FlatList,
     Platform,
     KeyboardAvoidingView,
-    TouchableOpacity
+    TouchableOpacity, Keyboard
 } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import BackButton from '../../Components/Button/BackButton';
@@ -161,12 +161,16 @@ const Comment = ({size, route, navigation}) => {
     );
   return (
       <View style={{
+          display: "flex",
+          flex: 1
       }}>
         <View style={{
+                display: "flex",
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                height: height * 0.15,
+                // height: height * 0.15,
+                flex: 0.15,
                 marginTop: 20
             }}>
                 <View style={{
@@ -188,10 +192,12 @@ const Comment = ({size, route, navigation}) => {
                 </View>
         </View>
         <View style={{
+            display: "flex",
             overflow: 'scroll',
-            height: height * .70,
+            flex: 0.7,
             borderWidth: 3,
-            marginBottom: 5
+            marginBottom: 5,
+            backgroundColor: "#cccccc"
         }}>
         {
             commentsEnabled 
@@ -233,24 +239,32 @@ const Comment = ({size, route, navigation}) => {
             </View>
         }
         </View>
-        <View style={{
-            height: 0.1 * height
-        }}>
-            <View style={{
-                flexDirection: "row"
-            }}>
-                <Input
-                    placeholder='Type to comment'
-                    onChangeText={newComment => {
-                        setCommentTyped(newComment)
-                    }}
-                    value={commentTyped}
-                />
-                <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleSubmitComment}>
-                    <Image source={SendIcon} style={{width: 50, height: 50}}></Image>
-                </TouchableOpacity>
-            </View>
-        </View>
+          <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : null}
+              style={{
+                  flex: 0.1,
+                  display: "flex",
+              }}>
+              <View style={{
+                  display: "flex",
+                  flex: 1,
+              }}>
+                  <View style={{
+                      flexDirection: "row"
+                  }}>
+                      <Input
+                          placeholder='Type to comment'
+                          onChangeText={newComment => {
+                              setCommentTyped(newComment)
+                          }}
+                          value={commentTyped}
+                      />
+                      <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleSubmitComment}>
+                          <Image source={SendIcon} style={{width: 50, height: 50}}></Image>
+                      </TouchableOpacity>
+                  </View>
+              </View>
+          </KeyboardAvoidingView>
     </View>
   )
 }
