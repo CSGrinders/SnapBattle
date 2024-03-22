@@ -37,6 +37,7 @@ const Comment = ({size, route, navigation}) => {
     const [commentsEnabled, setCommentsEnabled] = useState(false)
     const [commentTyped, setCommentTyped] = useState('');
     const [commentToggle, setCommentToggle] = useState(false);
+    const [submitVisible, setSubmitVisible] = useState(false);
 
     useEffect(() => {
         axios.get(
@@ -83,6 +84,7 @@ const Comment = ({size, route, navigation}) => {
                 console.log("after submit: ", res.data);
                 setCommentToggle(!commentToggle)
                 setCommentTyped('');
+                setSubmitVisible(false);
             })
             .catch((err) => {
                 console.log(err)
@@ -255,13 +257,20 @@ const Comment = ({size, route, navigation}) => {
                       <Input
                           placeholder='Type to comment'
                           onChangeText={newComment => {
+                              if (newComment === '') {
+                                  setSubmitVisible(false);
+                              } else {
+                                  setSubmitVisible(true);
+                              }
                               setCommentTyped(newComment)
                           }}
                           value={commentTyped}
                       />
-                      <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleSubmitComment}>
-                          <Image source={SendIcon} style={{width: 50, height: 50}}></Image>
-                      </TouchableOpacity>
+                      {submitVisible &&
+                          <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleSubmitComment}>
+                              <Image source={SendIcon} style={{width: 50, height: 50}}></Image>
+                          </TouchableOpacity>
+                      }
                   </View>
               </View>
           </KeyboardAvoidingView>
