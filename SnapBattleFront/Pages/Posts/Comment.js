@@ -38,6 +38,8 @@ const Comment = ({size, route, navigation}) => {
     const [commentTyped, setCommentTyped] = useState('');
     const [commentToggle, setCommentToggle] = useState(false);
     const [submitVisible, setSubmitVisible] = useState(false);
+    const [replyToID, setReplyToID] = useState('');
+    const [replyToUserName, setReplyToUserName] = useState('');
 
     useEffect(() => {
         axios.get(
@@ -68,8 +70,31 @@ const Comment = ({size, route, navigation}) => {
         console.log("like");
     }
 
-    const handleDeleteComment = async () => {
+    const handleDeleteComment = (commentID) => {
         console.log("delete");
+        axios.delete(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/delete-comment/${postID}/${commentID}`,
+        )
+            .then((res) => {
+                console.log("after delete: ", res.data);
+                setCommentToggle(!commentToggle)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+    }
+
+    const handleReplyTo = async (item) => {
+        console.log("reply", item);
+        await setReplyToID(item._id);
+        await setReplyToUserName(item.userID.username);
+
+        console.log("replyTo: ", item._id, item.userID.username);
+    }
+
+    const handleCancelReply = () => {
+        setReplyToID('');
+        setReplyToUserName('');
     }
 
     const handleSubmitComment = async () => {
@@ -107,7 +132,7 @@ const Comment = ({size, route, navigation}) => {
                 gap: 30
             }}>
                 <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
-                {/*<ProfilePicture size={35} userID={item.userID} currentUserID={userID}/>*/}
+                {/*  item : {"__v": 0, "_id": "65ff108ba5677714cf610ad6", "body": "Looks good", "likes": 0, "postID": "65ff107ba5677714cf610ac9", "replyTo": null, "timestamp": "2024-03-23T17:23:40.297Z", "userID": {"__v": 7, "_id": "65edd46e90d6c3828ff7d772", "biography": "I love SnapBattle!", "blockedUsers": [], "email": "sohn5312@gmail.com", "friends": ["65edd52790d6c3828ff7d791", "65fb409b77e70d6ebd8d64c5"], "groups": ["65edd49d90d6c3828ff7d77d", "65fb40ea77e70d6ebd8d64d8"], "invites": [], "name": "yee", "numWins": 0, "password": "$2b$12$CX2qX4aomvVo.HvXFSxvM.YMDlN9XoJszQsV7UvohJ5KX1kql0p36", "profilePicture": "https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/profileImage%2F65edd46e90d6c3828ff7d772.jpeg?alt=media&token=2cb81fec-d630-4a2b-ab4b-03234bd7a370", "requests": [], "username": "yee"}}*/}
                 <View>
                     <View style={{
                         flexDirection: 'row',
@@ -131,13 +156,13 @@ const Comment = ({size, route, navigation}) => {
                         {item.body}
                     </Text>
                     <View style={{flexDirection: 'row', gap: 10}}>
-                        <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                        <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {handleReplyTo(item)}}>
                             <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
                                 reply
                             </Text>
                         </TouchableOpacity>
                         {item.userID._id === userID &&
-                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {handleDeleteComment(item._id)}}>
                                 <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
                                     delete
                                 </Text>
@@ -243,29 +268,53 @@ const Comment = ({size, route, navigation}) => {
         </View>
           <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : null}
-              style={{
-                  flex: 0.1,
-                  display: "flex",
-              }}>
+              style={replyToID !== '' && replyToUserName !== '' ? {display: "flex", flex: 0.2} : {display: "flex", flex: 0.1}}
+          >
               <View style={{
                   display: "flex",
                   flex: 1,
               }}>
                   <View style={{
+                      display: "flex",
+                      flex: 1,
                       flexDirection: "row"
                   }}>
-                      <Input
-                          placeholder='Type to comment'
-                          onChangeText={newComment => {
-                              if (newComment === '') {
-                                  setSubmitVisible(false);
-                              } else {
-                                  setSubmitVisible(true);
-                              }
-                              setCommentTyped(newComment)
-                          }}
-                          value={commentTyped}
-                      />
+                      <View style={{
+                          display: "flex", flexDirection: "column"
+                      }}>
+                          {replyToID !== '' && replyToUserName !== '' &&
+                              <View style={{
+                                  display: "flex-inline",
+                                  flexDirection: "row",
+                                  alignItems: "center"
+                              }}>
+                                  <View style={{
+                                      marginLeft: 10,
+                                      flex: 1,
+                                      borderWidth: 1,
+                                      borderRadius: 5
+                                  }}>
+                                      <Text>reply to: {replyToUserName}</Text>
+                                      <Text> </Text>
+                                  </View>
+                                  <TouchableOpacity style={{marginLeft: 5, paddingTop: 5}} onPress={handleCancelReply}>
+                                      <Text style={{fontSize: 40}}> x </Text>
+                                  </TouchableOpacity>
+                              </View>
+                          }
+                          <Input
+                              placeholder='Type to comment'
+                              onChangeText={newComment => {
+                                  if (newComment === '') {
+                                      setSubmitVisible(false);
+                                  } else {
+                                      setSubmitVisible(true);
+                                  }
+                                  setCommentTyped(newComment)
+                              }}
+                              value={commentTyped}
+                          />
+                      </View>
                       {submitVisible &&
                           <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleSubmitComment}>
                               <Image source={SendIcon} style={{width: 50, height: 50}}></Image>

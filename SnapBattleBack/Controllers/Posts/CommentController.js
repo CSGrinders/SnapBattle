@@ -98,23 +98,27 @@ module.exports.postComment = async(req, res) => {
 
 
 module.exports.deleteComment = async(req, res) => {
-    const postID = req.body.postID;
-    const commentID = req.body.commentID;
+    console.log("deleteComment in Commentcontroller");
+    const {userID, groupID, postID, commentID} = req.params;
 
     const post = await Post.findById(postID);
     const comment = await Comment.findById(commentID);
 
     if (!post) {
-        res.status(404).json({errorMessage: "Post not found"});
+        return res.status(404).json({errorMessage: "Post not found"});
     }
 
     if (!comment) {
-        res.status(404).json({errorMessage: "Comment not found"});
+        return res.status(404).json({errorMessage: "Comment not found"});
     }
 
-    post.comments.filter((id) => id.toString() !== comment._id.toString());
-    await post.save();
+    if (post.comments.includes(commentID)) {
+        post.comments.pull(commentID);
+        await post.save();
+    }
+
     await Comment.findByIdAndDelete(commentID);
+    return res.status(200).json({isDeleted: true});
 }
 
 module.exports.editComment = async(req, res) => {
