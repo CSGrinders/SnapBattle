@@ -36,7 +36,6 @@ const Comment = ({size, route, navigation}) => {
     const [comments, setComments] = useState([])
     const [commentsEnabled, setCommentsEnabled] = useState(false)
     const [commentTyped, setCommentTyped] = useState('');
-    const [commentToggle, setCommentToggle] = useState(false);
     const [submitVisible, setSubmitVisible] = useState(false);
     const [replyToID, setReplyToID] = useState('');
     const [replyToUserName, setReplyToUserName] = useState('');
@@ -46,12 +45,13 @@ const Comment = ({size, route, navigation}) => {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/view-comments/${postID}`
         )
             .then((res) => {
+                // console.log(res.data.comments)
                 setComments(res.data.comments)
             })
             .catch((err) => {
                 console.log(err)
             })
-    }, [commentToggle])
+    }, [])
 
     useEffect(() => {
         axios.get(
@@ -64,7 +64,7 @@ const Comment = ({size, route, navigation}) => {
             .catch((err) => {
                 console.log(err)
             })
-    }, [commentToggle])
+    }, [])
 
     const handleLikeComment = async () => {
         console.log("like");
@@ -77,7 +77,7 @@ const Comment = ({size, route, navigation}) => {
         )
             .then((res) => {
                 console.log("after delete: ", res.data);
-                setCommentToggle(!commentToggle)
+                setComments(res.data.comments);
             })
             .catch((err) => {
                 console.log(err)
@@ -106,8 +106,7 @@ const Comment = ({size, route, navigation}) => {
             }
         )
             .then((res) => {
-                console.log("after submit: ", res.data);
-                setCommentToggle(!commentToggle)
+                setComments(res.data.comments)
                 setCommentTyped('');
                 setSubmitVisible(false);
             })

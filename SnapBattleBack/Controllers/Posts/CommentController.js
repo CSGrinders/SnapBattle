@@ -49,7 +49,6 @@ module.exports.viewComments = async(req, res) => {
 module.exports.postComment = async(req, res) => {
     try {
         const {userID, postID} = req.params;
-
         // const userID = req.params.userID;
         // const postID = req.params.postID;
         const {commentBody, replyTo} = req.body;
@@ -84,10 +83,21 @@ module.exports.postComment = async(req, res) => {
 
         await newComment.save();
 
-        post.comments.push(newComment._id);
+        post.comments.push(newComment);
         await post.save();
 
-        res.status(200).json({commentCreated: true});
+
+
+        const post_temp = await Post.findById(postID).populate({
+            path: 'comments',
+            populate: {
+                path: 'userID',
+                model: 'User'
+            }
+        });
+
+        const comments = post_temp.comments;
+        res.status(200).json({comments: comments});
 
     } catch (error) {
         console.log("CommentController postComment: " + error)
@@ -118,7 +128,18 @@ module.exports.deleteComment = async(req, res) => {
     }
 
     await Comment.findByIdAndDelete(commentID);
-    return res.status(200).json({isDeleted: true});
+
+    const post_temp = await Post.findById(postID).populate({
+        path: 'comments',
+        populate: {
+            path: 'userID',
+            model: 'User'
+        }
+    });
+
+    const comments = post_temp.comments;
+    console.log(comments);
+    res.status(200).json({comments: comments});
 }
 
 module.exports.editComment = async(req, res) => {
