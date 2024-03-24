@@ -81,7 +81,11 @@ const Comment = new mongoose.Schema({
     replyTo: {
         type: mongoose.Types.ObjectId,
         ref: 'Comment'
-    }
+    },
+    replyBy: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'Comment'
+    }]
 })
 
 const PostModel = mongoose.model("Post", Post)
