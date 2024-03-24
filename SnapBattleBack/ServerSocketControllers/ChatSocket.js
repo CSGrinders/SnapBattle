@@ -15,6 +15,10 @@ exports.groupChatUpdates = (io) => {
                 }
                 const roomChat = `${groupID}_chatroom`
                 switch (mode) {
+                    case "update":
+                        console.log(`${user.userId} joined their group ${roomChat} chat room.`);
+                        socket.join(roomChat);
+                        break;
                     case "leave":
                         console.log(`${token} left their group ${roomChat} chat room.`);
                         socket.leave(token);
@@ -58,14 +62,14 @@ exports.groupChatUpdates = (io) => {
                         },
                     };
                 }
-                console.log(message)
                 Group.findByIdAndUpdate(
                     groupID,
                     {$push: {messages: messageToAdd}},
                     {new: true, upsert: true}
                 )
                     .then(updatedGroup => {
-                        io.emit('joinGroupChatRoom', message);
+                        const roomChat = `${groupID}_chatroom`
+                        socket.broadcast.to(roomChat).emit('message', messageToAdd);
                     })
                     .catch(error => {
                         console.error('Error adding message to group:', error);

@@ -30,6 +30,10 @@ const Group = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'User'
     }],
+    adminName: {
+        type: String,
+        required: [true, "A admin is required"]
+    },
     adminUserID: {
         type: mongoose.Types.ObjectId,
         ref: 'User'
