@@ -118,6 +118,7 @@ function CreateNewGroup({route, navigation}) {
             ).then((response) => {
                 const groupCreated = response.data;
                 if (groupCreated) {
+                    setErrorMessagePromptTime('');
                     setInfoPrompt(true);
                     setInfoMessage(`Group created successfully!`);
                     setTimeout(() => {

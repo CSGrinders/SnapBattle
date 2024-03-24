@@ -7,20 +7,12 @@ import BackButton from "../../Components/Button/BackButton";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import ReplyMessageBar from "../../Components/Group/ReplyMessageBar";
 import ChatMessageBox from "../../Components/Group/ChatMessageBox";
-import defualt_img from '../../assets/default-profile-picture.webp'
 import {useFocusEffect} from "@react-navigation/native";
 import axios from "axios";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {SocketContext} from "../../Storage/Socket";
 
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN, EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL} = process.env;
-
-export interface IMessage {
-    replyMessage?: {
-        user: string,
-        text: string;
-    };
-};
+const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL} = process.env;
 
 
 function GroupChat({route, navigation}) {
@@ -40,12 +32,12 @@ function GroupChat({route, navigation}) {
         useCallback(() => {
             let avatar_img = getProfileImageCache();
             if (avatar_img === 'default') {
-                console.log("here");
                 setAvatar(EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL);
             } else {
+                console.log(avatar_img);
                 setAvatar(avatar_img);
             }
-            socket.emit('joinGroupChatRoom', token, "", groupID);
+            socket.emit('joinGroupChatRoom', token, "update", groupID);
             axios.get(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/getChat`
             )
@@ -70,32 +62,6 @@ function GroupChat({route, navigation}) {
         }, [userID])
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            const handleMessageReceived = (newMessage) => {
-                setMessages((currentMessages) => {
-                    const messageExists = currentMessages.some(message => message._id === newMessage._id);
-                    if (!messageExists) {
-                        return GiftedChat.append(currentMessages, newMessage);
-                    }
-                    return currentMessages;
-                });
-            };
-
-            socket.on("joinGroupChatRoom", handleMessageReceived);
-
-            return () => {
-                socket.off("joinGroupChatRoom", handleMessageReceived);
-            };
-        }, [socket])
-    );
-
-    useEffect(() => {
-        if (replyMessage && swipeableRowRef.current) {
-            swipeableRowRef.current.close();
-            swipeableRowRef.current = null;
-        }
-    }, [replyMessage]);
 
     useEffect(() => {
         // Listen for keyboard events
@@ -116,8 +82,30 @@ function GroupChat({route, navigation}) {
     }, []);
 
 
+    useFocusEffect(
+        useCallback(() => {
+            const handleMessageReceived = (newMessage) => {
+                setMessages(previousMessages => GiftedChat.append(previousMessages, newMessage));
+            };
+
+            socket.on("message", handleMessageReceived);
+
+            return () => {
+                socket.off("message", handleMessageReceived);
+            };
+        }, [socket])
+    );
+
+    useEffect(() => {
+        if (replyMessage && swipeableRowRef.current) {
+            swipeableRowRef.current.close();
+            swipeableRowRef.current = null;
+        }
+    }, [replyMessage]);
+
+
     const updateRowRef = useCallback(
-        (ref: any) => {
+        (ref) => {
             if (ref && replyMessage && ref.props.children.props.currentMessage?._id === replyMessage._id) {
                 swipeableRowRef.current = ref;
             }
@@ -136,7 +124,7 @@ function GroupChat({route, navigation}) {
         return () => {
             socket.off('sendMessage');
         };
-    }, [replyMessage]);
+    }, [replyMessage, socket, groupID]);
 
 
     return (
@@ -145,7 +133,7 @@ function GroupChat({route, navigation}) {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
-                height: height * 0.1,
+                height: height * 0.08,
             }}>
                 <View style={{
                     paddingLeft: 15,

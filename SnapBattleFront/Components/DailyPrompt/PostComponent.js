@@ -3,16 +3,34 @@ import {useRef, useState} from "react";
 import Carousel from "react-native-snap-carousel";
 import OtherProfilePicture from "../Profile/OtherProfilePicture";
 const {width, height} = Dimensions.get('window');
-import ShareIcon from "../../assets/share.png"
+import ShareIcon from "../../assets/share.webp"
 import CommentIcon from "../../assets/comment.webp"
-import LikeIcon from "../../assets/heart.png"
-import OptionsIcon from "../../assets/dotdotdot.png"
+import LikeIcon from "../../assets/heart.webp"
+import OptionsIcon from "../../assets/dotdotdot.webp"
 
 
 
 const PostComponent = ({size, posts, route, navigation}) => {
 
-    const {username, userID, groupID, token} = route.params
+    const {username, userID, groupID, token} = route.params;
+
+    const renderPageView = () => {
+        return (
+            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                {posts.map((_, index) => (
+                    <Text
+                        key={index}
+                        style={{
+                            fontSize: 12,
+                            color: index === activeIndex ? 'black' : 'gray',
+                            margin: 3,
+                        }}>
+                        ●
+                    </Text>
+                ))}
+            </View>
+        );
+    };
 
     //current index of the carousel
     const [activeIndex, setActiveIndex] = useState(0)
@@ -24,7 +42,7 @@ const PostComponent = ({size, posts, route, navigation}) => {
             <View style={{
                 height: "100%",
             }}>
-                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around'}}>
+                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', marginBottom: 5}}>
                     <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10}}>
                         <OtherProfilePicture size={50} imageUrl={item.owner.profilePicture}/>
                         <View style={{flexDirection: 'column'}}>
@@ -96,7 +114,7 @@ const PostComponent = ({size, posts, route, navigation}) => {
             <View style={{
                 width: width * 0.9,
                 height: "100%",
-                borderWidth: 5,
+                //borderWidth: 5,
                 justifyContent: 'center',
                 alignItems: 'center',
             }}>
@@ -108,7 +126,7 @@ const PostComponent = ({size, posts, route, navigation}) => {
         return (
             <View style={{
                 height: "100%",
-                borderWidth: 5,
+                 //borderWidth: 5,
             }}>
                 <Carousel
                     layout="default"
@@ -120,6 +138,7 @@ const PostComponent = ({size, posts, route, navigation}) => {
                     onSnapToItem={(index) => setActiveIndex(index)}
                     vertical={false}
                 />
+                {renderPageView()}
             </View>
         )
     }

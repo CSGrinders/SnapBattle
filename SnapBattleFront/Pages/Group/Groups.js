@@ -24,7 +24,7 @@ import PlusButton from "../../assets/plus.webp";
 import LeaveButton from "../../assets/leave.webp";
 import AcceptButton from "../../assets/check.webp"
 import RejectButton from "../../assets/close.webp"
-import SettingsButton from "../../assets/settings.png"
+import SettingsButton from "../../assets/settings.webp"
 import axios from "axios";
 import uuid from 'react-native-uuid';
 import {Button, Input} from "@rneui/themed";
@@ -43,7 +43,7 @@ function Groups({route, navigation}) {
     const { userID } = route.params;
     //user information
     const [token, setToken] = useState('');
-    const [username, setUsername] = useState('')
+    const [username, setUsername] = useState('');
 
     //groups are in format [{groupID: ?, name: ?}, ...]
     const [groups, setGroups] = useState([-1]);
@@ -59,6 +59,8 @@ function Groups({route, navigation}) {
     const [infoPrompt, setInfoPrompt] = useState(false);
 
     const [confirm, setConfirm] = useState(false);
+    const [groupAdmin, setGroupAdmin] = useState('');
+    const [groupCount, setGroupCount] = useState(0);
     const [confirmGroup, setConfirmGroup] = useState('');
     const [confirmStatus, setConfirmStatus] = useState('');
 
@@ -100,7 +102,7 @@ function Groups({route, navigation}) {
                 socket.off('groupUpdate');
                 socket.emit('groupUpdate', userID, "leave");
             };
-        }, [])
+        }, [userID, EXPO_PUBLIC_USER_TOKEN, socket])
     )
 
 
@@ -165,7 +167,7 @@ function Groups({route, navigation}) {
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/rejectInvite`
         ).then(res => {
-            const {invites, groups} = res.data
+            const {invites, groups} = res.data;
             setGroups(groups)
             setGroupInvites(invites)
         }).catch(error => {
@@ -215,6 +217,17 @@ function Groups({route, navigation}) {
             })
     }
 
+    function checkAdmin(groupUsername) {
+        if (groupUsername === username && groupCount > 1) {
+            setTransferVisible(true);
+        } else {
+            leaveGroup(confirmGroup);
+            setConfirmGroup('');
+            setGroupAdmin('');
+            setGroupCount(0);
+        }
+    }
+    /*
     function checkAdmin(groupID) {
         axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/checkadmin`)
             .then((res) => {
@@ -233,6 +246,8 @@ function Groups({route, navigation}) {
                 setErrorServer(true);
         })
     }
+
+     */
 
     function transferPermissions(groupID) {
         axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/transfer-admin`, {
@@ -358,6 +373,8 @@ function Groups({route, navigation}) {
                                     setConfirm(true);
                                     setConfirmStatus("Are you sure?");
                                     setConfirmGroup(group.groupID);
+                                    setGroupAdmin(group.adminName);
+                                    setGroupCount(group.usersCount);
                                 }}>
                                     <Image
                                         source={LeaveButton}
@@ -367,15 +384,17 @@ function Groups({route, navigation}) {
                                         }}
                                     />
                                 </Pressable>
-                                <Pressable style={{marginRight: 20}} onPress={() => navigation.navigate("GroupSettings", {userID: userID, groupID: group.groupID, username: username})}>
-                                    <Image
-                                        source={SettingsButton}
-                                        style={{
-                                            width: 50,
-                                            height: 50
-                                        }}
-                                    />
+                                {group.adminName === username && (
+                                    <Pressable style={{marginRight: 20}} onPress={() => navigation.navigate("GroupSettings", {userID: userID, groupID: group.groupID, username: username})}>
+                                        <Image
+                                            source={SettingsButton}
+                                            style={{
+                                                width: 50,
+                                                height: 50
+                                            }}
+                                        />
                                 </Pressable>
+                                )}
                             </View>
                         )
                     }) : (errorServer && <ActivityIndicator size="large" color="#000000"/>)}
@@ -406,7 +425,7 @@ function Groups({route, navigation}) {
             <ConfirmPrompt Message={confirmStatus} state={confirm} setState={setConfirm}
                            command={() => {
                                setConfirm(false);
-                               checkAdmin(confirmGroup);
+                               checkAdmin(groupAdmin);
                            }}>
             </ConfirmPrompt>
             <Modal
