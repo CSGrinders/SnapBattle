@@ -17,7 +17,7 @@ import { Input } from '@rneui/themed';
 import { Button } from '@rneui/base';
 import GroupSettingsSubmitIcon from '../../Components/Group/SubmitSettingsIcon';
 import ProfilePicture from '../../Components/Profile/ProfilePicture';
-import SendIcon from "../../assets/send-icon.webp";
+import SendIcon from "../../assets/send.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
@@ -37,9 +37,11 @@ const Comment = ({size, route, navigation}) => {
     const [commentsEnabled, setCommentsEnabled] = useState(false)
     const [commentTyped, setCommentTyped] = useState('');
     const [commentToggle, setCommentToggle] = useState(false);
-    const [submitVisible, setSubmitVisible] = useState(false);
     const [replyToID, setReplyToID] = useState('');
     const [replyToUserName, setReplyToUserName] = useState('');
+    const [editComment, setEditComment] = useState(false)
+    const [editTyped, setEditTyped] = useState('');
+    const [editCommentID, setEditCommentID] = useState();
 
     useEffect(() => {
         axios.get(
@@ -97,6 +99,26 @@ const Comment = ({size, route, navigation}) => {
         setReplyToUserName('');
     }
 
+    const handleEditComment = async() => {
+        if (editTyped !== '') {
+            console.log(editTyped)
+            axios.post(
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/edit-comment`, {
+                    userID: userID,
+                    commentID: editCommentID,
+                    content: editTyped
+                }
+            )
+            .then((res) => {
+                console.log(res)
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+        }
+        setEditComment(false)
+    }
+
     const handleSubmitComment = async () => {
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/create-comment/${postID}`,
@@ -109,12 +131,12 @@ const Comment = ({size, route, navigation}) => {
                 console.log("after submit: ", res.data);
                 setCommentToggle(!commentToggle)
                 setCommentTyped('');
-                setSubmitVisible(false);
             })
             .catch((err) => {
                 console.log(err)
             })
     }
+
 
     const renderCommentItem = ({item}) => (
         <View style={{
@@ -161,6 +183,17 @@ const Comment = ({size, route, navigation}) => {
                                 reply
                             </Text>
                         </TouchableOpacity>
+                        {item.userID._id === userID &&
+                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                setEditComment(!editComment)
+                                setEditTyped(item.body)
+                                setEditCommentID(item._id)
+                                }}>
+                                <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold', color: editComment && item._id === editCommentID ? '#0080FF' : 'black'}}>
+                                    edit
+                                </Text>
+                            </TouchableOpacity>
+                        }
                         {item.userID._id === userID &&
                             <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {handleDeleteComment(item._id)}}>
                                 <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
@@ -222,16 +255,14 @@ const Comment = ({size, route, navigation}) => {
             display: "flex",
             overflow: 'scroll',
             flex: 0.7,
-            borderWidth: 3,
             marginBottom: 5,
-            backgroundColor: "#cccccc"
         }}>
         {
             commentsEnabled 
             ?         
             (comments.length === 0 ?
                 <View style={{
-                    // flex: 1,
+                    flex: 1,
                     justifyContent: 'center',
                     alignItems: 'center'
                 }}>
@@ -302,24 +333,57 @@ const Comment = ({size, route, navigation}) => {
                                   </TouchableOpacity>
                               </View>
                           }
-                          <Input
-                              placeholder='Type to comment'
-                              onChangeText={newComment => {
-                                  if (newComment === '') {
-                                      setSubmitVisible(false);
-                                  } else {
-                                      setSubmitVisible(true);
-                                  }
-                                  setCommentTyped(newComment)
-                              }}
-                              value={commentTyped}
-                          />
+                            {
+                                editComment ? 
+                                <View style={{
+                                    flex: 1,
+                                    flexDirection: 'row',
+                                    justifyContent: 'center',
+                                    width: width * .95,
+                                }}>
+                                    <Input
+                                        placeholder='Type to edit'
+                                        onChangeText={newComment => {
+                                        setEditTyped(newComment)
+                                        }}
+                                        value={editTyped}
+                                        inputContainerStyle={{
+                                            width: width * .8
+                                        }}
+                                        inputStyle={{
+                                            height: 50,
+                                        }}
+                                    />
+                                    <TouchableOpacity style={{ paddingTop: 5,}} onPress={handleEditComment}>
+                                        <Image source={SendIcon} style={{width: 40, height: 40}}></Image>
+                                    </TouchableOpacity>
+                                </View>
+                                :
+                                <View style={{
+                                    flex: 1,
+                                    flexDirection: 'row',
+                                    justifyContent: 'center',
+                                    width: width * .95,
+                                }}>
+                                    <Input
+                                        placeholder='Type to comment'
+                                        onChangeText={newComment => {
+                                        setCommentTyped(newComment)
+                                        }}
+                                        value={commentTyped}
+                                        inputContainerStyle={{
+                                            width: width * .8
+                                        }}
+                                        inputStyle={{
+                                            height: 50,
+                                        }}
+                                    />
+                                    <TouchableOpacity style={{ paddingTop: 5,}} onPress={handleSubmitComment}>
+                                        <Image source={SendIcon} style={{width: 40, height: 40}}></Image>
+                                    </TouchableOpacity>
+                                </View>
+                            }
                       </View>
-                      {submitVisible &&
-                          <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleSubmitComment}>
-                              <Image source={SendIcon} style={{width: 50, height: 50}}></Image>
-                          </TouchableOpacity>
-                      }
                   </View>
               </View>
           </KeyboardAvoidingView>
