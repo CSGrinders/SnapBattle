@@ -30,8 +30,12 @@ const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup,
     checkAdmin, transferAdmin, kickUser } = require("../../Controllers/Groups/GroupActionsController");
 const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVotingLength } = require("../../Controllers/Groups/GroupSettingsController");
 const { createPost } = require("../../Controllers/Groups/GroupPostController")
+const {getChat} = require("../../Controllers/Groups/GroupChatController");
+const {getPrompt} = require("../../Controllers/Groups/GroupPromptController");
+const { viewComments, commentsEnabled, postComment, deleteComment, editComment} = require("../../Controllers/Posts/CommentController");
 
 router.get('/', getGroups);
+router.get("/:groupID/getChat", getChat)
 
 router.post('/create', createGroup);
 
@@ -63,9 +67,23 @@ router.post('/:groupID/checkadmin', checkAdmin)
 
 router.post('/:groupID/transfer-admin', transferAdmin)
 
+<<<<<<< HEAD
 router.post('/:groupID/kick-user', kickUser)
+=======
+router.get('/:groupID/get-prompt', getPrompt)
+>>>>>>> f131dbafd1b238e9715ef7b73798c4647405c2f8
 
 router.post("/:groupID/post", createPost)
+
+router.get('/:groupID/view-comments/:postID', viewComments)
+
+router.get('/:groupID/comments-allowed/:postID', commentsEnabled)
+
+router.post('/:groupID/create-comment/:postID', postComment)
+
+router.delete('/:groupID/delete-comment/:postID/:commentID', deleteComment)
+
+router.post('/:groupID/edit-comment', editComment)
 
 
 

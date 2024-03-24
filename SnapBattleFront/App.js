@@ -21,6 +21,7 @@ import OtherProfile from "./Pages/Friends/OtherProfile";
 import {SocketProvider} from "./Storage/Socket";
 import SubmissionCamera from "./Pages/Group/SubmissionCamera";
 import GroupChat from "./Pages/Group/GroupChat";
+import Comment from './Pages/Posts/Comment';
 
 
 function App() {
@@ -40,19 +41,21 @@ function App() {
             <ThemeProvider theme={theme}>
                 <NavigationContainer>
                     <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="SignIn">
-                        <Stack.Screen name="SignIn" component={SignIn}/>
-                        <Stack.Screen name="SignUp" component={SignUp}/>
+                        <Stack.Screen name="SignIn" options={{gestureEnabled: false}} component={SignIn}/>
+                        <Stack.Screen name="SignUp" options={{gestureEnabled: false}} component={SignUp}/>
                         <Stack.Screen name="Profile" component={Profile}/>
                         <Stack.Screen name="ProfileSettings" component={ProfileSettings}/>
                         <Stack.Screen name="GroupSettings" component={GroupSettings}/>
                         <Stack.Screen name="CreateGroup" component={createNewGroup}/>
                         <Stack.Screen name="GroupMembers" component={GroupMembers}/>
                         <Stack.Screen name="Friends" component={Friends}/>
-                        <Stack.Screen name="Groups" component={Groups}/>
+                        <Stack.Screen name="Groups" options={{gestureEnabled: false}} component={Groups}/>
                         <Stack.Screen name="GroupHome" component={GroupHome}/>
                         <Stack.Screen name="OtherProfile" component={OtherProfile}/>
                         <Stack.Screen name="Camera" component={SubmissionCamera} />
                         <Stack.Screen name="GroupChat" component={GroupChat} />
+                        <Stack.Screen name="Prompts" component={GroupChat} />
+                        <Stack.Screen name="Comments" component={Comment}/>
                     </Stack.Navigator>
                 </NavigationContainer>
             </ThemeProvider>

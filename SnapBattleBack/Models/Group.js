@@ -30,6 +30,10 @@ const Group = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'User'
     }],
+    adminName: {
+        type: String,
+        required: [true, "A admin is required"]
+    },
     adminUserID: {
         type: mongoose.Types.ObjectId,
         ref: 'User'
@@ -39,7 +43,48 @@ const Group = new mongoose.Schema({
     },
     prompts: [{
         type: mongoose.Types.ObjectId,
-        ref: 'Prompts'
+        ref: 'Prompt'
+    }],
+    messages: [{
+        _id: {
+            type: String,
+        },
+        text: {
+            type: String,
+            required: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+        user: {
+            _id: {
+                type: String,
+                required: true,
+            },
+            name: {
+                type: String,
+                required: false,
+            },
+            avatar: {
+                type: String,
+                required: false,
+            },
+        },
+        replyMessage: {
+            _id: {
+                type: String,
+                required: false,
+            },
+            name: {
+                type: String,
+                required: false,
+            },
+            text: {
+                type: String,
+                required: false,
+            },
+        },
     }]
 })
 

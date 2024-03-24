@@ -19,6 +19,7 @@
 
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
+
 const {getPhoto} = require("../Profile/ProfileController");
 const {
     ref,
@@ -42,12 +43,12 @@ module.exports.getGroups = async(req, res)=> {
         //get user's groups as an array of {_id, name}
         //get user's group invites as an array of {_id, name}
         const user = await User.findById(userID)
-            .populate('groups', 'name')
+            .populate('groups', 'name adminName userList')
             .populate('invites', 'name');
         if (user) {
             let username = user.username;
             let groups = user.groups;
-            groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name}));
+            groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name, adminName: group.adminName, usersCount : group.userList.length}));
             let invites = user.invites
             invites = invites.map((group) => ({groupID: group._id.toString(), name: group.name}))
             res.status(200).json({username, invites, groups});
@@ -117,6 +118,7 @@ module.exports.createGroup = async(req, res) => {
                 timeStart: timeStart,
                 timeEnd: timeEnd,
                 userList: userList,
+                adminName: user.username,
                 adminUserID: user._id,
                 timeToVote: timeToVote,
                 prompts: prompts
@@ -300,6 +302,7 @@ module.exports.leaveGroup = async(req, res, next) => {
 module.exports.deleteGroup = async(req, res) => {
     try {
         const groupID = req.params.groupID;
+        const userID = req.params.userID
 
         // Find group
         const group = await Group.findById(groupID).populate('userList');
@@ -307,6 +310,10 @@ module.exports.deleteGroup = async(req, res) => {
         if (group) {
             const users = group.userList;
             const groupId = group._id.toString();
+
+            if (group.adminUserID.toString() !== userID) {
+                return res.status(404).json({errorMessage: "You are not an admin user"})
+            }
             await Group.deleteOne(group);
             // Iterate through users in groups and delete group from user
             for (let i = 0; i < users.length; i++) {
@@ -314,7 +321,7 @@ module.exports.deleteGroup = async(req, res) => {
                 await users[i].save();
                 let result = await User.aggregate([
                     {
-                        $match: {_id: users[i]._id} // Make sure users[i] is correctly formatted as ObjectId
+                        $match: {_id: users[i]._id}
                     },
                     {
                         $lookup: {
@@ -332,7 +339,9 @@ module.exports.deleteGroup = async(req, res) => {
                                     as: "group",
                                     in: {
                                         groupID: "$$group._id",
-                                        name: "$$group.name"
+                                        name: "$$group.name",
+                                        adminName: '$$group.adminName',
+                                        usersCount: '$$group.userList.length'
                                     }
                                 }
                             }
@@ -345,6 +354,8 @@ module.exports.deleteGroup = async(req, res) => {
                         groupsInfo.push({
                             groupID: group.groupID.toString(),
                             name: group.name,
+                            adminName: group.adminName,
+                            usersCount : group.userList.length,
                         });
                     });
                     sendGroups(users[i]._id.toString(), { groups: groupsInfo })
@@ -475,6 +486,7 @@ module.exports.transferAdmin = async (req, res) => {
             for (let i = 0; i < group.userList.length; i++) {
                 if (newAdminUser._id.toString() === group.userList[i]._id.toString()) {
                     group.adminUserID = newAdminUser._id;
+                    group.adminName = newAdminUser.username;
                     await group.save();
                     return res.status(200).json({adminChange: true});
                 }

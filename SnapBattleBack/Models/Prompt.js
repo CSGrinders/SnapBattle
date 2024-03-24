@@ -17,7 +17,9 @@ const Prompt = new mongoose.Schema({
     },
     timeStart: {
         type: Date,
-        default: new Date(),
+    },
+    timeEnd: {
+        type: Date
     },
     posts: [{
         type: mongoose.Types.ObjectId,

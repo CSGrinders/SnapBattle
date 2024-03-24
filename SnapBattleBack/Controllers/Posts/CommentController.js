@@ -25,7 +25,13 @@ module.exports.viewComments = async(req, res) => {
     try {
         const {postID} = req.params;
 
-        const post = await Post.findById(postID).populate('comments');
+        const post = await Post.findById(postID).populate({
+            path: 'comments',
+            populate: {
+                path: 'userID',
+                model: 'User'
+            }
+        });
         if (post) {
             const comments = post.comments;
             res.status(200).json({comments: comments});
@@ -40,10 +46,15 @@ module.exports.viewComments = async(req, res) => {
 
 module.exports.postComment = async(req, res) => {
     try {
-        const userID = req.body.userID;
-        const postID = req.body.postID;
-        const commentBody = req.body.commentBody;
-        const replyTo = req.body.replyTo;
+        const {userID, postID} = req.params;
+
+        // const userID = req.params.userID;
+        // const postID = req.params.postID;
+        const {commentBody, replyTo} = req.body;
+        // const commentBody = req.body.commentBody;
+        // let replyTo = req.body.replyTo;
+
+        console.log(userID, postID, commentBody, replyTo);
 
         const user = await User.findById(userID);
         const post = await Post.findById(postID);
@@ -57,7 +68,7 @@ module.exports.postComment = async(req, res) => {
         }
 
         if (!replyComment) {
-            replyTo = null;
+            // replyTo = null;
         }
 
         const newComment = new Comment({
@@ -85,23 +96,27 @@ module.exports.postComment = async(req, res) => {
 
 
 module.exports.deleteComment = async(req, res) => {
-    const postID = req.body.postID;
-    const commentID = req.body.commentID;
+    console.log("deleteComment in Commentcontroller");
+    const {userID, groupID, postID, commentID} = req.params;
 
     const post = await Post.findById(postID);
     const comment = await Comment.findById(commentID);
 
     if (!post) {
-        res.status(404).json({errorMessage: "Post not found"});
+        return res.status(404).json({errorMessage: "Post not found"});
     }
 
     if (!comment) {
-        res.status(404).json({errorMessage: "Comment not found"});
+        return res.status(404).json({errorMessage: "Comment not found"});
     }
 
-    post.comments.filter((id) => id.toString() !== comment._id.toString());
-    await post.save();
+    if (post.comments.includes(commentID)) {
+        post.comments.pull(commentID);
+        await post.save();
+    }
+
     await Comment.findByIdAndDelete(commentID);
+    return res.status(200).json({isDeleted: true});
 }
 
 module.exports.editComment = async(req, res) => {
@@ -109,26 +124,29 @@ module.exports.editComment = async(req, res) => {
         const userID = req.body.userID;
         const commentID = req.body.commentID;
         const content = req.body.content;
+
+        console.log(userID, commentID, content)
     
         const user = await User.findById(userID);
         const comment = await Comment.findById(commentID);
     
         if (!user) {
-            res.status(404).json({errorMessage: "User not found"});
+            return res.status(404).json({errorMessage: "User not found"});
         }
     
         if (!comment) {
-            res.status(404).json({errorMessage: "Comment not found"});
+            return res.status(404).json({errorMessage: "Comment not found"});
         }
 
-        if (comment.userID !== userID) {
-            res.status(404).json({errorMessage: "Comment owner does not match user"});
+        if (comment.userID.toString() !== userID) {
+            console.log(comment.userID, userID)
+            return res.status(404).json({errorMessage: "Comment owner does not match user"});
         }
 
         comment.body = content;
         await comment.save();
 
-        res.status(200).json({commentUpdated: true});
+        return res.status(200).json({commentUpdated: true});
 
     } catch (error) {
         res.status(500).json({errorMessage: "Something went wrong..."});
@@ -162,5 +180,20 @@ module.exports.toggleComments = async(req, res) => {
     } catch (error) {
         res.status(500).json({errorMessage: "Something went wrong..."})
     }
+}
 
+module.exports.commentsEnabled = async(req, res) => {
+    try {
+        const {postID} = req.params
+        const post = await Post.findById(postID);
+        if (post) {
+            res.status(200).json({commentsAllowed: post.commentsAllowed})
+        } else {
+            console.log("Post not found")
+            res.status(404).json({errorMessage: "Post not found"})
+        }
+    } catch (error) {
+        console.log("Comment enabled: server error")
+        res.status(500).json({errorMessage: "Server error"})
+    }
 }
