@@ -220,9 +220,6 @@ function Groups({route, navigation}) {
     function checkAdmin(groupUsername) {
         if (groupUsername === username && groupCount > 1) {
             setTransferVisible(true);
-            setGroupAdmin('');
-            setConfirmGroup('');
-            setGroupCount(0);
         } else {
             leaveGroup(confirmGroup);
             setConfirmGroup('');
