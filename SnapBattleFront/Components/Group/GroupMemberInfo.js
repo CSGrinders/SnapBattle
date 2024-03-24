@@ -51,12 +51,10 @@ function GroupMemberInfo({navigation,
 
     function kickUser() {
         try {
-            console.log("hello?")
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/kick-user`, {
                 kickID: searchID
             }).then((response) => {
                 let {kicked} = response.data;
-                console.log("hi")
                 if (kicked) {
                     setSuccess(true);
                     setSuccessMessage("User kicked from group.")

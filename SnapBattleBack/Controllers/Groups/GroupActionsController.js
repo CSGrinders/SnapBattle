@@ -509,11 +509,13 @@ module.exports.transferAdmin = async (req, res) => {
 module.exports.kickUser = async (req, res) => {
     try {
         const {userID, groupID} = req.params;
-        const group = Group.findById(groupID);
+        const group = await Group.findById(groupID);
         const {kickID} = req.body;
-        const kickUser = User.findById(kickID);
+        const kickUser = await User.findById(kickID);
+        console.log(group.name);
 
         if (group && kickUser) {
+            console.log("hi")
             // check if user is admin user
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
@@ -525,7 +527,7 @@ module.exports.kickUser = async (req, res) => {
                 if (kickUser.groups[i]._id.toString() === groupID) {
                     // Remove group from user's group list
                     kickUser.groups = kickUser.groups.filter((groupID) => groupID.toString() !== group._id.toString());
-                    await user.save();
+                    await kickUser.save();
 
                     // Remove user from group's user list
                     group.userList = group.userList.filter((id) => id.toString() !== kickUser._id.toString());
