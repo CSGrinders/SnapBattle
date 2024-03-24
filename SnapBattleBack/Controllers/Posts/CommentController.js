@@ -25,8 +25,6 @@ module.exports.viewComments = async(req, res) => {
     try {
         const {postID} = req.params;
 
-        console.log("viewComments:",postID)
-
         const post = await Post.findById(postID).populate({
             path: 'comments',
             populate: {
@@ -126,26 +124,29 @@ module.exports.editComment = async(req, res) => {
         const userID = req.body.userID;
         const commentID = req.body.commentID;
         const content = req.body.content;
+
+        console.log(userID, commentID, content)
     
         const user = await User.findById(userID);
         const comment = await Comment.findById(commentID);
     
         if (!user) {
-            res.status(404).json({errorMessage: "User not found"});
+            return res.status(404).json({errorMessage: "User not found"});
         }
     
         if (!comment) {
-            res.status(404).json({errorMessage: "Comment not found"});
+            return res.status(404).json({errorMessage: "Comment not found"});
         }
 
-        if (comment.userID !== userID) {
-            res.status(404).json({errorMessage: "Comment owner does not match user"});
+        if (comment.userID.toString() !== userID) {
+            console.log(comment.userID, userID)
+            return res.status(404).json({errorMessage: "Comment owner does not match user"});
         }
 
         comment.body = content;
         await comment.save();
 
-        res.status(200).json({commentUpdated: true});
+        return res.status(200).json({commentUpdated: true});
 
     } catch (error) {
         res.status(500).json({errorMessage: "Something went wrong..."});
