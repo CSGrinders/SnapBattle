@@ -67,11 +67,9 @@ router.post('/:groupID/checkadmin', checkAdmin)
 
 router.post('/:groupID/transfer-admin', transferAdmin)
 
-<<<<<<< HEAD
 router.post('/:groupID/kick-user', kickUser)
-=======
+
 router.get('/:groupID/get-prompt', getPrompt)
->>>>>>> f131dbafd1b238e9715ef7b73798c4647405c2f8
 
 router.post("/:groupID/post", createPost)
 
