@@ -486,6 +486,7 @@ module.exports.transferAdmin = async (req, res) => {
             for (let i = 0; i < group.userList.length; i++) {
                 if (newAdminUser._id.toString() === group.userList[i]._id.toString()) {
                     group.adminUserID = newAdminUser._id;
+                    group.adminName = newAdminUser.username;
                     await group.save();
                     return res.status(200).json({adminChange: true});
                 }
