@@ -18,7 +18,7 @@ import { Button } from '@rneui/base';
 import GroupSettingsSubmitIcon from '../../Components/Group/SubmitSettingsIcon';
 import ProfilePicture from '../../Components/Profile/ProfilePicture';
 import SendIcon from "../../assets/send-icon.webp";
-import HeartIcon from "../../assets/heart.png";
+import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 

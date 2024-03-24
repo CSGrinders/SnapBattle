@@ -66,7 +66,8 @@ function GroupHome({route, navigation}) {
                 <View style={{
                     paddingLeft: 15,
                     alignItems: 'flex-start',
-                    width: width * 0.15
+                    width: width * 0.15,
+                    paddingBottom: 20,
                 }}>
                     <BackButton size={50} navigation={navigation}/>
                 </View>
