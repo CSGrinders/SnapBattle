@@ -500,4 +500,47 @@ module.exports.transferAdmin = async (req, res) => {
     }
 }
 
+/**
+ * kick user from group
+ * /user/:userID/groups/:groupID/kick-user
+ *
+ *  @params userID, groupID, kickUsername
+ **/
+module.exports.kickUser = async (req, res) => {
+    try {
+        const {userID, groupID} = req.params;
+        const group = await Group.findById(groupID);
+        const {kickID} = req.body;
+        const kickUser = await User.findById(kickID);
+        console.log(group.name);
+
+        if (group && kickUser) {
+            console.log("hi")
+            // check if user is admin user
+            if (group.adminUserID.toString() !== userID) {
+                return res.status(401).json({errorMessage: "You are not an administrator!"});
+            }
+            console.log("here")
+
+            // Check if group is in user's group
+            for (let i = 0; i < kickUser.groups.length; i++) {
+                if (kickUser.groups[i]._id.toString() === groupID) {
+                    // Remove group from user's group list
+                    kickUser.groups = kickUser.groups.filter((groupID) => groupID.toString() !== group._id.toString());
+                    await kickUser.save();
+
+                    // Remove user from group's user list
+                    group.userList = group.userList.filter((id) => id.toString() !== kickUser._id.toString());
+                    await group.save();
+                    return res.status(200).json({userKicked: true});
+                }
+            }
+            return res.status(404).json({errorMessage: "User is not a part of this group"});
+        }
+    } catch (error) {
+        console.log("editGroupSize module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
 

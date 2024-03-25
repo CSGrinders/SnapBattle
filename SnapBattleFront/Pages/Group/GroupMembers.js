@@ -21,6 +21,8 @@ import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import GroupMemberInfoCard from "../../Components/Group/GroupMemberInfo";
 import BackButton from "../../Components/Button/BackButton";
 import {getUserInfo} from "../../Storage/Storage";
+import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 
 function GroupMembers({route, navigation}) {
 
@@ -40,6 +42,14 @@ function GroupMembers({route, navigation}) {
     //Server error messages
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
+
+    // confirm prompt
+    const [confirmMessage, setConfirmMessage] = useState('');
+    const [confirmStatus, setConfirmStatus] = useState(false);
+
+    // info prompt
+    const [successMessage, setSuccessMessage] = useState('');
+    const [successState, setSuccessState] = useState(false)
 
     //state for group members
     const [groupMembers, setGroupMembers] = useState([-1]);
@@ -213,6 +223,8 @@ function GroupMembers({route, navigation}) {
                                     setError={setErrorServer}
                                     setErrorMessage={setErrorMessageServer}
                                     adminPerms={adminUser === userID ? (adminUser !== member._id) : false}
+                                    setSuccess={successState}
+                                    setSuccessMessage={setSuccessMessage}
                                 />
                             </View>
                         )
@@ -226,6 +238,7 @@ function GroupMembers({route, navigation}) {
                 <Button onPress={() => setInvBoxVisibility(true)}>Invite +</Button>
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
+            <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
         </KeyboardAvoidingView>
     )
 }

@@ -25,7 +25,9 @@ const {
     inviteToGroup
 } = require("../../Controllers/Groups/GroupInviteController");
 
-const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup, acceptGroupInvite, rejectGroupInvite, visitFriendProfile, checkAdmin, transferAdmin} = require("../../Controllers/Groups/GroupActionsController");
+const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup,
+    acceptGroupInvite, rejectGroupInvite, visitFriendProfile,
+    checkAdmin, transferAdmin, kickUser } = require("../../Controllers/Groups/GroupActionsController");
 const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVotingLength } = require("../../Controllers/Groups/GroupSettingsController");
 const { createPost } = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
@@ -64,6 +66,8 @@ router.post('/:groupID/visit-member-profile', visitFriendProfile)
 router.post('/:groupID/checkadmin', checkAdmin)
 
 router.post('/:groupID/transfer-admin', transferAdmin)
+
+router.post('/:groupID/kick-user', kickUser)
 
 router.get('/:groupID/get-prompt', getPrompt)
 
