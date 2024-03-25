@@ -20,6 +20,7 @@ import ProfilePicture from '../../Components/Profile/ProfilePicture';
 import SendIcon from "../../assets/send.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
+import CommentItem from "../../Components/DailyPrompt/CommentItem";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 const Comment = ({size, route, navigation}) => {
@@ -36,7 +37,11 @@ const Comment = ({size, route, navigation}) => {
     const [comments, setComments] = useState([])
     const [commentsEnabled, setCommentsEnabled] = useState(false)
     const [commentTyped, setCommentTyped] = useState('');
+// <<<<<<< HEAD
+//     const [submitVisible, setSubmitVisible] = useState(false);
+// =======
     const [commentToggle, setCommentToggle] = useState(false);
+// >>>>>>> origin/main
     const [replyToID, setReplyToID] = useState('');
     const [replyToUserName, setReplyToUserName] = useState('');
     const [editComment, setEditComment] = useState(false)
@@ -48,12 +53,13 @@ const Comment = ({size, route, navigation}) => {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/view-comments/${postID}`
         )
             .then((res) => {
+                // console.log(res.data.comments)
                 setComments(res.data.comments)
             })
             .catch((err) => {
                 console.log(err)
             })
-    }, [commentToggle])
+    }, [])
 
     useEffect(() => {
         axios.get(
@@ -66,7 +72,7 @@ const Comment = ({size, route, navigation}) => {
             .catch((err) => {
                 console.log(err)
             })
-    }, [commentToggle])
+    }, [])
 
     const handleLikeComment = async () => {
         console.log("like");
@@ -79,7 +85,7 @@ const Comment = ({size, route, navigation}) => {
         )
             .then((res) => {
                 console.log("after delete: ", res.data);
-                setCommentToggle(!commentToggle)
+                setComments(res.data.comments);
             })
             .catch((err) => {
                 console.log(err)
@@ -90,6 +96,7 @@ const Comment = ({size, route, navigation}) => {
         console.log("reply", item);
         await setReplyToID(item._id);
         await setReplyToUserName(item.userID.username);
+        setEditComment(false);
 
         console.log("replyTo: ", item._id, item.userID.username);
     }
@@ -103,14 +110,15 @@ const Comment = ({size, route, navigation}) => {
         if (editTyped !== '') {
             console.log(editTyped)
             axios.post(
-                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/edit-comment`, {
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/edit-comment/${postID}`, {
                     userID: userID,
                     commentID: editCommentID,
                     content: editTyped
                 }
             )
             .then((res) => {
-                console.log(res)
+                console.log(res.data.comments)
+                setComments(res.data.comments);
             })
             .catch((err) => {
                 console.log(err)
@@ -124,101 +132,245 @@ const Comment = ({size, route, navigation}) => {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/create-comment/${postID}`,
             {
                 commentBody: commentTyped,
-                replyTo: null // TODO
+                replyTo: replyToID // TODO
             }
         )
             .then((res) => {
-                console.log("after submit: ", res.data);
-                setCommentToggle(!commentToggle)
+                setComments(res.data.comments)
+                console.log(res.data.comments);
                 setCommentTyped('');
             })
             .catch((err) => {
                 console.log(err)
+                // something went wrong popup TODO
             })
     }
 
-
-    const renderCommentItem = ({item}) => (
-        <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'flex-start'
-        }}>
+    const ReplyItem = ({item, userID}) => {
+        console.log("reply Item", item, userID);
+        return (
             <View style={{
-                padding: 12,
-                borderRadius: 8,
-                marginBottom: 8,
                 flexDirection: 'row',
                 alignItems: 'center',
-                width: width * 0.7,
-                gap: 30
+                justifyContent: 'flex-start'
             }}>
-                <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
-                {/*  item : {"__v": 0, "_id": "65ff108ba5677714cf610ad6", "body": "Looks good", "likes": 0, "postID": "65ff107ba5677714cf610ac9", "replyTo": null, "timestamp": "2024-03-23T17:23:40.297Z", "userID": {"__v": 7, "_id": "65edd46e90d6c3828ff7d772", "biography": "I love SnapBattle!", "blockedUsers": [], "email": "sohn5312@gmail.com", "friends": ["65edd52790d6c3828ff7d791", "65fb409b77e70d6ebd8d64c5"], "groups": ["65edd49d90d6c3828ff7d77d", "65fb40ea77e70d6ebd8d64d8"], "invites": [], "name": "yee", "numWins": 0, "password": "$2b$12$CX2qX4aomvVo.HvXFSxvM.YMDlN9XoJszQsV7UvohJ5KX1kql0p36", "profilePicture": "https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/profileImage%2F65edd46e90d6c3828ff7d772.jpeg?alt=media&token=2cb81fec-d630-4a2b-ab4b-03234bd7a370", "requests": [], "username": "yee"}}*/}
-                <View>
-                    <View style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 10
-                    }}>
-                        <Text style={{
-                            fontSize: 16,
-                            fontWeight: 'bold'
+                <View style={{
+                    padding: 12,
+                    borderRadius: 8,
+                    marginBottom: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    width: width * 0.7,
+                    gap: 30
+                }}>
+                    <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
+                    {/*  item : {"__v": 0, "_id": "65ff108ba5677714cf610ad6", "body": "Looks good", "likes": 0, "postID": "65ff107ba5677714cf610ac9", "replyTo": null, "timestamp": "2024-03-23T17:23:40.297Z", "userID": {"__v": 7, "_id": "65edd46e90d6c3828ff7d772", "biography": "I love SnapBattle!", "blockedUsers": [], "email": "sohn5312@gmail.com", "friends": ["65edd52790d6c3828ff7d791", "65fb409b77e70d6ebd8d64c5"], "groups": ["65edd49d90d6c3828ff7d77d", "65fb40ea77e70d6ebd8d64d8"], "invites": [], "name": "yee", "numWins": 0, "password": "$2b$12$CX2qX4aomvVo.HvXFSxvM.YMDlN9XoJszQsV7UvohJ5KX1kql0p36", "profilePicture": "https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/profileImage%2F65edd46e90d6c3828ff7d772.jpeg?alt=media&token=2cb81fec-d630-4a2b-ab4b-03234bd7a370", "requests": [], "username": "yee"}}*/}
+                    <View>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 10
                         }}>
-                            {item.userID.username}
-                        </Text>
-                        <Text style={{
-                            fontSize: 12,
-                            color: 'grey',
-                        }}>
-                            {item.timestamp}
-                        </Text>
-                    </View>
-                    <Text>
-                        {item.body}
-                    </Text>
-                    <View style={{flexDirection: 'row', gap: 10}}>
-                        <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {handleReplyTo(item)}}>
-                            <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
-                                reply
+                            <Text style={{
+                                fontSize: 16,
+                                fontWeight: 'bold'
+                            }}>
+                                {item.userID.username}
                             </Text>
-                        </TouchableOpacity>
-                        {item.userID._id === userID &&
+                            <Text style={{
+                                fontSize: 12,
+                                color: 'grey',
+                            }}>
+                                {item.timestamp}
+                            </Text>
+                        </View>
+                        <Text>
+                            {item.body}
+                        </Text>
+                        <View style={{flexDirection: 'row', gap: 10}}>
                             <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                setEditComment(!editComment)
-                                setEditTyped(item.body)
-                                setEditCommentID(item._id)
-                                }}>
-                                <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold', color: editComment && item._id === editCommentID ? '#0080FF' : 'black'}}>
-                                    edit
-                                </Text>
-                            </TouchableOpacity>
-                        }
-                        {item.userID._id === userID &&
-                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {handleDeleteComment(item._id)}}>
+                                handleReplyTo(item)
+                            }}>
                                 <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
-                                    delete
+                                    reply
                                 </Text>
                             </TouchableOpacity>
+                            {item.userID._id === userID &&
+                                <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                    setEditComment(!editComment)
+                                    setEditTyped(item.body)
+                                    setEditCommentID(item._id)
+                                }}>
+                                    <Text style={{
+                                        marginTop: 5,
+                                        fontSize: 12,
+                                        fontFamily: 'OpenSansBold',
+                                        color: editComment && item._id === editCommentID ? '#0080FF' : 'black'
+                                    }}>
+                                        edit
+                                    </Text>
+                                </TouchableOpacity>
+                            }
+                            {item.userID._id === userID &&
+                                <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                    handleDeleteComment(item._id)
+                                }}>
+                                    <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                        delete
+                                    </Text>
+                                </TouchableOpacity>
+                            }
+                        </View>
+                    </View>
+                </View>
+                <View style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    marginRight: 15
+                }}>
+                    <View style={{flexDirection: 'column', alignItems: 'center'}}>
+                        <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                            <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
+                        </TouchableOpacity>
+                        <Text>0</Text>
+                    </View>
+                </View>
+            </View>)
+    }
+
+    const CommentItem = ({item, userID}) => {
+        const [showReplies, setShowReplies] = useState(false);
+        const [replies, setReplies] = useState([]);
+
+
+        const toggleReplies = () => {
+            setShowReplies(!showReplies);
+        };
+
+        const handleOpenReplies = (replyBy) => {
+            axios.get(
+                `${EXPO_PUBLIC_API_URL}/user/${item.userID._id}/groups/${groupID}/view-replies/${postID}/${item._id}`,
+            )
+                .then((res) => {
+                    // res.data is the array of comments
+                    console.log(res.data);
+                    setReplies(res.data);
+                })
+        }
+
+        return (
+            <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start'
+            }}>
+                <View style={{
+                    padding: 12,
+                    borderRadius: 8,
+                    marginBottom: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    width: width * 0.7,
+                    gap: 30
+                }}>
+                    <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
+                    {/*  item : {"__v": 0, "_id": "65ff108ba5677714cf610ad6", "body": "Looks good", "likes": 0, "postID": "65ff107ba5677714cf610ac9", "replyTo": null, "timestamp": "2024-03-23T17:23:40.297Z", "userID": {"__v": 7, "_id": "65edd46e90d6c3828ff7d772", "biography": "I love SnapBattle!", "blockedUsers": [], "email": "sohn5312@gmail.com", "friends": ["65edd52790d6c3828ff7d791", "65fb409b77e70d6ebd8d64c5"], "groups": ["65edd49d90d6c3828ff7d77d", "65fb40ea77e70d6ebd8d64d8"], "invites": [], "name": "yee", "numWins": 0, "password": "$2b$12$CX2qX4aomvVo.HvXFSxvM.YMDlN9XoJszQsV7UvohJ5KX1kql0p36", "profilePicture": "https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/profileImage%2F65edd46e90d6c3828ff7d772.jpeg?alt=media&token=2cb81fec-d630-4a2b-ab4b-03234bd7a370", "requests": [], "username": "yee"}}*/}
+                    <View>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 10
+                        }}>
+                            <Text style={{
+                                fontSize: 16,
+                                fontWeight: 'bold'
+                            }}>
+                                {item.userID.username}
+                            </Text>
+                            <Text style={{
+                                fontSize: 12,
+                                color: 'grey',
+                            }}>
+                                {item.timestamp}
+                            </Text>
+                        </View>
+                        <Text>
+                            {item.body}
+                        </Text>
+                        <View style={{flexDirection: 'row', gap: 10}}>
+                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                handleReplyTo(item)
+                            }}>
+                                <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                    reply
+                                </Text>
+                            </TouchableOpacity>
+                            {item.userID._id === userID &&
+                                <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                    setEditComment(!editComment)
+                                    setEditTyped(item.body)
+                                    setEditCommentID(item._id)
+                                }}>
+                                    <Text style={{
+                                        marginTop: 5,
+                                        fontSize: 12,
+                                        fontFamily: 'OpenSansBold',
+                                        color: editComment && item._id === editCommentID ? '#0080FF' : 'black'
+                                    }}>
+                                        edit
+                                    </Text>
+                                </TouchableOpacity>
+                            }
+                            {item.userID._id === userID &&
+                                <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                    handleDeleteComment(item._id)
+                                }}>
+                                    <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                        delete
+                                    </Text>
+                                </TouchableOpacity>
+                            }
+                        </View>
+
+                        {item.replyBy !== undefined && item.replyBy.length > 0 &&
+                            <View>
+                                <TouchableOpacity onPress={() => {
+                                    handleOpenReplies(item.replyBy);
+                                    toggleReplies();
+                                }}>
+                                    <Text> more replies </Text>
+                                </TouchableOpacity>
+                                {showReplies && true && item.replyBy.length > 0 && (
+                                    <View>
+                                        <Text> {replies.length} </Text>
+                                        {/*<FlatList*/}
+                                        {/*    data = {replies}*/}
+                                        {/*    renderItem = {({ item }) => <ReplyItem item={item} userID={userID}/>}*/}
+                                        {/*    keyExtractor = {(reply) => reply._id.toString()}*/}
+                                        {/*/>*/}
+                                    </View>
+                                )}
+                            </View>
                         }
                     </View>
                 </View>
-            </View>
-            <View style={{
-                flex: 1,
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                marginRight: 15
-            }}>
-                <View style={{flexDirection: 'column', alignItems: 'center'}}>
-                    <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
-                        <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
-                    </TouchableOpacity>
-                    <Text>0</Text>
+                <View style={{
+                    flex: 1,
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                    marginRight: 15
+                }}>
+                    <View style={{flexDirection: 'column', alignItems: 'center'}}>
+                        <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                            <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
+                        </TouchableOpacity>
+                        <Text>0</Text>
+                    </View>
                 </View>
-            </View>
-        </View>
-    );
+            </View>)
+    };
+
   return (
       <View style={{
           display: "flex",
@@ -276,7 +428,7 @@ const Comment = ({size, route, navigation}) => {
             :
             <FlatList
                 data = {comments}
-                renderItem = {renderCommentItem}
+                renderItem = {({ item }) => <CommentItem item={item} userID={userID}/>}
                 keyExtractor = {(comment) => comment._id.toString()}
                 // style={{flex: 1}}
             />
@@ -378,7 +530,7 @@ const Comment = ({size, route, navigation}) => {
                                             height: 50,
                                         }}
                                     />
-                                    <TouchableOpacity style={{ paddingTop: 5,}} onPress={handleSubmitComment}>
+                                    <TouchableOpacity style={{ marginLeft: 15, paddingTop: 5,}} onPress={handleSubmitComment}>
                                         <Image source={SendIcon} style={{width: 40, height: 40}}></Image>
                                     </TouchableOpacity>
                                 </View>
