@@ -17,11 +17,25 @@ const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = pro
 function GroupHome({route, navigation}) {
     const {username, userID, groupID, token} = route.params
     const {width, height} = Dimensions.get('window');
-
     const [prompt, setPrompt] = useState("")
-    const [timeStart, setTimeStart] = useState(new Date())
-    const [timeEnd, setTimeEnd] = useState(new Date())
+
+    /*
+        PERIOD 0 = waiting period (have not reached submission period yet)
+        PERIOD 1 = submission period (users can submit posts)
+        PERIOD 2 = daily voting period (users can do their daily vote)
+        PERIOD 3 = weekly voting period
+        PERIOD 4 = results period - same as waiting period
+    */
+    const [period, setPeriod] = useState(0)
+
+    //timeEnd = the time of the next period; initially set to more than 1 day in the future
+    //          1 day in the future will render LOADING -> this is done to prevent errors with negatives :)
+    //          heehee
+    const [timeEnd, setTimeEnd] = useState(new Date(Date.now() + 48 * 60 * 60 * 1000))
+
+    //array of post objects
     const [posts, setPosts] = useState([])
+
     const [camDisabled, setCamDisabled] = useState(true)
     const [camOpacity, setCamOpacity] = useState(0.5)
     //gets the prompt object and underlying post and comment data
@@ -31,22 +45,22 @@ function GroupHome({route, navigation}) {
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
             )
                 .then((res) => {
-                    const {promptObj, submissionAllowed} = res.data
+                    const {promptObj, submissionAllowed, period, timeEnd} = res.data
                     if (promptObj === null) {
                         setPrompt("Prompt has not been released yet")
                     }
                     else {
                         setPrompt(promptObj.prompt)
-                        setTimeStart(new Date(promptObj.timeStart))
-                        setTimeEnd(new Date(promptObj.timeEnd))
                         setPosts(promptObj.posts)
-                        setCamDisabled(!submissionAllowed)
-                        if (submissionAllowed) {
-                            setCamOpacity(1)
-                        }
-                        else {
-                            setCamOpacity(0.5)
-                        }
+                    }
+                    setPeriod(period)
+                    setTimeEnd(timeEnd)
+                    setCamDisabled(!submissionAllowed)
+                    if (submissionAllowed) {
+                        setCamOpacity(1)
+                    }
+                    else {
+                        setCamOpacity(0.5)
                     }
                 })
                 .catch((err) => {
@@ -97,7 +111,7 @@ function GroupHome({route, navigation}) {
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <DailyPrompt prompt={prompt} timeStart={timeStart} timeEnd={timeEnd}/>
+                <DailyPrompt prompt={prompt} period={period} timeEnd={timeEnd} />
             </View>
             <View style={{
                 width: width,

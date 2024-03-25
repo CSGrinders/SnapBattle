@@ -346,7 +346,8 @@ function Groups({route, navigation}) {
 
             <View style={{
                 marginLeft: 10,
-                flex: 1
+                flex: 1,
+                marginBottom: 100
             }}>
                 <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Groups</Text>
                 <ScrollView contentContainerStyle={{flexGrow: 1}}>

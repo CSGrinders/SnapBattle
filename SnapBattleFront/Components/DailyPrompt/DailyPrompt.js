@@ -7,10 +7,26 @@ import {useCountdown} from "./useCountdown";
 const {width, height} = Dimensions.get('window');
 
 
-const DailyPrompt = ({prompt, timeStart, timeEnd}) => {
+const DailyPrompt = ({prompt, timeEnd, period, pageReload}) => {
 
-    const [secondsLeft, setSecondsLeft] = useState(0)
-    const [days, hours, minutes, seconds] = useCountdown(timeEnd)
+    const [days, hours, minutes, seconds] = useCountdown(timeEnd, pageReload)
+
+    let periodText;
+    if (period === 0) {
+        periodText = "WAITING PERIOD"
+    }
+    else if (period === 1) {
+        periodText = "SUBMISSION PERIOD"
+    }
+    else if (period === 2) {
+        periodText = "DAILY VOTING PERIOD"
+    }
+    else if (period === 3) {
+        periodText = "WEEKLY VOTING PERIOD"
+    }
+    else {
+        periodText = "WAITING PERIOD"
+    }
 
     return (
         <View style={{
@@ -23,24 +39,31 @@ const DailyPrompt = ({prompt, timeStart, timeEnd}) => {
         }}>
             <Text style={{
                 fontWeight: 'bold',
-                fontSize: 30,
+                fontSize: 20,
+                textAlign: 'center'
             }}>
-                DAILY PROMPT:
+                {periodText}
             </Text>
             <Text style={{
                 fontWeight: 'bold',
-                fontSize: 30,
+                fontSize: 20,
+                textAlign: 'center'
             }}>
                 {prompt}
             </Text>
-            {hours >= 0 ?
+            {days === 1 || hours < 0 ?
                 <Text style={{
                     fontWeight: 'bold',
-                    fontSize: 30,
+                    fontSize: 20,
+                }}>
+                    LOADING
+                </Text> :
+                <Text style={{
+                    fontWeight: 'bold',
+                    fontSize: 20,
                 }}>
                     Time left: {hours}:{minutes}:{seconds}
-                </Text> :
-                <></>
+                </Text>
             }
 
 

@@ -41,6 +41,9 @@ const Group = new mongoose.Schema({
     timeToVote: {
         type: String
     },
+    weeklyVotingDay: {
+        type: Number
+    },
     prompts: [{
         type: mongoose.Types.ObjectId,
         ref: 'Prompt'

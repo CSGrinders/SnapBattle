@@ -113,6 +113,13 @@ module.exports.createGroup = async(req, res) => {
             userList.push(user._id);
     
             const prompts = [];
+
+            //weekly voting day should be the "day of the week" that corresponds to yesterday
+            let day = new Date().getDay() - 1
+            if (day === -1) {
+                day = 6
+            }
+
     
             const newGroup = new Group({
                 name: groupName,
@@ -123,7 +130,8 @@ module.exports.createGroup = async(req, res) => {
                 adminName: user.username,
                 adminUserID: user._id,
                 timeToVote: timeToVote,
-                prompts: prompts
+                prompts: prompts,
+                weeklyVotingDay: day
             });
 
             console.log("createGroups module: New group created! " + newGroup);
@@ -271,9 +279,9 @@ module.exports.leaveGroup = async(req, res, next) => {
         }
 
         // delete posts from user
-        for (let i = 0; i < group.prompts.length(); i++) {
-            const prompt = Prompt.findById(group.prompts[i]);
-            prompt.posts = user.posts.filter((owner) => owner.toString() === userID.toString())
+        for (let i = 0; i < group.prompts.length; i++) {
+            const prompt = await Prompt.findById(group.prompts[i]);
+            prompt.posts = prompt.posts.filter((owner) => owner.toString() === userID.toString())
             await prompt.save();
         }
 
