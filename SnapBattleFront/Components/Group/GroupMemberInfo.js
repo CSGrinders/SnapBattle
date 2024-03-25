@@ -19,11 +19,10 @@ function GroupMemberInfo({navigation,
                              token,
                              setError,
                              setErrorMessage,
-                             setSuccess,
-                             setSuccessMessage}) {
+                             setKickUser,
+                             kickFunc}) {
     function handleOnPress() {
         try {
-            console.log("what??")
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/visit-member-profile`, {
                 searchID: searchID
             }).then((response) => {
@@ -49,23 +48,12 @@ function GroupMemberInfo({navigation,
         }
     }
 
-    function kickUser() {
-        try {
-            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/kick-user`, {
-                kickID: searchID
-            }).then((response) => {
-                let {kicked} = response.data;
-                if (kicked) {
-                    setSuccess(true);
-                    setSuccessMessage("User kicked from group.")
-                }
-            })
-        } catch (error) {
-            let {status, data} = error;
-            setError(true);
-            setErrorMessage(data.errorMessage);
-        }
+    function kick() {
+        setKickUser(searchUsername);
+        kickFunc();
+        console.log("please")
     }
+
 
     let adminStr = isAdmin ? "Administrator" : "Member";
 
@@ -104,7 +92,7 @@ function GroupMemberInfo({navigation,
                     justifyContent: "center",
                     display: !adminPerms
                 }}>
-                    <KickButton size={50} onPress={kickUser}/>
+                    <KickButton size={50} onPress={kick}/>
                 </View>
             </View>
         </Card>
