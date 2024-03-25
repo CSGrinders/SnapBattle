@@ -1,6 +1,8 @@
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 const Prompt = require('../../Models/Prompt')
+const {Configuration, OpenAI} = require('openai')
+const {OPENAI_API_KEY} = process.env
 
 module.exports.getPrompt = async (req, res) => {
     const {userID, groupID} = req.params
@@ -44,14 +46,26 @@ module.exports.getPrompt = async (req, res) => {
 
         //if not found, need to create a new prompt
         if (todayPrompt === null) {
-            console.log("creating new prompt")
+            console.log("creating new prompt ")
+            console.log(OPENAI_API_KEY)
+            //getting response from chat-gpt
+            const openai = new OpenAI({apiKey: OPENAI_API_KEY})
+            const completion = await openai.chat.completions.create({
+                messages: [{ role: "system", content: "In an imperative form, give me some object or some task for me to take a picture of today!" }],
+                model: "gpt-3.5-turbo",
+
+            });
+            console.log(completion.choices[0])
+
+
+
             let timeStart = new Date(now)
             timeStart.setHours(promptReleaseHour, promptReleaseMin)
             let timeEnd = new Date(now)
             timeEnd.setHours(promptSubmitHour, promptSubmitMin)
 
             todayPrompt = new Prompt({
-                prompt: "Prompt for " + now.getMonth() + "/" + now.getDate(),
+                prompt: completion.choices[0].message.content,
                 timeStart: timeStart,
                 timeEnd: timeEnd,
             })
