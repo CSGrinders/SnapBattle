@@ -37,11 +37,7 @@ const Comment = ({size, route, navigation}) => {
     const [comments, setComments] = useState([])
     const [commentsEnabled, setCommentsEnabled] = useState(false)
     const [commentTyped, setCommentTyped] = useState('');
-// <<<<<<< HEAD
-//     const [submitVisible, setSubmitVisible] = useState(false);
-// =======
     const [commentToggle, setCommentToggle] = useState(false);
-// >>>>>>> origin/main
     const [replyToID, setReplyToID] = useState('');
     const [replyToUserName, setReplyToUserName] = useState('');
     const [editComment, setEditComment] = useState(false)
@@ -53,7 +49,7 @@ const Comment = ({size, route, navigation}) => {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/view-comments/${postID}`
         )
             .then((res) => {
-                // console.log(res.data.comments)
+                console.log(res.data.comments)
                 setComments(res.data.comments)
             })
             .catch((err) => {
@@ -152,7 +148,9 @@ const Comment = ({size, route, navigation}) => {
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'flex-start'
+                justifyContent: 'flex-start',
+                marginLeft: 30,
+                backgroundColor: "#cccccc",
             }}>
                 <View style={{
                     padding: 12,
@@ -240,135 +238,142 @@ const Comment = ({size, route, navigation}) => {
     }
 
     const CommentItem = ({item, userID}) => {
+        console.log("commentItem: ", item.replyTo===null);
         const [showReplies, setShowReplies] = useState(false);
         const [replies, setReplies] = useState([]);
 
+        useEffect(() => {
+            if (item.replyBy !== null && item.replyBy.length > 0) {
+                setReplies(item.replyBy);
+                console.log("plse", item.replyBy);
+            }
+        }, [])
 
         const toggleReplies = () => {
             setShowReplies(!showReplies);
         };
 
         const handleOpenReplies = (replyBy) => {
-            axios.get(
-                `${EXPO_PUBLIC_API_URL}/user/${item.userID._id}/groups/${groupID}/view-replies/${postID}/${item._id}`,
-            )
-                .then((res) => {
-                    // res.data is the array of comments
-                    console.log(res.data);
-                    setReplies(res.data);
-                })
+
         }
 
         return (
-            <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'flex-start'
-            }}>
+            item.replyTo === null &&
+            <View>
                 <View style={{
-                    padding: 12,
-                    borderRadius: 8,
-                    marginBottom: 8,
                     flexDirection: 'row',
                     alignItems: 'center',
-                    width: width * 0.7,
-                    gap: 30
+                    justifyContent: 'flex-start'
                 }}>
-                    <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
-                    {/*  item : {"__v": 0, "_id": "65ff108ba5677714cf610ad6", "body": "Looks good", "likes": 0, "postID": "65ff107ba5677714cf610ac9", "replyTo": null, "timestamp": "2024-03-23T17:23:40.297Z", "userID": {"__v": 7, "_id": "65edd46e90d6c3828ff7d772", "biography": "I love SnapBattle!", "blockedUsers": [], "email": "sohn5312@gmail.com", "friends": ["65edd52790d6c3828ff7d791", "65fb409b77e70d6ebd8d64c5"], "groups": ["65edd49d90d6c3828ff7d77d", "65fb40ea77e70d6ebd8d64d8"], "invites": [], "name": "yee", "numWins": 0, "password": "$2b$12$CX2qX4aomvVo.HvXFSxvM.YMDlN9XoJszQsV7UvohJ5KX1kql0p36", "profilePicture": "https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/profileImage%2F65edd46e90d6c3828ff7d772.jpeg?alt=media&token=2cb81fec-d630-4a2b-ab4b-03234bd7a370", "requests": [], "username": "yee"}}*/}
-                    <View>
-                        <View style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            gap: 10
-                        }}>
-                            <Text style={{
-                                fontSize: 16,
-                                fontWeight: 'bold'
+                    <View style={{
+                        padding: 12,
+                        borderRadius: 8,
+                        marginBottom: 8,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        width: width * 0.7,
+                        gap: 30
+                    }}>
+                        <OtherProfilePicture size={35} imageUrl={item.userID.profilePicture}/>
+                        {/*  item : {"__v": 0, "_id": "65ff108ba5677714cf610ad6", "body": "Looks good", "likes": 0, "postID": "65ff107ba5677714cf610ac9", "replyTo": null, "timestamp": "2024-03-23T17:23:40.297Z", "userID": {"__v": 7, "_id": "65edd46e90d6c3828ff7d772", "biography": "I love SnapBattle!", "blockedUsers": [], "email": "sohn5312@gmail.com", "friends": ["65edd52790d6c3828ff7d791", "65fb409b77e70d6ebd8d64c5"], "groups": ["65edd49d90d6c3828ff7d77d", "65fb40ea77e70d6ebd8d64d8"], "invites": [], "name": "yee", "numWins": 0, "password": "$2b$12$CX2qX4aomvVo.HvXFSxvM.YMDlN9XoJszQsV7UvohJ5KX1kql0p36", "profilePicture": "https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/profileImage%2F65edd46e90d6c3828ff7d772.jpeg?alt=media&token=2cb81fec-d630-4a2b-ab4b-03234bd7a370", "requests": [], "username": "yee"}}*/}
+                        <View>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 10
                             }}>
-                                {item.userID.username}
-                            </Text>
-                            <Text style={{
-                                fontSize: 12,
-                                color: 'grey',
-                            }}>
-                                {item.timestamp}
-                            </Text>
-                        </View>
-                        <Text>
-                            {item.body}
-                        </Text>
-                        <View style={{flexDirection: 'row', gap: 10}}>
-                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                handleReplyTo(item)
-                            }}>
-                                <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
-                                    reply
-                                </Text>
-                            </TouchableOpacity>
-                            {item.userID._id === userID &&
-                                <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                    setEditComment(!editComment)
-                                    setEditTyped(item.body)
-                                    setEditCommentID(item._id)
+                                <Text style={{
+                                    fontSize: 16,
+                                    fontWeight: 'bold'
                                 }}>
-                                    <Text style={{
-                                        marginTop: 5,
-                                        fontSize: 12,
-                                        fontFamily: 'OpenSansBold',
-                                        color: editComment && item._id === editCommentID ? '#0080FF' : 'black'
-                                    }}>
-                                        edit
-                                    </Text>
-                                </TouchableOpacity>
-                            }
-                            {item.userID._id === userID &&
+                                    {item.userID.username}
+                                </Text>
+                                <Text style={{
+                                    fontSize: 12,
+                                    color: 'grey',
+                                }}>
+                                    {item.timestamp}
+                                </Text>
+                            </View>
+                            <Text>
+                                {item.body}
+                            </Text>
+                            <View style={{flexDirection: 'row', gap: 10}}>
                                 <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                    handleDeleteComment(item._id)
+                                    handleReplyTo(item)
                                 }}>
                                     <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
-                                        delete
+                                        reply
                                     </Text>
                                 </TouchableOpacity>
+                                {item.userID._id === userID &&
+                                    <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                        setEditComment(!editComment)
+                                        setEditTyped(item.body)
+                                        setEditCommentID(item._id)
+                                    }}>
+                                        <Text style={{
+                                            marginTop: 5,
+                                            fontSize: 12,
+                                            fontFamily: 'OpenSansBold',
+                                            color: editComment && item._id === editCommentID ? '#0080FF' : 'black'
+                                        }}>
+                                            edit
+                                        </Text>
+                                    </TouchableOpacity>
+                                }
+                                {item.userID._id === userID &&
+                                    <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
+                                        handleDeleteComment(item._id)
+                                    }}>
+                                        <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                            delete
+                                        </Text>
+                                    </TouchableOpacity>
+                                }
+                            </View>
+
+                            {item.replyBy !== undefined && item.replyBy.length > 0 &&
+                                <View>
+                                    <TouchableOpacity onPress={() => {
+                                        handleOpenReplies(item.replyBy);
+                                        toggleReplies();
+                                    }}>
+                                        <Text> more replies </Text>
+                                    </TouchableOpacity>
+                                    <View>
+                                        <Text>{replies.toString()}</Text>
+                                    </View>
+                                </View>
                             }
                         </View>
+                    </View>
+                    <View style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        justifyContent: 'flex-end',
+                        marginRight: 15
+                    }}>
+                        <View style={{flexDirection: 'column', alignItems: 'center'}}>
+                            <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                                <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
+                            </TouchableOpacity>
+                            <Text>0</Text>
+                        </View>
+                    </View>
+                </View>
+                {showReplies &&
+                    <View>
+                        <FlatList
+                            data = {replies}
+                            renderItem = {({ item }) => <ReplyItem item={item} userID={userID}/>}
+                            keyExtractor={(item, index) => index.toString()}
+                        />
+                    </View>
+                }
 
-                        {item.replyBy !== undefined && item.replyBy.length > 0 &&
-                            <View>
-                                <TouchableOpacity onPress={() => {
-                                    handleOpenReplies(item.replyBy);
-                                    toggleReplies();
-                                }}>
-                                    <Text> more replies </Text>
-                                </TouchableOpacity>
-                                {showReplies && true && item.replyBy.length > 0 && (
-                                    <View>
-                                        <Text> {replies.length} </Text>
-                                        {/*<FlatList*/}
-                                        {/*    data = {replies}*/}
-                                        {/*    renderItem = {({ item }) => <ReplyItem item={item} userID={userID}/>}*/}
-                                        {/*    keyExtractor = {(reply) => reply._id.toString()}*/}
-                                        {/*/>*/}
-                                    </View>
-                                )}
-                            </View>
-                        }
-                    </View>
-                </View>
-                <View style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                    marginRight: 15
-                }}>
-                    <View style={{flexDirection: 'column', alignItems: 'center'}}>
-                        <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
-                            <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
-                        </TouchableOpacity>
-                        <Text>0</Text>
-                    </View>
-                </View>
-            </View>)
+            </View>
+    )
     };
 
   return (

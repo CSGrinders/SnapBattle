@@ -19,19 +19,21 @@
 
 const {User} = require('../../Models/User');
 const {Post, Comment} = require('../../Models/Post');
+const Group = require("../../Models/Group");
 
 
 module.exports.viewComments = async(req, res) => {
     try {
         const {postID} = req.params;
 
-        const post = await Post.findById(postID).populate({
-            path: 'comments',
-            populate: {
-                path: 'userID',
-                model: 'User'
-            }
+
+        const post = await Post.findById(postID).populate({path: 'comments',
+            populate: [{ path: 'userID', model: 'User'},
+                {path: 'replyBy', populate: {path: 'userID'}},
+                {path: 'replyTo', populate: {path: 'userID'}}
+            ]
         });
+
         if (post) {
             const comments = post.comments;
             res.status(200).json({comments: comments});
@@ -46,6 +48,7 @@ module.exports.viewComments = async(req, res) => {
 
 module.exports.viewReplies = async(req, res) => {
     try {
+        console.log("viewReplies:", req.params);
         const {commentID} = req.params;
 
         const comment = await Comment.findById(commentID);
@@ -63,6 +66,8 @@ module.exports.viewReplies = async(req, res) => {
                 // what to do
             }
         }
+
+        console.log(replyComments);
 
         return res.status(200).json({replyComments: replyComments});
     } catch (error) {
