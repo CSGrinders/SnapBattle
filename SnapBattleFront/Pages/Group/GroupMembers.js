@@ -44,7 +44,7 @@ function GroupMembers({route, navigation}) {
     const [errorServer, setErrorServer] = useState(false);
 
     // confirm prompt
-    const [confirmMessage, setConfirmMessage] = useState('');
+    const [confirmMessage, setConfirmMessage] = useState('Are you sure you would like to kick this user?');
     const [confirmStatus, setConfirmStatus] = useState(false);
 
     // info prompt
@@ -55,6 +55,9 @@ function GroupMembers({route, navigation}) {
     const [groupMembers, setGroupMembers] = useState([-1]);
     const [adminUser, setAdminUser] = useState("");
     const [token, setToken] = useState("");
+
+    // kick user
+    const [kickUser, setKickUser] = useState("")
 
         //getting information necessary for page display
      useFocusEffect(
@@ -121,6 +124,29 @@ function GroupMembers({route, navigation}) {
     function closeInviteBox() {
         setInvStatusMsg("");
         setInvBoxVisibility(false);
+    }
+
+    function kickOnClick() {
+         console.log("kick clicked")
+         setConfirmStatus(true);
+    }
+
+    function kickFunc() {
+        try {
+            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/kick-user`, {
+                kickUsername: kickUser
+            }).then((response) => {
+                let {userKicked} = response.data;
+                if (userKicked) {
+                    setSuccessState(true);
+                    setSuccessMessage("User kicked successfully.");
+                }
+            })
+        } catch (error) {
+            let {status, data} = error;
+            setErrorServer(true);
+            setErrorMessageServer(data.errorMessage);
+        }
     }
 
     return (
@@ -225,6 +251,8 @@ function GroupMembers({route, navigation}) {
                                     adminPerms={adminUser === userID ? (adminUser !== member._id) : false}
                                     setSuccess={successState}
                                     setSuccessMessage={setSuccessMessage}
+                                    setKickUser={setKickUser}
+                                    kickFunc={kickOnClick}
                                 />
                             </View>
                         )
@@ -239,6 +267,12 @@ function GroupMembers({route, navigation}) {
             </View>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
+            <ConfirmPrompt Message={confirmMessage} state={confirmStatus} setState={setConfirmStatus}
+                           command={() => {
+                               setConfirmStatus(false);
+                               kickFunc();
+                           }}>
+            </ConfirmPrompt>
         </KeyboardAvoidingView>
     )
 }
