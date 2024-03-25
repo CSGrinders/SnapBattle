@@ -22,6 +22,7 @@ import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import {useFocusEffect} from "@react-navigation/native";
 import {getUserInfo} from "../../Storage/Storage";
 import {SocketContext} from "../../Storage/Socket";
+import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function OtherProfile({route, navigation}) {
@@ -41,6 +42,9 @@ function OtherProfile({route, navigation}) {
 
     const [infoMessage, setInfoMessage] = useState('');
     const [infoPrompt, setInfoPrompt] = useState(false);
+
+    const [confirmMessage, setConfirmMessage] = useState('Are you sure? You will leave all groups with this user in it.');
+    const [confirmStatus, setConfirmStatus] = useState(false);
 
     function sendFriendRequest() {
         axios.post(
@@ -148,8 +152,59 @@ function OtherProfile({route, navigation}) {
         })
     }
 
-    function blockFriend() {
-        console.log("block friend")
+    function blockFriend(username) {
+        // removing as friend/removing request based on current relationship w user
+        if (view === 0) {
+            // copy and pasted bc i don't want it to show confirmation on success
+            axios.post(
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/remove`,
+                {
+                    removeUsername: username
+                }
+            ).then((res) => {
+                setView(1);
+                setExistRqFriend(false);
+            })
+                .catch((err) => {
+                    if (err.response.status !== 500) {
+                        setErrorMessageServer(err.response.data.errorMessage);
+                        setErrorServer(true);
+                        setTimeout(() => {
+                            navigation.navigate("Friends", {userID})
+                        }, 1000)
+                    } else {
+                        setErrorMessageServer(err.response.data.errorMessage);
+                        setErrorServer(true);
+                    }
+                })
+            console.log("remove friend")
+        } else {
+            if (existRqFriend) {
+                removeRequest();
+                console.log("remove request")
+            }
+        }
+        console.log("here")
+        // leaving all groups with user in it
+        axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/friends/block`, {
+                blockUsername: username
+            }
+        ).then((res) => {
+            const success = res.data;
+            console.log("blocked")
+            if (success) {
+                setInfoMessage("User blocked. You have left all the groups that you share with this user.")
+                setInfoPrompt(true);
+                setTimeout(() => {
+                    navigation.navigate("Groups", {userID})
+                }, 2000)
+            }
+        }).catch((error) => {
+            let {status, data} = error;
+            console.log(status)
+            setErrorMessageServer(data.errorMessage);
+            setErrorServer(true);
+        })
     }
 
     return (
@@ -217,7 +272,7 @@ function OtherProfile({route, navigation}) {
                         <Button onPress={() => removeFriend(searchUsername)}>
                             Remove Friend
                         </Button>
-                        <Button onPress={() => blockFriend(searchUsername)}>
+                        <Button onPress={() => setConfirmStatus(true)}>
                             Block Friend
                         </Button>
                     </>
@@ -231,6 +286,9 @@ function OtherProfile({route, navigation}) {
                                 onPress={removeRequest}>
                                 Remove Friend Request
                             </Button>
+                            <Button onPress={() => setConfirmStatus(true)}>
+                                Block User
+                            </Button>
                         </>
                         :
                         <>
@@ -238,16 +296,22 @@ function OtherProfile({route, navigation}) {
                                 onPress={sendFriendRequest}>
                                 Send Friend Request
                             </Button>
+                            <Button onPress={() => setConfirmStatus(true)}>
+                                Block User
+                            </Button>
                     </>)
                     :
                     <></>
                 }
-
-
             </View>
-
             <InfoPrompt Message={infoMessage} state={infoPrompt} setEnable={setInfoPrompt}/>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}/>
+            <ConfirmPrompt Message={confirmMessage} state={confirmStatus} setState={setConfirmStatus}
+                           command={() => {
+                               setConfirmStatus(false);
+                               blockFriend(searchUsername)
+                           }}>
+            </ConfirmPrompt>
         </View>
     )
 }
