@@ -24,6 +24,8 @@ const storage = require("../../Firebase/Firebase");
 const {sendFriendRequest, sendFriendUpdate} = require("../../ServerSocketControllers/FriendsSocket");
 const {sendUpdateProfileStatus} = require("../../ServerSocketControllers/ProfileSocket");
 const {findUser} = require("../Profile/ProfileController");
+const Group = require("../../Models/Group");
+const Prompt = require("../../Models/Prompt");
 
 /**
  * Add small desc.
@@ -410,5 +412,84 @@ module.exports.removeFriend = async (req, res, next) => {
     }
     catch {
         return res.status(500).json({errorMessage: "Internal server error"})
+    }
+}
+
+/**
+ * Add small desc.
+ * route
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+module.exports.leaveAllGroups = async(req, res) => {
+    try {
+        const userID = req.params.userID;
+        const {blockUsername} = req.body;
+        const blockUser = await User.findOne({username: blockUsername})
+        if (!blockUser) {
+            return res.status(404).json({errorMessage: "User you are trying to block is not found"})
+        }
+
+        const user = await User.findById(userID);
+        if (!user) {
+            return res.status(404).json({errorMessage: "User not found"});
+        }
+
+        for (let i = 0; i < user.groups.length; i++) {
+            // go through each group
+            const groupID = user.groups[i];
+            console.log(groupID)
+            const group = await Group.findById(groupID);
+            if (!group) {
+                return ret.status(404).json({errorMessage: "Group not found"});
+            }
+            console.log("group: " + group)
+            let found;
+            for (let j = 0; j < group.userList.length; j++) {
+                if (group.userList[j].toString() === blockUser._id.toString()) {
+                    found = 1;
+                    break;
+                }
+                found = 0;
+            }
+            console.log("found: " + found)
+
+            if (found) {
+                // if you are leaving a group you are admin in
+                if (group.adminUserID.toString() === user._id.toString()) {
+                    // set to any random person in the group
+                    const newAdmin = group.userList.find((id) => id.toString() !== user._id.toString());
+                    group.adminUserID = newAdmin;
+                    const newAdminUser = await User.findById(newAdmin)
+                    group.adminUserName = newAdminUser.name;
+                }
+                // leaving said group
+                // deleting posts from that group
+                for (let i = 0; i < group.prompts.length; i++) {
+                    const prompt = await Prompt.findById(group.prompts[i]);
+                    prompt.posts = prompt.posts.filter((owner) => owner.toString() === userID.toString())
+                    await prompt.save();
+                }
+
+                // remove user from group's user list
+                group.userList = group.userList.filter((id) => id.toString() !== user._id.toString());
+                await group.save();
+
+                // remove group from user's group list
+                user.groups = user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
+                await user.save();
+
+                // if no one left, delete group
+                if (group.userList.length === 0) {
+                    await Group.findByIdAndDelete(groupID);
+                }
+            }
+        }
+        return res.status(200).json({leaveSuccess: true})
+
+    } catch (error) {
+        console.log("leaveAllGroups module " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
