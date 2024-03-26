@@ -281,8 +281,8 @@ module.exports.leaveGroup = async(req, res, next) => {
 
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
-            const prompt = await Prompt.findById(group.prompts[i]);
-            prompt.posts = prompt.posts.filter((owner) => owner.toString() === userID.toString())
+            const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
+            prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
             await prompt.save();
         }
 
@@ -366,7 +366,8 @@ module.exports.deleteGroup = async(req, res) => {
                         }
                     }
                 ]);
-                if (result && result.length > 0) {
+                console.log(result)
+                if (result !== null && result.length > 0) {
                     let groupsInfo = [];
                     result[0].groupInfo.forEach(group => {
                         groupsInfo.push({
@@ -542,8 +543,8 @@ module.exports.kickUser = async (req, res) => {
                 if (kickUser.groups[i]._id.toString() === groupID) {
                     // delete posts from user
                     for (let i = 0; i < group.prompts.length; i++) {
-                        const prompt = await Prompt.findById(group.prompts[i]);
-                        prompt.posts = prompt.posts.filter((owner) => owner.toString() === userID.toString())
+                        const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
+                        prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== kickUser._id.toString())
                         await prompt.save();
                     }
 
