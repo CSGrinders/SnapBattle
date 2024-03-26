@@ -11,12 +11,8 @@ import {
 } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import BackButton from '../../Components/Button/BackButton';
-import Logo from "../../assets/logo.webp";
 import axios from 'axios';
 import { Input } from '@rneui/themed';
-import { Button } from '@rneui/base';
-import GroupSettingsSubmitIcon from '../../Components/Group/SubmitSettingsIcon';
-import ProfilePicture from '../../Components/Profile/ProfilePicture';
 import SendIcon from "../../assets/send.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
@@ -37,11 +33,6 @@ const Comment = ({size, route, navigation}) => {
     const [comments, setComments] = useState([])
     const [commentsEnabled, setCommentsEnabled] = useState(false)
     const [commentTyped, setCommentTyped] = useState('');
-// <<<<<<< HEAD
-//     const [submitVisible, setSubmitVisible] = useState(false);
-// =======
-    const [commentToggle, setCommentToggle] = useState(false);
-// >>>>>>> origin/main
     const [replyToID, setReplyToID] = useState('');
     const [replyToUserName, setReplyToUserName] = useState('');
     const [editComment, setEditComment] = useState(false)

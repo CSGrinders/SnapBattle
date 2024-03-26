@@ -20,7 +20,7 @@
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 const Prompt = require("../../Models/Prompt");
-const {Post} = require("../../Models/Post");
+const {Post, Comment} = require("../../Models/Post");
 
 const {getPhoto} = require("../Profile/ProfileController");
 const {
@@ -282,6 +282,24 @@ module.exports.leaveGroup = async(req, res, next) => {
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
             const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
+            for (let j = 0; j < prompt.posts.length; j++) {
+                // delete comments of that user
+                const post = await Post.findById(prompt.posts[j]).populate('comments');
+                if (post.comments.length === 0 || post.owner.toString() === user._id.toString()) {
+                    break;
+                }
+                for (let k = 0; k < post.comments.length; k++) {
+                    const comment = await Comment.findById(post.comments[k])
+                    if (comment !== null) {
+                        if (comment.userID.toString() === user._id.toString()) {
+                            await deleteComment(comment._id);
+                        }
+                    }
+                }
+                console.log(post.comments)
+                post.comments = post.comments.filter((comment) => comment.userID.toString() !== userID.toString())
+                await post.save();
+            }
             prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
             await prompt.save();
         }
@@ -307,6 +325,25 @@ module.exports.leaveGroup = async(req, res, next) => {
         console.log("leaveGroup module " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
+}
+
+async function deleteComment(commentID) {
+    // find comment
+    const comment = await Comment.findById(commentID);
+    // if comment does not have any replies
+    if (comment.replyBy.length !== 0) { // if original comment has replies
+        // delete all replies to that comment
+        for (let i = 0; i < comment.replyBy.length; i++) {
+            await deleteComment(comment.replyBy[i]);
+        }
+    }
+    // if comment is a reply to another comment, edit parent comment's replyBy
+    if (comment.replyTo !== null) {
+        const parent = await Comment.findById(comment.replyTo).populate('replyBy');
+        parent.replyBy = parent.replyBy.filter((reply) => reply._id.toString() !== comment._id.toString())
+    }
+    // delete comment
+    await Comment.findByIdAndDelete(comment._id);
 }
 
 /**
