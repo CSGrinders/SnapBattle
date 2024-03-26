@@ -28,7 +28,8 @@ const {
     getDownloadURL
 } = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
-const {sendGroups, kickUpdateStatus} = require("../../ServerSocketControllers/GroupHomeSocket");
+const {kickUpdateStatus} = require("../../ServerSocketControllers/GroupHomeSocket");
+const {sendGroups} = require("../../ServerSocketControllers/GroupMainSocket");
 const {signOut} = require("../Auth/AuthController");
 
 /**
