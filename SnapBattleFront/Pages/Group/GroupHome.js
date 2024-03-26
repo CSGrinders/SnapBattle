@@ -70,6 +70,7 @@ function GroupHome({route, navigation}) {
 
     useFocusEffect(
         useCallback(() => {
+            console.log("ID BRUH" + groupID);
             axios.get(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
             )

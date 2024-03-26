@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const Group = require("../Models/Group");
 
 const userSocketMap = {};
+let group = {};
 let io_s;
 exports.groupHomeUpdates = (io) => {
     io_s = io;
@@ -16,6 +17,7 @@ exports.groupHomeUpdates = (io) => {
                 const roomChat = `${groupID}_grouproom`
                 switch (mode) {
                     case "update":
+                        group[user.userId] = groupID;
                         console.log(`${user.userId} joined their group ${roomChat} group room.`);
                         socket.join(roomChat);
                         userSocketMap[user.userId] = socket.id;
@@ -34,6 +36,7 @@ exports.groupHomeUpdates = (io) => {
                             const clients = Array.from(io.sockets.adapter.rooms.get(roomChat));
                             console.log(`Clients in ${roomChat}:`, clients);
                         }
+                        delete group[token];
                         delete userSocketMap[token];
                         break;
                 }
@@ -103,7 +106,11 @@ exports.groupHomeUpdates = (io) => {
 exports.kickUpdateStatus = (userID, otherUserID, groupID) => {
     console.log("Sending update status");
     const socketId = userSocketMap[userID];
+    const groupUser = group[userID];
     console.log(socketId)
+    if (groupID !== groupUser) {
+        return
+    }
     if (socketId) {
         io_s.to(socketId).emit('groupHome', {kicked: true, userID: userID, otherUserID: otherUserID, groupID: groupID });
     }

@@ -2,7 +2,7 @@ import React, {createContext, useCallback, useEffect, useState} from "react";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
-import { io } from "socket.io-client";
+import {io} from "socket.io-client";
 import {getUserInfo} from "./Storage";
 import {useNavigation} from "@react-navigation/native";
 import InfoPrompt from "../Components/Prompts/InfoPrompt";
@@ -10,8 +10,7 @@ import InfoPrompt from "../Components/Prompts/InfoPrompt";
 export const SocketContext = createContext();
 
 
-
-export const SocketProvider = ({ children }) => {
+export const SocketProvider = ({children}) => {
     const [socket, setSocket] = useState(null);
     const [currentRoom, setCurrentRoom] = useState(null);
     const [infoMessage, setInfoMessage] = useState("")
@@ -29,8 +28,9 @@ export const SocketProvider = ({ children }) => {
                 setInfoState(true);
                 setInfoMessage("You have been kicked from the group.");
                 socketInstance.emit('groupHome', updateDetails.userID, "leave", updateDetails.groupID);
+                setCurrentRoom(null);
                 setTimeout(() => {
-                    navigation.navigate("Main", {userID:  updateDetails.userID})
+                    navigation.navigate("Main", {userID: updateDetails.userID})
                 }, 1000)
             }
         })
@@ -43,15 +43,16 @@ export const SocketProvider = ({ children }) => {
     const joinRoom = (token, groupID) => {
         if (socket && groupID) {
             socket.emit('groupHome', token, "update", groupID);
+
         }
     };
 
 
     // Leave a group room
     const leaveRoom = (token, groupID) => {
+        console.log(groupID)
         if (socket) {
             socket.emit('groupHome', token, "leave", groupID);
-            socket.off('groupHome');
         }
     };
 

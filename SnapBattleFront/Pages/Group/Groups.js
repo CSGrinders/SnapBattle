@@ -59,8 +59,6 @@ function Groups({route, navigation}) {
     const [infoPrompt, setInfoPrompt] = useState(false);
 
     const [confirm, setConfirm] = useState(false);
-    const [groupAdmin, setGroupAdmin] = useState('');
-    const [groupCount, setGroupCount] = useState(0);
     const [confirmGroup, setConfirmGroup] = useState('');
     const [confirmStatus, setConfirmStatus] = useState('');
 
@@ -70,7 +68,6 @@ function Groups({route, navigation}) {
 
     const [refresh, applyRefresh] = useState(false);
     const {socket, joinRoom} = useContext(SocketContext);
-    const [createdGroup, setCreatedGroup] = useState(false);
 
 
     //getting user information
@@ -364,8 +361,6 @@ function Groups({route, navigation}) {
                                     setConfirm(true);
                                     setConfirmStatus("Are you sure?");
                                     setConfirmGroup(group.groupID);
-                                    setGroupAdmin(group.adminName);
-                                    setGroupCount(group.usersCount);
                                 }}>
                                     <Image
                                         source={LeaveButton}

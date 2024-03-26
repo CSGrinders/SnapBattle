@@ -47,12 +47,12 @@ module.exports.getGroups = async(req, res)=> {
         //get user's groups as an array of {_id, name}
         //get user's group invites as an array of {_id, name}
         const user = await User.findById(userID)
-            .populate('groups', 'name adminName userList')
+            .populate('groups', 'name adminName')
             .populate('invites', 'name');
         if (user) {
             let username = user.username;
             let groups = user.groups;
-            groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name, adminName: group.adminName, usersCount : group.userList.length}));
+            groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name, adminName: group.adminName}));
             let invites = user.invites
             invites = invites.map((group) => ({groupID: group._id.toString(), name: group.name}))
             res.status(200).json({username, invites, groups});
@@ -359,7 +359,6 @@ module.exports.deleteGroup = async(req, res) => {
                                         groupID: "$$group._id",
                                         name: "$$group.name",
                                         adminName: '$$group.adminName',
-                                        usersCount: '$$group.userList.length'
                                     }
                                 }
                             }
@@ -374,7 +373,6 @@ module.exports.deleteGroup = async(req, res) => {
                             groupID: group.groupID.toString(),
                             name: group.name,
                             adminName: group.adminName,
-                            usersCount : group.userList.length,
                         });
                     });
                     sendGroups(users[i]._id.toString(), { groups: groupsInfo })
@@ -464,8 +462,6 @@ module.exports.checkAdmin = async(req, res) => {
     try {
         const {userID, groupID} = req.params;
         const group = await Group.findById(groupID);
-        console.log(group.adminUserID)
-        console.log(userID)
         if (group) {
             if (group.adminUserID.toString() === userID && group.userList.length > 1) {
                 return res.status(200).json({admin: true})
@@ -491,11 +487,8 @@ module.exports.transferAdmin = async (req, res) => {
     try {
         const {userID, groupID} = req.params;
         const newAdminUsername = req.body.newAdminUsername;
-        console.log(newAdminUsername)
         const newAdminUser = await User.findOne({username: newAdminUsername})
-        console.log(newAdminUser)
         const group = await Group.findById(groupID);
-        console.log(group)
         if (newAdminUser) {
             // check that user did not input themselves
             if (newAdminUser._id === userID) {
