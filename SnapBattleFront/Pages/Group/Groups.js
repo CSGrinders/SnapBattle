@@ -69,7 +69,7 @@ function Groups({route, navigation}) {
     const [newAdminUsername, setNewAdminUsername] = useState('')
 
     const [refresh, applyRefresh] = useState(false);
-    const socket = useContext(SocketContext);
+    const {socket, joinRoom} = useContext(SocketContext);
     const [createdGroup, setCreatedGroup] = useState(false);
 
 
@@ -79,12 +79,12 @@ function Groups({route, navigation}) {
             getGroups();
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
                 if (info) {
-                    socket.emit("groupUpdate", info, "groupsMain");
+                    socket.emit("groupsUpdate", info, "groupsMain");
                     setToken(info);
                 }
             })
 
-            socket.on("groupUpdate", (updateDetails) => {
+            socket.on("groupsUpdate", (updateDetails) => {
                 if (updateDetails.type === "groupInvite") {
                     console.log("New group invite received:", updateDetails.updateDetails.groupInvites);
                     setGroupInvites(updateDetails.updateDetails.groupInvites);
@@ -99,8 +99,9 @@ function Groups({route, navigation}) {
             });
 
             return () => {
-                socket.off('groupUpdate');
-                socket.emit('groupUpdate', userID, "leave");
+
+                socket.off('groupsUpdate');
+                socket.emit('groupsUpdate', userID, "leave");
             };
         }, [userID, EXPO_PUBLIC_USER_TOKEN, socket])
     )
@@ -217,37 +218,24 @@ function Groups({route, navigation}) {
             })
     }
 
-    function checkAdmin(groupUsername) {
-        if (groupUsername === username && groupCount > 1) {
-            setTransferVisible(true);
-        } else {
-            leaveGroup(confirmGroup);
-            setConfirmGroup('');
-            setGroupAdmin('');
-            setGroupCount(0);
-        }
-    }
-    /*
+
     function checkAdmin(groupID) {
         axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/checkadmin`)
             .then((res) => {
                 if (res.data.admin) {
-                    console.log("is admin")
                     setTransferVisible(true);
-                    console.log(transferVisible)
                 } else {
-                    console.log("is not admin")
                     leaveGroup(confirmGroup);
                 }
             }).catch((error) => {
                 const {status, data} = error.response;
-                console.log(data)
+                console.log("Main Group page: " + error);
                 setErrorMessageServer(data.errorMessage);
                 setErrorServer(true);
         })
     }
 
-     */
+
 
     function transferPermissions(groupID) {
         axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/transfer-admin`, {
@@ -361,12 +349,14 @@ function Groups({route, navigation}) {
                             >
                                 <Button
                                     buttonStyle={{width: 200}}
-                                    onPress={() => navigation.navigate("GroupHome", {
+                                    onPress={() => {navigation.navigate("GroupHome", {
                                         userID: userID,
                                         groupID: group.groupID,
                                         username: username,
-                                        token: token
-                                    })}
+                                        token: token,
+                                    })
+                                        joinRoom(token, group.groupID);
+                                    }}
                                 >
                                     {group.name}
                                 </Button>
@@ -426,7 +416,7 @@ function Groups({route, navigation}) {
             <ConfirmPrompt Message={confirmStatus} state={confirm} setState={setConfirm}
                            command={() => {
                                setConfirm(false);
-                               checkAdmin(groupAdmin);
+                               checkAdmin(confirmGroup);
                            }}>
             </ConfirmPrompt>
             <Modal

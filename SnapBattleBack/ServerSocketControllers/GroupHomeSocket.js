@@ -1,33 +1,50 @@
 const jwt = require("jsonwebtoken");
 const Group = require("../Models/Group");
 
-
+const userSocketMap = {};
 let io_s;
-exports.groupChatUpdates = (io) => {
+exports.groupHomeUpdates = (io) => {
     io_s = io;
     io.on("connection", (socket) => {
-        socket.on("joinGroupChatRoom", (token, mode, groupID) => {
+        socket.on("groupHome", (token, mode, groupID) => {
             try {
                 let user;
                 if (mode !== "leave") {
                     user = jwt.verify(token, process.env.TOKEN_KEY);
                     if (!user) return socket.disconnect();
                 }
-                const roomChat = `${groupID}_chatroom`
+                const roomChat = `${groupID}_grouproom`
                 switch (mode) {
                     case "update":
-                        console.log(`${user.userId} joined their group ${roomChat} chat room.`);
+                        console.log(`${user.userId} joined their group ${roomChat} group room.`);
                         socket.join(roomChat);
+                        userSocketMap[user.userId] = socket.id;
+                        console.log(`SOCKET ID ${socket.id}`);
+                        if (io.sockets.adapter.rooms.has(roomChat)) {
+                            const clients = Array.from(io.sockets.adapter.rooms.get(roomChat));
+                            console.log(`Clients in ${roomChat}:`, clients);
+                        }
+                        console.log("UPDATE")
                         break;
                     case "leave":
-                        console.log(`${token} left their group ${roomChat} chat room.`);
-                        socket.leave(token);
+                        console.log(`${token} left their group ${roomChat} group room.`);
+                        socket.leave(roomChat);
+                        console.log('Current rooms and clients:');
+                        if (io.sockets.adapter.rooms.has(roomChat)) {
+                            const clients = Array.from(io.sockets.adapter.rooms.get(roomChat));
+                            console.log(`Clients in ${roomChat}:`, clients);
+                        }
+                        delete userSocketMap[token];
                         break;
                 }
             } catch (error) {
+                Object.keys(userSocketMap).forEach(userId => {
+                    if (userSocketMap[userId] === socket.id) {
+                        delete userSocketMap[userId];
+                        console.log(`${userId} disconnected and was removed from their group room.`);
+                    }
+                });
                 socket.disconnect();
-                console.log(error);
-                console.log("Server: Something went wrong updating information to client.");
             }
         });
 
@@ -68,7 +85,7 @@ exports.groupChatUpdates = (io) => {
                     {new: true, upsert: true}
                 )
                     .then(updatedGroup => {
-                        const roomChat = `${groupID}_chatroom`
+                        const roomChat = `${groupID}_grouproom`
                         socket.broadcast.to(roomChat).emit('message', messageToAdd);
                     })
                     .catch(error => {
@@ -82,3 +99,12 @@ exports.groupChatUpdates = (io) => {
 
     })
 };
+
+exports.kickUpdateStatus = (userID, otherUserID, groupID) => {
+    console.log("Sending update status");
+    const socketId = userSocketMap[userID];
+    console.log(socketId)
+    if (socketId) {
+        io_s.to(socketId).emit('groupHome', {kicked: true, userID: userID, otherUserID: otherUserID, groupID: groupID });
+    }
+}

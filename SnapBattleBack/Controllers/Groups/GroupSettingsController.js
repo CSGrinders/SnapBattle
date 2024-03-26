@@ -15,7 +15,7 @@
  */
 
 const Group = require('../../Models/Group')
-const {sendGroups} = require("../../ServerSocketControllers/GroupSocket");
+const {sendGroups} = require("../../ServerSocketControllers/GroupHomeSocket");
 const {populateAndSendGroups} = require("./GroupActionsController");
 const {User} = require("../../Models/User");
 

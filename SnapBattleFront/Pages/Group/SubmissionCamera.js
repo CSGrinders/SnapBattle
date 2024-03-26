@@ -1,7 +1,7 @@
 import {KeyboardAvoidingView, Platform, Text, TouchableOpacity, View, Image} from "react-native";
 import {Camera, CameraType, FlashMode} from "expo-camera";
 import {useFocusEffect, useIsFocused} from "@react-navigation/native";
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useContext, useEffect, useRef, useState} from "react";
 import {Button, Overlay} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 import CameraButton from '../../assets/take-photo.webp'
@@ -10,10 +10,12 @@ import FlashButton from '../../assets/flash.webp'
 import * as MediaLibrary from 'expo-media-library'
 import AsyncAlert from "../../Components/AsyncAlert";
 import axios from "axios";
+import {SocketContext} from "../../Storage/Socket";
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function SubmissionCamera({route, navigation}) {
-    const {userID, groupID} = route.params
+    const {userID, groupID, token} = route.params
 
     const isFocused = useIsFocused()
     const [permission, setPermission] = useState(false)
@@ -27,6 +29,10 @@ function SubmissionCamera({route, navigation}) {
 
     //display status for pop-up message
     const [overlayVisible, setOverlayVisible] = useState(false)
+    const {socket, leaveRoom} = useContext(SocketContext);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [successState, setSuccessState] = useState(false);
+
 
     //change flash mode from on->off or off->on
     function changeFlashMode() {
@@ -172,7 +178,7 @@ function SubmissionCamera({route, navigation}) {
                         setOverlayVisible(false)
                     }}/>
                 </Overlay>
-
+                <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
             </KeyboardAvoidingView>
         )
     }

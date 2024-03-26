@@ -28,7 +28,8 @@ const {
     getDownloadURL
 } = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
-const {sendGroups} = require("../../ServerSocketControllers/GroupSocket");
+const {sendGroups, kickUpdateStatus} = require("../../ServerSocketControllers/GroupHomeSocket");
+const {signOut} = require("../Auth/AuthController");
 
 /**
  * desc
@@ -171,7 +172,6 @@ module.exports.listUsers = async(req, res) => {
         const group = await Group.findById(groupID).populate('userList');
 
         if (group) {
-            console.log(group.userList)
             return res.status(200).json({list: group.userList, adminUser: group.adminUserID})
         } else {
             return res.status(404).json({errorMessage: "Group not found."})
@@ -530,7 +530,6 @@ module.exports.kickUser = async (req, res) => {
         const {kickUsername} = req.body;
         const kickUser = await User.findOne({username: kickUsername});
         console.log(group.name);
-
         if (group && kickUser) {
             // check if user is admin user
             if (group.adminUserID.toString() !== userID) {
@@ -554,10 +553,13 @@ module.exports.kickUser = async (req, res) => {
                     // Remove user from group's user list
                     group.userList = group.userList.filter((id) => id.toString() !== kickUser._id.toString());
                     await group.save();
+
+                    console.log("Kicking user");
+                    kickUpdateStatus(kickUser._id.toString(), userID, groupID);
                     return res.status(200).json({userKicked: true});
                 }
             }
-            return res.status(404).json({errorMessage: "User is not a part of this group"});
+            return res.status(404).json({errorMessage: "User is not a part of this group."});
         }
     } catch (error) {
         console.log("kickUser module: " + error);

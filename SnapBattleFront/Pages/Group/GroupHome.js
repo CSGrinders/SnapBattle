@@ -10,12 +10,14 @@ import {Image} from "expo-image";
 import LeaderBoard from '../../assets/Leaderboard.webp';
 import DailyPrompt from "../../Components/DailyPrompt/DailyPrompt";
 import PostComponent from "../../Components/DailyPrompt/PostComponent";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import axios from "axios";
-import {useFocusEffect} from "@react-navigation/native";
+import {useFocusEffect, useIsFocused} from "@react-navigation/native";
 import {useCountdown} from "../../Components/DailyPrompt/useCountdown";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
+import {SocketContext} from "../../Storage/Socket";
+import GroupBackButton from "../../Components/Button/GroupBackButton";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function GroupHome({route, navigation}) {
@@ -54,12 +56,18 @@ function GroupHome({route, navigation}) {
 
     //opacity of camera
     const [camOpacity, setCamOpacity] = useState(0.5)
+    const isFocused = useIsFocused();
 
     //variables for the info pop-up
     const [infoMessage, setInfoMessage] = useState("")
     const [infoState, setInfoState] = useState(false)
+    //const socket = useContext(SocketContext);
+    const { joinRoom, leaveRoom, socket } = useContext(SocketContext);
 
     //gets the prompt object and underlying post and comment data
+
+
+
     useFocusEffect(
         useCallback(() => {
             axios.get(
@@ -89,8 +97,10 @@ function GroupHome({route, navigation}) {
                 .catch((err) => {
                     console.log(err)
                 })
-        }, [refresh])
+        }, [refresh, userID])
     )
+
+
 
     function clickCamera() {
         if (camOpacity === 0.5) {
@@ -120,7 +130,7 @@ function GroupHome({route, navigation}) {
                     width: width * 0.15,
                     paddingBottom: 20,
                 }}>
-                    <BackButton size={50} navigation={navigation}/>
+                    <GroupBackButton size={50} navigation={navigation} userID={userID} leaveRoom={leaveRoom} groupID={groupID}/>
                 </View>
                 <View style={{width: width * 0.7, justifyContent: 'center', alignItems: 'center'}}>
                     <Image style={{

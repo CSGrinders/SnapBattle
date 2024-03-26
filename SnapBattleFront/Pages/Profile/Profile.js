@@ -38,6 +38,7 @@ function Profile({route, navigation}) {
 
     const [pfpSeed, setPfpSeed] = useState(1);
 
+
     useFocusEffect(
         useCallback(() => {
             getUserInfo();

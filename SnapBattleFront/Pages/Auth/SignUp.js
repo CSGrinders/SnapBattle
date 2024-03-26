@@ -155,7 +155,7 @@ function SignUp({navigation}) {
                                 );
                         }
                         setAuthToken(token).then(null);
-                        navigation.navigate('Groups', {userID: userID}); //Success and navigating to main screen
+                        navigation.navigate('Main', {userID: userID}); //Success and navigating to main screen
                     }
                 }
             ).catch((error) => { //There was an error in fields or server connection

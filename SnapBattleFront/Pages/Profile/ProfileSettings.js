@@ -99,7 +99,7 @@ function ProfileSettings({route, navigation}) {
                 setInfoPrompt(true);
                 setInfoMessage("Image Uploaded");
                 setImage(selectedImage.assets[0].uri);
-                setProfileImageCache(selectedImage.assets[0].uri);
+                //setProfileImageCache(selectedImage.assets[0].uri);
             }
         } catch (error) {
             console.log("Profile settings page: " + error);

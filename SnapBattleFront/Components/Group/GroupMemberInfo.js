@@ -20,7 +20,8 @@ function GroupMemberInfo({navigation,
                              setError,
                              setErrorMessage,
                              setKickUser,
-                             kickFunc}) {
+                             setKick
+}) {
     function handleOnPress() {
         try {
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/visit-member-profile`, {
@@ -50,8 +51,7 @@ function GroupMemberInfo({navigation,
 
     function kick() {
         setKickUser(searchUsername);
-        kickFunc();
-        console.log("please")
+        setKick(true);
     }
 
 
