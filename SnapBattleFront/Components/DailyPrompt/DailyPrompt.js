@@ -7,9 +7,7 @@ import {useCountdown} from "./useCountdown";
 const {width, height} = Dimensions.get('window');
 
 
-const DailyPrompt = ({prompt, timeEnd, period, pageReload}) => {
-
-    const [days, hours, minutes, seconds] = useCountdown(timeEnd, pageReload)
+const DailyPrompt = ({prompt, days, hours, minutes, seconds, period}) => {
 
     let periodText;
     if (period === 0) {

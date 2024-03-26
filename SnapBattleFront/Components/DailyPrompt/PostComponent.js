@@ -10,7 +10,7 @@ import OptionsIcon from "../../assets/dotdotdot.webp"
 
 
 
-const PostComponent = ({size, posts, route, navigation}) => {
+const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, setActivePostID}) => {
 
     const {username, userID, groupID, token} = route.params;
 
@@ -32,8 +32,6 @@ const PostComponent = ({size, posts, route, navigation}) => {
         );
     };
 
-    //current index of the carousel
-    const [activeIndex, setActiveIndex] = useState(0)
     const ref = useRef(null)
 
     //each item is a post w/ the same attributes as a post object in MongoDB
@@ -135,7 +133,10 @@ const PostComponent = ({size, posts, route, navigation}) => {
                     sliderWidth={width * 0.9- 10}
                     itemWidth={width * 0.9 - 10}
                     renderItem={renderItem}
-                    onSnapToItem={(index) => setActiveIndex(index)}
+                    onSnapToItem={(index) => {
+                        setActiveIndex(index)
+                        setActivePostID(posts[index]._id)
+                    }}
                     vertical={false}
                 />
                 {renderPageView()}
