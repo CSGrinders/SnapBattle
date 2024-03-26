@@ -37,9 +37,9 @@ function App() {
 
     //Don't touch unless you want add a page
     return (
-        <SocketProvider>
-            <ThemeProvider theme={theme}>
-                <NavigationContainer>
+        <ThemeProvider theme={theme}>
+            <NavigationContainer>
+                <SocketProvider>
                     <Stack.Navigator screenOptions={{headerShown: false}} initialRouteName="SignIn">
                         <Stack.Screen name="SignIn" options={{gestureEnabled: false}} component={SignIn}/>
                         <Stack.Screen name="SignUp" options={{gestureEnabled: false}} component={SignUp}/>
@@ -49,17 +49,17 @@ function App() {
                         <Stack.Screen name="CreateGroup" component={createNewGroup}/>
                         <Stack.Screen name="GroupMembers" component={GroupMembers}/>
                         <Stack.Screen name="Friends" component={Friends}/>
-                        <Stack.Screen name="Groups" options={{gestureEnabled: false}} component={Groups}/>
-                        <Stack.Screen name="GroupHome" component={GroupHome}/>
+                        <Stack.Screen name="Main" options={{gestureEnabled: false}} component={Groups}/>
+                        <Stack.Screen name="GroupHome" options={{gestureEnabled: false}} component={GroupHome}/>
                         <Stack.Screen name="OtherProfile" component={OtherProfile}/>
-                        <Stack.Screen name="Camera" component={SubmissionCamera} />
-                        <Stack.Screen name="GroupChat" component={GroupChat} />
-                        <Stack.Screen name="Prompts" component={GroupChat} />
+                        <Stack.Screen name="Camera" component={SubmissionCamera}/>
+                        <Stack.Screen name="GroupChat" component={GroupChat}/>
+                        <Stack.Screen name="Prompts" component={GroupChat}/>
                         <Stack.Screen name="Comments" component={Comment}/>
                     </Stack.Navigator>
-                </NavigationContainer>
-            </ThemeProvider>
-        </SocketProvider>
+                </SocketProvider>
+            </NavigationContainer>
+        </ThemeProvider>
     );
 }
 

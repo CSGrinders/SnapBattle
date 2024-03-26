@@ -7,11 +7,12 @@ import {
     Pressable,
     ScrollView,
     Text,
-    View
+    View,
+    RefreshControl,
 } from "react-native";
 import {Image} from "expo-image";
 import {Button, Input} from "@rneui/themed";
-import {useCallback, useState} from "react";
+import {useCallback, useContext, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN} = process.env
@@ -23,10 +24,11 @@ import BackButton from "../../Components/Button/BackButton";
 import {getUserInfo} from "../../Storage/Storage";
 import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
+import {SocketContext} from "../../Storage/Socket";
 
 function GroupMembers({route, navigation}) {
 
-    const {userID, groupID} = route.params;
+    const {userID, groupID, token} = route.params;
     const {width, height} = Dimensions.get('window');
 
     //state for whether the invite box is open or not
@@ -54,26 +56,29 @@ function GroupMembers({route, navigation}) {
     //state for group members
     const [groupMembers, setGroupMembers] = useState([-1]);
     const [adminUser, setAdminUser] = useState("");
-    const [token, setToken] = useState("");
 
     // kick user
     const [kickUser, setKickUser] = useState("")
 
-        //getting information necessary for page display
-     useFocusEffect(
+    const [refreshing, setRefreshing] = useState(false);
+    const {socket, leaveRoom} = useContext(SocketContext);
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        getGroupMembers().finally(() => setRefreshing(false));
+    }, []);
+
+    //getting information necessary for page display
+    useFocusEffect(
         useCallback(() => {
-            getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
-                if (info) {
-                    setToken(info);
-                }
-            })
             getGroupMembers();
-        }, [])
+
+        }, [refreshing])
     )
 
     //get user's list of groups
     function getGroupMembers() {
-        axios.get(
+        return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/list-users/${groupID}`
         )
         .then((res) => {
@@ -126,10 +131,6 @@ function GroupMembers({route, navigation}) {
         setInvBoxVisibility(false);
     }
 
-    function kickOnClick() {
-         console.log("kick clicked")
-         setConfirmStatus(true);
-    }
 
     function kickFunc() {
         try {
@@ -137,9 +138,10 @@ function GroupMembers({route, navigation}) {
                 kickUsername: kickUser
             }).then((response) => {
                 let {userKicked} = response.data;
+                setGroupMembers(groupMembers.filter(member => member.username !== kickUser));
                 if (userKicked) {
                     setSuccessState(true);
-                    setSuccessMessage("User kicked successfully.");
+                    setSuccessMessage(kickUser + " has ben kicked successfully.");
                 }
             })
         } catch (error) {
@@ -158,7 +160,6 @@ function GroupMembers({route, navigation}) {
                 transparent={true}
                 visible={invBoxVisible}
                 onRequestClose={() => {
-                    Alert.alert('Modal has been closed.')
                     setInvBoxVisibility(false)
                     setInvStatusMsg("")
             }}>
@@ -227,7 +228,8 @@ function GroupMembers({route, navigation}) {
                 width: width,
                 flex: 1
             }}>
-                <ScrollView>
+                <ScrollView  refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
                     {(groupMembers[0]!== -1) ? groupMembers.map((member) => {
                         return (
                             <View key={uuid.v4()} style={{
@@ -252,7 +254,7 @@ function GroupMembers({route, navigation}) {
                                     setSuccess={successState}
                                     setSuccessMessage={setSuccessMessage}
                                     setKickUser={setKickUser}
-                                    kickFunc={kickOnClick}
+                                    setKick={setConfirmStatus}
                                 />
                             </View>
                         )

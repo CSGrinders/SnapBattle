@@ -11,6 +11,8 @@ export function saveImageToCloud(userID, base64data) {
     )
         .then(res => {
             console.log("SaveImageToCloud: Image uploaded correctly -> ", res.data);
+            setProfileImageCache(res.data.url);
+
         })
         .catch(error => {
             console.error("SaveImageToCloud: error while uploading image -> ", error);

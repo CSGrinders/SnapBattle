@@ -14,7 +14,7 @@
 
 const {User} = require("../../Models/User");
 const Group = require("../../Models/Group");
-const { sendGroupInvites } = require('../../ServerSocketControllers/GroupSocket');
+const { sendGroupInvites } = require('../../ServerSocketControllers/GroupMainSocket');
 
 
 /**
