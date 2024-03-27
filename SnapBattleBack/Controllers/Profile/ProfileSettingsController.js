@@ -171,17 +171,45 @@ module.exports.deleteAccount = async(req, res)=> {
             }
 
             //nested-populate to find all user's groups, containing all prompts, posts, and comments
-            await user.populate({path: 'groups', populate: {path: 'prompts', populate: {path: 'posts', populate: 'comments'}}});
+            await user.populate({
+                path: 'groups',
+                populate: [
+                    {
+                        path: 'prompts',
+                        populate: {
+                            path: 'posts',
+                            populate: 'comments'
+                        }
+                    },
+                    {
+                        path: 'messages',
+                        populate: {
+                            path: 'user',
+                            select: '_id name avatar'
+                        }
+                    }
+                ]
+            });
+
             let groups = user.groups;
             if (groups) {
                 for (let i = 0; i < groups.length; i++) {
                     let group = groups[i]
 
+                    // messages replace with delete user
+                    for (let j = 0; j < group.messages.length; j++) {
+                        let message = group.messages[j];
+                        if (message.user._id === userID) {
+                            message.user.name = 'Deleted User';
+                            message.user.avatar = 'https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/default-profile-picture.webp?alt=media&token=9e817ce9-4a9a-40f0-9267-696eb4791f80';
+                        }
+                    }
+
                     //deleting all posts and comments associated w/ user
                     for (let j = 0; j < group.prompts.length; j++) {
                         let prompt = group.prompts[j]
                         for (let k = 0; k < prompt.posts.length; k++) {
-                            let post = prompt.posts[k]
+                            let post = prompt.posts[k];
 
                             //post is owned by user -> delete both post and all of its comments
                             if (post.owner.toString() === userID) {
@@ -214,6 +242,8 @@ module.exports.deleteAccount = async(req, res)=> {
                     }
                 }
             }
+
+
 
             //deleting user from other people's frineds
             await user.populate('friends');

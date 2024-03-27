@@ -29,10 +29,10 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config()
 const {MONGO_URL, PORT} = process.env;
 const {createServer} = require("http");
-const {groupUpdates} = require("./ServerSocketControllers/GroupSocket");
+const {groupUpdates} = require("./ServerSocketControllers/GroupMainSocket");
 const {friendUpdates} = require("./ServerSocketControllers/FriendsSocket");
 const {otherUpdates} = require("./ServerSocketControllers/ProfileSocket");
-const {groupChatUpdates} = require("./ServerSocketControllers/ChatSocket");
+const {groupHomeUpdates} = require("./ServerSocketControllers/GroupHomeSocket");
 const app = express()
 const server = createServer(app);
 const io = socketIo(server);
@@ -41,7 +41,7 @@ const io = socketIo(server);
 groupUpdates(io, server);
 friendUpdates(io, server);
 otherUpdates(io, server);
-groupChatUpdates(io, server);
+groupHomeUpdates(io, server);
 
 // Connect to MongoDB
 mongoose

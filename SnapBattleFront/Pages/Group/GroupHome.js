@@ -5,55 +5,117 @@ import Logo from "../../assets/logo.webp";
 import Chat from "../../assets/chat.webp";
 import Camera from "../../assets/camera.webp";
 import Group from "../../assets/group.webp";
+import Vote from "../../assets/thumbs-up.jpg"
 import {Image} from "expo-image";
 import LeaderBoard from '../../assets/Leaderboard.webp';
 import DailyPrompt from "../../Components/DailyPrompt/DailyPrompt";
 import PostComponent from "../../Components/DailyPrompt/PostComponent";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import axios from "axios";
-import {useFocusEffect} from "@react-navigation/native";
+import {useFocusEffect, useIsFocused} from "@react-navigation/native";
+import {useCountdown} from "../../Components/DailyPrompt/useCountdown";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
+import {SocketContext} from "../../Storage/Socket";
+import GroupBackButton from "../../Components/Button/GroupBackButton";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function GroupHome({route, navigation}) {
     const {username, userID, groupID, token} = route.params
     const {width, height} = Dimensions.get('window');
-
     const [prompt, setPrompt] = useState("")
-    const [timeStart, setTimeStart] = useState(new Date())
-    const [timeEnd, setTimeEnd] = useState(new Date())
+
+    /*
+        PERIOD 0 = waiting period (have not reached submission period yet)
+        PERIOD 1 = submission period (users can submit posts)
+        PERIOD 2 = daily voting period (users can do their daily vote)
+        PERIOD 3 = weekly voting period
+        PERIOD 4 = results period - same as waiting period
+    */
+    const [period, setPeriod] = useState(0)
+
+    //timeEnd = the time of the next period; initially set to more than 1 day in the future
+    //          1 day in the future will render LOADING -> this is done to prevent errors with negatives :)
+    const [timeEnd, setTimeEnd] = useState(new Date(Date.now() + 48 * 60 * 60 * 1000))
+
+    //boolean whose change will refresh the page
+    const [refresh, setRefresh] = useState(false)
+    function handleRefresh() {
+        setRefresh((refresh) => !refresh)
+    }
+
+    //elements for the timer
+    const [days, hours, minutes, seconds] = useCountdown(timeEnd, handleRefresh)
+
+    //array of post objects
     const [posts, setPosts] = useState([])
-    const [camDisabled, setCamDisabled] = useState(true)
+
+    //index of current post in carousel
+    const [activeIndex, setActiveIndex] = useState(0)
+    const [activePostID, setActivePostID] = useState("")
+
+    //opacity of camera
     const [camOpacity, setCamOpacity] = useState(0.5)
+    const isFocused = useIsFocused();
+
+    //variables for the info pop-up
+    const [infoMessage, setInfoMessage] = useState("")
+    const [infoState, setInfoState] = useState(false)
+    //const socket = useContext(SocketContext);
+    const { joinRoom, leaveRoom, socket } = useContext(SocketContext);
+
     //gets the prompt object and underlying post and comment data
+
+
+
     useFocusEffect(
         useCallback(() => {
+            console.log("ID BRUH" + groupID);
             axios.get(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
             )
                 .then((res) => {
-                    const {promptObj, submissionAllowed} = res.data
+                    const {promptObj, submissionAllowed, period, timeEnd} = res.data
                     if (promptObj === null) {
                         setPrompt("Prompt has not been released yet")
                     }
                     else {
                         setPrompt(promptObj.prompt)
-                        setTimeStart(new Date(promptObj.timeStart))
-                        setTimeEnd(new Date(promptObj.timeEnd))
                         setPosts(promptObj.posts)
-                        setCamDisabled(!submissionAllowed)
-                        if (submissionAllowed) {
-                            setCamOpacity(1)
+                        if (promptObj.posts.length > 0) {
+                            setActivePostID(promptObj.posts[0]._id)
                         }
-                        else {
-                            setCamOpacity(0.5)
-                        }
+                    }
+                    setPeriod(period)
+                    setTimeEnd(timeEnd)
+                    if (submissionAllowed) {
+                        setCamOpacity(1)
+                    }
+                    else {
+                        setCamOpacity(0.5)
                     }
                 })
                 .catch((err) => {
                     console.log(err)
                 })
-        }, [])
+        }, [refresh, userID])
     )
+
+
+
+    function clickCamera() {
+        if (camOpacity === 0.5) {
+            setInfoMessage("You used all 3 submissions already")
+            setInfoState(true)
+        }
+        else {
+            navigation.navigate('Camera', route.params)
+        }
+    }
+
+    function clickVote() {
+        console.log("voting for post #" + activeIndex + ", with post ID of " + activePostID)
+    }
 
     return (
         <View>
@@ -69,7 +131,7 @@ function GroupHome({route, navigation}) {
                     width: width * 0.15,
                     paddingBottom: 20,
                 }}>
-                    <BackButton size={50} navigation={navigation}/>
+                    <GroupBackButton size={50} navigation={navigation} userID={userID} leaveRoom={leaveRoom} groupID={groupID}/>
                 </View>
                 <View style={{width: width * 0.7, justifyContent: 'center', alignItems: 'center'}}>
                     <Image style={{
@@ -97,14 +159,16 @@ function GroupHome({route, navigation}) {
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <DailyPrompt prompt={prompt} timeStart={timeStart} timeEnd={timeEnd}/>
+                <DailyPrompt prompt={prompt} period={period} days={days} hours={hours} minutes={minutes} seconds={seconds}/>
             </View>
             <View style={{
                 width: width,
                 alignItems: 'center',
                 height: height * 0.55
             }}>
-                <PostComponent posts={posts} route={route} navigation={navigation}/>
+                <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
+                               setActivePostID={setActivePostID}
+                />
             </View>
             <View style={{
                 flexDirection: 'row',
@@ -119,16 +183,32 @@ function GroupHome({route, navigation}) {
                         contentFit="contain"
                     />
                 </TouchableOpacity>
-                <TouchableOpacity
+                {period === 1 ?
+                    (<TouchableOpacity
                     style={{opacity: camOpacity}}
-                    disabled={camDisabled}
-                    onPress={() => navigation.navigate('Camera', route.params)}>
-                    <Image
-                        style={{width: 75, height: 75}}
-                        source={Camera}
-                        contentFit="contain"
-                    />
-                </TouchableOpacity>
+                    onPress={clickCamera}>
+                        <Image
+                            style={{width: 75, height: 75}}
+                            source={Camera}
+                            contentFit="contain"
+                        />
+                    </TouchableOpacity>)
+                    :
+                    <></>
+                }
+                {period === 2 || period === 3 ?
+                    (<TouchableOpacity
+                        onPress={clickVote}>
+                        <Image
+                            style={{width: 75, height: 75}}
+                            source={Vote}
+                            contentFit="contain"
+                        />
+                    </TouchableOpacity>)
+                    :
+                    <></>
+                }
+
                 <TouchableOpacity onPress={() => navigation.navigate('GroupMembers', route.params)}>
                     <Image
                     style={{width: 60, height: 60}}
@@ -137,6 +217,7 @@ function GroupHome({route, navigation}) {
                     />
                 </TouchableOpacity>
             </View>
+            <InfoPrompt Message={infoMessage} state={infoState} setEnable={setInfoState}></InfoPrompt>
         </View>
     )
 }

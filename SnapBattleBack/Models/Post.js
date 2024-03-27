@@ -75,10 +75,10 @@ const Comment = new mongoose.Schema({
     body: {
         type: String
     },
-    likes: {
-        type: Number,
-        default: 0
-    },
+    likes: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'User'
+    }],
     replyTo: {
         type: mongoose.Types.ObjectId,
         ref: 'Comment'

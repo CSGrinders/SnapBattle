@@ -42,7 +42,7 @@ module.exports.uploadPhoto = async(req, res)=> {
         const buffer = Buffer.from(base64data, 'base64');
 
         //compress the image by sharp
-        const compressedBuffer = await sharp(buffer).resize({ width: 600, height: 600 }).jpeg({ quality: 1 }).toBuffer();
+        const compressedBuffer = await sharp(buffer).resize({ width: 600, height: 600 }).jpeg({ quality: 2 }).toBuffer();
 
         const blob = new Blob([compressedBuffer], { type: 'image/jpeg' });
 
@@ -55,7 +55,7 @@ module.exports.uploadPhoto = async(req, res)=> {
         user.profilePicture = await getDownloadURL(imageRef)
         await user.save()
 
-        return res.status(200).json({status: "Image uploaded successfully."});
+        return res.status(200).json({status: "Image uploaded successfully.", url: user.profilePicture});
     } catch (error) {
         console.log("uploadPhoto module: " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});

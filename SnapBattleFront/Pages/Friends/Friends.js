@@ -52,7 +52,7 @@ function Friends({route, navigation}) {
     const [friendReqs, setFriendReqs] = useState([]);
     const [friends, setFriends] = useState([]);
     const [token, setToken] = useState([]);
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
 
     function searchUser() {
         axios.get(

@@ -34,7 +34,7 @@ const InfoPrompt = ({ Message, state, setEnable }) => {
             visible={invBoxVisible}
             onRequestClose={() => {
                 setInvBoxVisibility(false);
-                setError(false);
+                setEnable(false);
             }}
         >
             <View style={{

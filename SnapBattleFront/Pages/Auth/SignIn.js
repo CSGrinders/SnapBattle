@@ -105,7 +105,7 @@ function SignIn({navigation}) {
                     }
                     setAuthToken(token).then((success) => {console.log("Sign in page: Saved token in the anxios header.")});
                     resetFields();
-                    navigation.navigate('Groups', {userID: userID}); //Success and navigating to groups screen
+                    navigation.navigate('Main', {userID: userID}); //Success and navigating to groups screen
                 }
             }).catch((error) => {
                 const {status, data} = error.response;
@@ -158,7 +158,7 @@ function SignIn({navigation}) {
 
                                 setAuthToken(token).then(() => {});
                                 setTimeout(() => {
-                                    navigation.navigate('Groups', {userID: userID}); //Success and navigating to groups screen after 3 seconds
+                                    navigation.navigate('Main', {userID: userID}); //Success and navigating to groups screen after 3 seconds
                                 }, 2000);
                             }
                         })

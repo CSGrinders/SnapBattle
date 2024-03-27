@@ -11,6 +11,7 @@ import {useFocusEffect} from "@react-navigation/native";
 import axios from "axios";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import {SocketContext} from "../../Storage/Socket";
+import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL} = process.env;
 
@@ -25,8 +26,9 @@ function GroupChat({route, navigation}) {
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
     const [avatar, setAvatar] = useState("");
-    const socket = useContext(SocketContext);
-
+    const {socket} = useContext(SocketContext);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [successState, setSuccessState] = useState(false);
 
     useFocusEffect(
         useCallback(() => {
@@ -34,10 +36,8 @@ function GroupChat({route, navigation}) {
             if (avatar_img === 'default') {
                 setAvatar(EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL);
             } else {
-                console.log(avatar_img);
                 setAvatar(avatar_img);
             }
-            socket.emit('joinGroupChatRoom', token, "update", groupID);
             axios.get(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/getChat`
             )
@@ -55,11 +55,8 @@ function GroupChat({route, navigation}) {
                     setErrorServer(true);
                 });
 
-            return () => {
-                socket.off('joinGroupChatRoom');
-                socket.emit('joinGroupChatRoom', userID, "leave", groupID);
-            };
-        }, [userID])
+
+        }, [userID, EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL, EXPO_PUBLIC_API_URL, groupID])
     );
 
 
@@ -133,10 +130,11 @@ function GroupChat({route, navigation}) {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
-                height: height * 0.08,
+                height: height * 0.09,
             }}>
                 <View style={{
                     paddingLeft: 15,
+                    paddingBottom: 5,
                     alignItems: 'flex-start'
                 }}>
                     <BackButton size={50} navigation={navigation}/>
@@ -145,7 +143,7 @@ function GroupChat({route, navigation}) {
                     <Image style={{
                         width: 120,
                         height: 120,
-                        top: 10,
+                        top: 5,
                     }} source={require('../../assets/logo.webp')}></Image>
                 </View>
                 <View style={{marginRight: 10,}}>
@@ -301,6 +299,7 @@ function GroupChat({route, navigation}) {
                     }}
                 />
             </View>
+            <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
         </SafeAreaView>
     )

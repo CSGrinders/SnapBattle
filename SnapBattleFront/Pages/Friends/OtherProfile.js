@@ -29,7 +29,7 @@ function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
     const {searchName, searchUsername, searchBio, viewType, url, requestExists, userID, token} = route.params;
-    const socket = useContext(SocketContext);
+    const {socket} = useContext(SocketContext);
 
     const [image, setImage] = useState('');
 
@@ -196,7 +196,7 @@ function OtherProfile({route, navigation}) {
                 setInfoMessage("User blocked. You have left all the groups that you share with this user.")
                 setInfoPrompt(true);
                 setTimeout(() => {
-                    navigation.navigate("Groups", {userID})
+                    navigation.navigate("Main", {userID})
                 }, 2000)
             }
         }).catch((error) => {

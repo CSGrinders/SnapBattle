@@ -28,7 +28,9 @@ const {
     getDownloadURL
 } = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
-const {sendGroups} = require("../../ServerSocketControllers/GroupSocket");
+const {kickUpdateStatus} = require("../../ServerSocketControllers/GroupHomeSocket");
+const {sendGroups} = require("../../ServerSocketControllers/GroupMainSocket");
+const {signOut} = require("../Auth/AuthController");
 
 /**
  * desc
@@ -45,12 +47,12 @@ module.exports.getGroups = async(req, res)=> {
         //get user's groups as an array of {_id, name}
         //get user's group invites as an array of {_id, name}
         const user = await User.findById(userID)
-            .populate('groups', 'name adminName userList')
+            .populate('groups', 'name adminName')
             .populate('invites', 'name');
         if (user) {
             let username = user.username;
             let groups = user.groups;
-            groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name, adminName: group.adminName, usersCount : group.userList.length}));
+            groups = groups.map((group) => ({groupID: group._id.toString(), name: group.name, adminName: group.adminName}));
             let invites = user.invites
             invites = invites.map((group) => ({groupID: group._id.toString(), name: group.name}))
             res.status(200).json({username, invites, groups});
@@ -113,6 +115,13 @@ module.exports.createGroup = async(req, res) => {
             userList.push(user._id);
     
             const prompts = [];
+
+            //weekly voting day should be the "day of the week" that corresponds to yesterday
+            let day = new Date().getDay() - 1
+            if (day === -1) {
+                day = 6
+            }
+
     
             const newGroup = new Group({
                 name: groupName,
@@ -123,7 +132,8 @@ module.exports.createGroup = async(req, res) => {
                 adminName: user.username,
                 adminUserID: user._id,
                 timeToVote: timeToVote,
-                prompts: prompts
+                prompts: prompts,
+                weeklyVotingDay: day
             });
 
             console.log("createGroups module: New group created! " + newGroup);
@@ -163,7 +173,6 @@ module.exports.listUsers = async(req, res) => {
         const group = await Group.findById(groupID).populate('userList');
 
         if (group) {
-            console.log(group.userList)
             return res.status(200).json({list: group.userList, adminUser: group.adminUserID})
         } else {
             return res.status(404).json({errorMessage: "Group not found."})
@@ -272,8 +281,8 @@ module.exports.leaveGroup = async(req, res, next) => {
 
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
-            const prompt = await Prompt.findById(group.prompts[i]);
-            prompt.posts = prompt.posts.filter((owner) => owner.toString() === userID.toString())
+            const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
+            prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
             await prompt.save();
         }
 
@@ -350,21 +359,20 @@ module.exports.deleteGroup = async(req, res) => {
                                         groupID: "$$group._id",
                                         name: "$$group.name",
                                         adminName: '$$group.adminName',
-                                        usersCount: '$$group.userList.length'
                                     }
                                 }
                             }
                         }
                     }
                 ]);
-                if (result && result.length > 0) {
+                console.log(result)
+                if (result !== null && result.length > 0) {
                     let groupsInfo = [];
                     result[0].groupInfo.forEach(group => {
                         groupsInfo.push({
                             groupID: group.groupID.toString(),
                             name: group.name,
                             adminName: group.adminName,
-                            usersCount : group.userList.length,
                         });
                     });
                     sendGroups(users[i]._id.toString(), { groups: groupsInfo })
@@ -454,8 +462,6 @@ module.exports.checkAdmin = async(req, res) => {
     try {
         const {userID, groupID} = req.params;
         const group = await Group.findById(groupID);
-        console.log(group.adminUserID)
-        console.log(userID)
         if (group) {
             if (group.adminUserID.toString() === userID && group.userList.length > 1) {
                 return res.status(200).json({admin: true})
@@ -481,11 +487,8 @@ module.exports.transferAdmin = async (req, res) => {
     try {
         const {userID, groupID} = req.params;
         const newAdminUsername = req.body.newAdminUsername;
-        console.log(newAdminUsername)
         const newAdminUser = await User.findOne({username: newAdminUsername})
-        console.log(newAdminUser)
         const group = await Group.findById(groupID);
-        console.log(group)
         if (newAdminUser) {
             // check that user did not input themselves
             if (newAdminUser._id === userID) {
@@ -522,7 +525,6 @@ module.exports.kickUser = async (req, res) => {
         const {kickUsername} = req.body;
         const kickUser = await User.findOne({username: kickUsername});
         console.log(group.name);
-
         if (group && kickUser) {
             // check if user is admin user
             if (group.adminUserID.toString() !== userID) {
@@ -534,8 +536,8 @@ module.exports.kickUser = async (req, res) => {
                 if (kickUser.groups[i]._id.toString() === groupID) {
                     // delete posts from user
                     for (let i = 0; i < group.prompts.length; i++) {
-                        const prompt = await Prompt.findById(group.prompts[i]);
-                        prompt.posts = prompt.posts.filter((owner) => owner.toString() === userID.toString())
+                        const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
+                        prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== kickUser._id.toString())
                         await prompt.save();
                     }
 
@@ -546,10 +548,13 @@ module.exports.kickUser = async (req, res) => {
                     // Remove user from group's user list
                     group.userList = group.userList.filter((id) => id.toString() !== kickUser._id.toString());
                     await group.save();
+
+                    console.log("Kicking user");
+                    kickUpdateStatus(kickUser._id.toString(), userID, groupID);
                     return res.status(200).json({userKicked: true});
                 }
             }
-            return res.status(404).json({errorMessage: "User is not a part of this group"});
+            return res.status(404).json({errorMessage: "User is not a part of this group."});
         }
     } catch (error) {
         console.log("kickUser module: " + error);

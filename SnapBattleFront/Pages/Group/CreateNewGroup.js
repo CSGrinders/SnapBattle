@@ -122,7 +122,7 @@ function CreateNewGroup({route, navigation}) {
                     setInfoPrompt(true);
                     setInfoMessage(`Group created successfully!`);
                     setTimeout(() => {
-                        navigation.navigate("Groups", {userID: userID});
+                        navigation.navigate("Main", {userID: userID});
                     }, 2000);
                 }
             }).catch((error) => {
