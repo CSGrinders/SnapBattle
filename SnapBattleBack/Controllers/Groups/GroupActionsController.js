@@ -309,15 +309,19 @@ async function leave(userID, groupID){
             for (let j = 0; j < prompt.posts.length; j++) {
                 // delete comments of that user
                 const post = await Post.findById(prompt.posts[j]).populate('comments');
-                if (post.comments.length === 0 || post.owner.toString() === user._id.toString()) {
+                // don't bother going through comments if there are no comments
+                if (post.comments.length === 0) {
                     break;
                 }
                 for (let k = 0; k < post.comments.length; k++) {
-                    const comment = await Comment.findById(post.comments[k])
+                    const comment = await Comment.findById(post.comments[k]);
+                    // comment could be "null" if it was a reply and alr got booted
                     if (comment !== null) {
                         if (comment.userID.toString() === user._id.toString()) {
                             await deleteComment(comment._id);
                         }
+                    } else {
+                        console.log("comment was reply and alr got booted")
                     }
                 }
                 console.log(post.comments)
@@ -356,6 +360,7 @@ async function deleteComment(commentID) {
     if (comment.replyTo !== null) {
         const parent = await Comment.findById(comment.replyTo).populate('replyBy');
         parent.replyBy = parent.replyBy.filter((reply) => reply._id.toString() !== comment._id.toString())
+        await parent.save();
     }
     // delete comment
     await Comment.findByIdAndDelete(comment._id);
@@ -659,7 +664,7 @@ module.exports.leaveAllGroups = async(req, res) => {
                     const newAdmin = group.userList.find((id) => id.toString() !== user._id.toString());
                     group.adminUserID = newAdmin;
                     const newAdminUser = await User.findById(newAdmin)
-                    group.adminUserName = newAdminUser.name;
+                    group.adminName = newAdminUser.username;
                     await group.save();
                 }
 
