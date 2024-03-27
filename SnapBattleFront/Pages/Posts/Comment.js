@@ -13,7 +13,7 @@ import React, {useState, useEffect, useCallback, memo} from 'react'
 import BackButton from '../../Components/Button/BackButton';
 import axios, {post} from 'axios';
 import {Input} from '@rneui/themed';
-import SendIcon from "../../assets/send.webp";
+import sendMessage from "../../assets/sendMessage.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import CommentItem from "../../Components/DailyPrompt/CommentItem";
@@ -496,8 +496,8 @@ const Comment = ({size, route, navigation}) => {
                                     paddingHorizontal: 10,
                                 }}
                             />
-                            <TouchableOpacity onPress={handleEditComment} style={{marginLeft: 15, paddingTop: 5}}>
-                                <Image source={SendIcon} style={{width: 40, height: 40}}/>
+                            <TouchableOpacity onPress={handleEditComment}>
+                                <Image source={sendMessage} style={{width: 50, height: 50}}/>
                             </TouchableOpacity>
                         </>
                         :
@@ -514,8 +514,8 @@ const Comment = ({size, route, navigation}) => {
                                     paddingHorizontal: 10,
                                 }}
                             />
-                            <TouchableOpacity onPress={handleSubmitComment} style={{marginLeft: 15, paddingTop: 5}}>
-                                <Image source={SendIcon} style={{width: 40, height: 40}}/>
+                            <TouchableOpacity onPress={handleSubmitComment}>
+                                <Image source={sendMessage} style={{width: 50, height: 50}}/>
                             </TouchableOpacity>
                         </>
 
