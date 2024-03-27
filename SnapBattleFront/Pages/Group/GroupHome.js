@@ -7,7 +7,7 @@ import {
     Dimensions,
     Pressable,
     TouchableOpacity,
-    RefreshControl, ScrollView
+    RefreshControl, ScrollView, Modal
 } from "react-native";
 import {Button} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
@@ -28,12 +28,14 @@ import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import {SocketContext} from "../../Storage/Socket";
 import GroupBackButton from "../../Components/Button/GroupBackButton";
+import CloseButton from "../../assets/close.webp";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function GroupHome({route, navigation}) {
     const {username, userID, groupID, token} = route.params
     const {width, height} = Dimensions.get('window');
     const [prompt, setPrompt] = useState("")
+    const [option, setOption] = useState(false);
 
     /*
         PERIOD 0 = waiting period (have not reached submission period yet)
@@ -103,6 +105,8 @@ function GroupHome({route, navigation}) {
             getPrompts()
         }, [refresh, userID])
     )
+
+
 
     function getPrompts() {
         return axios.get(
@@ -216,8 +220,7 @@ function GroupHome({route, navigation}) {
                     height: height * 0.55
                 }}>
                     <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
-                                   setActivePostID={setActivePostID}
-                    />
+                                   setActivePostID={setActivePostID}/>
                 </View>
             </ScrollView>
             <View style={{
