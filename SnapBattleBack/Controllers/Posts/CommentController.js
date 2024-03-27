@@ -230,26 +230,31 @@ module.exports.toggleComments = async(req, res) => {
     try {
         const postID = req.body.postID;
         const userID = req.body.userID;
+        const commentsAllowed = req.body.commentsAllowed
+
+        console.log(postID, userID, commentsAllowed)
 
         const user = await User.findById(userID);
         const post = await Post.findById(postID);
 
         if (!user) {
-            res.status(404).json({errorMessage: "User not found"});
+            console.log("1")
+            return res.status(404).json({errorMessage: "User not found"});
         }
 
         if (!post) {
-            res.status(404).json({errorMessage: "Post not found"})
+            console.log("2")
+            return res.status(404).json({errorMessage: "Post not found"})
         }
 
-        if (post.owner !== user._id) {
-            res.status(404).json({errorMessage: "User does not match post owner"});
+        if (post.owner.toString() !== user._id.toString()) {
+            return res.status(404).json({errorMessage: "User does not match post owner"});
         }
 
-        post.commentsAllowed = !post.commentsAllowed;
+        post.commentsAllowed = commentsAllowed;
         await post.save();
 
-        res.status(200).json({commentsAllowed: post.commentsAllowed});
+        return res.status(200).json({commentsAllowed: post.commentsAllowed});
     } catch (error) {
         res.status(500).json({errorMessage: "Something went wrong..."})
     }
