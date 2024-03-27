@@ -18,15 +18,19 @@ module.exports.getPrompt = async (req, res) => {
     //nested populate
     const group = await Group.findById(groupID)
         .populate([{
-            path: 'prompts',
-            populate: {path: 'posts',
-                populate: {path: 'owner'}
-            }
+                path: 'prompts',
+                populate: {
+                    path: 'posts',
+                    populate: {
+                        path: 'owner',
+                        select: '_id name username profilePicture',
+                    }
+                }
             },
-            {
-             path: 'userList',
-             populate: '_id'
-            }
+                {
+                    path: 'userList',
+                    populate: '_id'
+                }
             ]
         )
     if (!group) {
@@ -87,7 +91,12 @@ module.exports.getPrompt = async (req, res) => {
         const promptTime = new Date(now)
         promptTime.setHours(promptReleaseHour)
         promptTime.setMinutes(promptReleaseMin)
-        return res.status(200).json({promptObj: yesterdayPrompt, submissionAllowed: false, period: 0, timeEnd: promptTime})
+        return res.status(200).json({
+            promptObj: yesterdayPrompt,
+            submissionAllowed: false,
+            period: 0,
+            timeEnd: promptTime
+        })
     }
 
     //Any other period needs today's prompt -> generate if nonexistent
@@ -130,21 +139,41 @@ module.exports.getPrompt = async (req, res) => {
         const posts = todayPrompt.posts
         for (let i = 0; i < posts.length; i++) {
             if (posts[i].owner._id.toString() === userID && posts[i].submissionNumber >= 3) {
-                return res.status(200).json({promptObj: todayPrompt, submissionAllowed: false, period: 1, timeEnd: promptSubmitTime})
+                return res.status(200).json({
+                    promptObj: todayPrompt,
+                    submissionAllowed: false,
+                    period: 1,
+                    timeEnd: promptSubmitTime
+                })
             }
         }
 
-        return res.status(200).json({promptObj: todayPrompt, submissionAllowed: true, period: 1, timeEnd: promptSubmitTime})
+        return res.status(200).json({
+            promptObj: todayPrompt,
+            submissionAllowed: true,
+            period: 1,
+            timeEnd: promptSubmitTime
+        })
     }
 
     //PERIOD 2 - if current time has not yet reached daily voting deadline
     else if (now.getTime() < dailyVotingTime.getTime()) {
-        return res.status(200).json({promptObj: todayPrompt, submissionAllowed: false, period: 2, timeEnd: dailyVotingTime})
+        return res.status(200).json({
+            promptObj: todayPrompt,
+            submissionAllowed: false,
+            period: 2,
+            timeEnd: dailyVotingTime
+        })
     }
 
     //PERIOD 3 - if today is a weekly voting day and current time has not reached weekly voting deadline
-    else if (now.getDay() === weeklyVotingDay && now.getTime() < weeklyVotingTime.getTime() ) {
-        return res.status(200).json({promptObj: todayPrompt, submissionAllowed: false, period: 3, timeEnd: weeklyVotingTime})
+    else if (now.getDay() === weeklyVotingDay && now.getTime() < weeklyVotingTime.getTime()) {
+        return res.status(200).json({
+            promptObj: todayPrompt,
+            submissionAllowed: false,
+            period: 3,
+            timeEnd: weeklyVotingTime
+        })
     }
 
     //PERIOD 4 - waiting for next day
@@ -153,6 +182,11 @@ module.exports.getPrompt = async (req, res) => {
         nextPromptRelease.setDate(nextPromptRelease.getDate() + 1)
         nextPromptRelease.setHours(promptReleaseHour)
         nextPromptRelease.setMinutes(promptReleaseMin)
-        return res.status(200).json({promptObj: todayPrompt, submissionAllowed: false, period: 4, timeEnd: nextPromptRelease})
+        return res.status(200).json({
+            promptObj: todayPrompt,
+            submissionAllowed: false,
+            period: 4,
+            timeEnd: nextPromptRelease
+        })
     }
 }

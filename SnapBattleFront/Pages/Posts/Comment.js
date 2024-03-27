@@ -12,18 +12,19 @@ import {
 import React, {useState, useEffect, useCallback, useRef, useLayoutEffect} from 'react'
 import BackButton from '../../Components/Button/BackButton';
 import axios, {post} from 'axios';
-import { Input } from '@rneui/themed';
+import {Input} from '@rneui/themed';
 import SendIcon from "../../assets/send.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import CommentItem from "../../Components/DailyPrompt/CommentItem";
 import {useFocusEffect} from "@react-navigation/native";
+
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 const Comment = ({size, route, navigation}) => {
     const {width, height} = Dimensions.get('window');
     const {username, userID, groupID, token, postID} = route.params;
-
+    const [loading, setLoading] = useState(true);
     const [comments, setComments] = useState([])
     const [commentsEnabled, setCommentsEnabled] = useState(false)
     const [commentTyped, setCommentTyped] = useState('');
@@ -48,6 +49,7 @@ const Comment = ({size, route, navigation}) => {
             .then((res) => {
                 console.log(res.data.comments)
                 setComments(res.data.comments);
+                setLoading(false);
             })
             .catch((err) => {
                 console.log(err)
@@ -59,7 +61,7 @@ const Comment = ({size, route, navigation}) => {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/comments-allowed/${postID}`
         )
             .then((res) => {
-                console.log("comments enabled:",res.data.commentsAllowed)
+                console.log("comments enabled:", res.data.commentsAllowed)
                 setCommentsEnabled(res.data.commentsAllowed)
                 if (res.data.commentsAllowed) {
                     getComments();
@@ -105,23 +107,22 @@ const Comment = ({size, route, navigation}) => {
         setReplyToUserName('');
     }
 
-    const handleEditComment = async() => {
-        if (editTyped !== '') {
-            console.log(editTyped)
+    const handleEditComment = async (comment) => {
+        if (comment !== '') {
             axios.post(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/edit-comment/${postID}`, {
                     userID: userID,
                     commentID: editCommentID,
-                    content: editTyped
+                    content: comment
                 }
             )
-            .then((res) => {
-                console.log(res.data.comments)
-                setComments(res.data.comments);
-            })
-            .catch((err) => {
-                console.log(err)
-            })
+                .then((res) => {
+                    console.log(res.data.comments)
+                    setComments(res.data.comments);
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
         }
         setEditComment(false)
     }
@@ -138,7 +139,6 @@ const Comment = ({size, route, navigation}) => {
             .then((res) => {
                 setCommentTyped('');
                 setComments(res.data.comments)
-                console.log(res.data.comments);
                 setCommentTyped('');
             })
             .catch((err) => {
@@ -269,7 +269,7 @@ const Comment = ({size, route, navigation}) => {
                         <View style={{flexDirection: 'column', alignItems: 'center'}}>
                             {item.likes.includes(userID) ?
                                 (<TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleUnlikeComment}>
-                                    <Image source={HeartIcon} style={{width: 15, height: 15, tintColor: 'red' }}></Image>
+                                    <Image source={HeartIcon} style={{width: 15, height: 15, tintColor: 'red'}}></Image>
                                 </TouchableOpacity>)
                                 :
                                 (<TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
@@ -431,13 +431,13 @@ const Comment = ({size, route, navigation}) => {
                     }}>
                         <View style={{flexDirection: 'column', alignItems: 'center'}}>
                             {item.likes.includes(userID) ?
-                            (<TouchableOpacity style={{paddingTop: 5}} onPress={handleUnlikeComment}>
-                                <Image source={HeartIcon} style={{width: 15, height: 15, tintColor: 'red' }}></Image>
-                            </TouchableOpacity>)
-                            :
-                            (<TouchableOpacity style={{paddingTop: 5}} onPress={handleLikeComment}>
-                                <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
-                            </TouchableOpacity>)}
+                                (<TouchableOpacity style={{paddingTop: 5}} onPress={handleUnlikeComment}>
+                                    <Image source={HeartIcon} style={{width: 15, height: 15, tintColor: 'red'}}></Image>
+                                </TouchableOpacity>)
+                                :
+                                (<TouchableOpacity style={{paddingTop: 5}} onPress={handleLikeComment}>
+                                    <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
+                                </TouchableOpacity>)}
                             <Text>{item.likes.length}</Text>
                         </View>
                     </View>
@@ -445,57 +445,88 @@ const Comment = ({size, route, navigation}) => {
                 {showReplies &&
                     <View>
                         <FlatList
-                            data = {replies}
-                            renderItem = {({ item }) => <ReplyItem item={item} userID={userID}/>}
+                            data={replies}
+                            renderItem={({item}) => <ReplyItem item={item} userID={userID}/>}
                             keyExtractor={(item, index) => index.toString()}
                         />
                     </View>
                 }
 
             </View>
-    )
+        )
     };
 
-    const TypeComponent = ({ onSubmitComment }) => {
-        const [commentTyped, setCommentTyped] = useState('');
+    const TypeComponent = ({onSubmitComment, onHandleEdit}) => {
+        const [commentTyped, setCommentTyped] = useState(editComment ? editTyped : '');
 
         const handleInputChange = useCallback((inputText) => {
             setCommentTyped(inputText);
         }, []);
 
+        const handleEditComment = () => {
+            onHandleEdit(commentTyped);
+            // Optionally clear the input after submission
+            setCommentTyped('');
+        };
         const handleSubmitComment = () => {
             onSubmitComment(commentTyped);
             // Optionally clear the input after submission
             setCommentTyped('');
         };
 
+
         return (
             <>
-                <TextInput
-                    value={commentTyped}
-                    onChangeText={handleInputChange}
-                    placeholder="Type your comment here..."
-                    style={{
-                        height: 50,
-                        width: '80%',
-                        borderWidth: 1,
-                        borderColor: 'gray',
-                        paddingHorizontal: 10,
-                    }}
-                />
-                <TouchableOpacity onPress={handleSubmitComment} style={{ marginLeft: 15, paddingTop: 5 }}>
-                    <Image source={SendIcon} style={{ width: 40, height: 40 }} />
-                </TouchableOpacity>
+                {
+                    editComment ?
+                        <>
+                            <Input
+                                placeholder='Type to edit'
+                                onChangeText={handleInputChange}
+                                value={commentTyped}
+                                style={{
+                                    height: 50,
+                                    width: '80%',
+                                    borderWidth: 1,
+                                    borderColor: 'gray',
+                                    paddingHorizontal: 10,
+                                }}
+                            />
+                            <TouchableOpacity onPress={handleEditComment} style={{marginLeft: 15, paddingTop: 5}}>
+                                <Image source={SendIcon} style={{width: 40, height: 40}}/>
+                            </TouchableOpacity>
+                        </>
+                        :
+                        <>
+                            <Input
+                                value={commentTyped}
+                                onChangeText={handleInputChange}
+                                placeholder="Type your comment here..."
+                                style={{
+                                    height: 50,
+                                    width: '80%',
+                                    borderWidth: 1,
+                                    borderColor: 'gray',
+                                    paddingHorizontal: 10,
+                                }}
+                            />
+                            <TouchableOpacity onPress={handleSubmitComment} style={{marginLeft: 15, paddingTop: 5}}>
+                                <Image source={SendIcon} style={{width: 40, height: 40}}/>
+                            </TouchableOpacity>
+                        </>
+
+                }
+
             </>
         );
     };
 
-  return (
-      <View style={{
-          display: "flex",
-          flex: 1
-      }}>
+    return (
         <View style={{
+            display: "flex",
+            flex: 1
+        }}>
+            <View style={{
                 display: "flex",
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -521,130 +552,122 @@ const Comment = ({size, route, navigation}) => {
                     width: width * 0.2
                 }}>
                 </View>
-        </View>
-        <View style={{
-            display: "flex",
-            overflow: 'scroll',
-            flex: 0.7,
-            marginBottom: 5,
-        }}>
-        {
-            commentsEnabled
-            ?
-            (comments.length === 0 ?
-                <View style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}>
-                    <Text style={{
-                        color: 'grey',
-                        fontWeight: 'bold'
-                    }}>
-                        No comments
-                    </Text>
-                </View>
-            :
-            <FlatList
-                data = {comments}
-                renderItem = {({ item }) => <CommentItem item={item} userID={userID}/>}
-                keyExtractor = {(comment) => comment._id.toString()}
-                // style={{flex: 1}}
-            />
-            )
-            :
-            <View style={{
-                flex: 1,
-                marginBottom: 200,
-                justifyContent: 'center',
-                alignItems: 'center'
-            }}>
-                <Text style={{
-                    color: 'grey',
-                    fontWeight: 'bold'
-                }}>
-                    Comments Disabled
-                </Text>
             </View>
-        }
-        </View>
-          <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : null}
-              style={replyToID !== '' && replyToUserName !== '' ? {display: "flex", flex: 0.2} : {display: "flex", flex: 0.1}}
-          >
-              <View style={{
-                  display: "flex",
-                  flex: 1,
-              }}>
-                  <View style={{
-                      display: "flex",
-                      flex: 1,
-                      flexDirection: "row"
-                  }}>
-                      <View style={{
-                          display: "flex", flexDirection: "column"
-                      }}>
-                          {replyToID !== '' && replyToUserName !== '' &&
-                              <View style={{
-                                  display: "flex-inline",
-                                  flexDirection: "row",
-                                  alignItems: "center"
-                              }}>
-                                  <View style={{
-                                      marginLeft: 10,
-                                      flex: 1,
-                                      borderWidth: 1,
-                                      borderRadius: 5
-                                  }}>
-                                      <Text>reply to: {replyToUserName}</Text>
-                                      <Text> </Text>
-                                  </View>
-                                  <TouchableOpacity style={{marginLeft: 5, paddingTop: 5}} onPress={handleCancelReply}>
-                                      <Text style={{fontSize: 40}}> x </Text>
-                                  </TouchableOpacity>
-                              </View>
-                          }
-                            {
-                                editComment ?
+            <View style={{
+                display: "flex",
+                overflow: 'scroll',
+                flex: 0.7,
+                marginBottom: 5,
+            }}>
+                {
+                    commentsEnabled
+                        ?
+                        (comments.length === 0 ?
                                 <View style={{
                                     flex: 1,
-                                    flexDirection: 'row',
                                     justifyContent: 'center',
-                                    width: width * .95,
+                                    alignItems: 'center'
                                 }}>
-                                    <Input
-                                        placeholder='Type to edit'
-                                        onChangeText={newComment => {
-                                        setEditTyped(newComment)
-                                        }}
-                                        value={editTyped}
-                                        inputContainerStyle={{
-                                            width: width * .8
-                                        }}
-                                        inputStyle={{
-                                            height: 50,
-                                        }}
-                                    />
-                                    <TouchableOpacity style={{ paddingTop: 5,}} onPress={handleEditComment}>
-                                        <Image source={SendIcon} style={{width: 40, height: 40}}></Image>
-                                    </TouchableOpacity>
+                                    {
+                                        loading ?
+                                            <Text style={{
+                                                color: 'grey',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                Loading comments...
+                                            </Text>
+                                            :
+                                            <Text style={{
+                                                color: 'grey',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                No comments
+                                            </Text>
+                                    }
                                 </View>
                                 :
+                                <FlatList
+                                    data={comments}
+                                    renderItem={({item}) => <CommentItem item={item} userID={userID}/>}
+                                    keyExtractor={(comment) => comment._id.toString()}
+                                    // style={{flex: 1}}
+                                />
+                        )
+                        :
+                        <View style={{
+                            flex: 1,
+                            marginBottom: 200,
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Text style={{
+                                color: 'grey',
+                                fontWeight: 'bold'
+                            }}>
+                                Comments Disabled
+                            </Text>
+                        </View>
+                }
+            </View>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : null}
+                style={replyToID !== '' && replyToUserName !== '' ? {display: "flex", flex: 0.2} : {
+                    display: "flex",
+                    flex: 0.1
+                }}
+            >
+                <View style={{
+                    display: "flex",
+                    flex: 1,
+                }}>
+                    <View style={{
+                        display: "flex",
+                        flex: 1,
+                        flexDirection: "row"
+                    }}>
+                        <View style={{
+                            display: "flex", flexDirection: "column"
+                        }}>
+                            {replyToID !== '' && replyToUserName !== '' &&
                                 <View style={{
-                                    flex: 1,
-                                    flexDirection: 'row',
-                                    justifyContent: 'space-around',
-                                    width: width,
+                                    display: "flex-inline",
+                                    flexDirection: "row",
+                                    alignItems: "center"
                                 }}>
-                                    <TypeComponent onSubmitComment={handleSubmitComment}></TypeComponent>
+                                    <View style={{
+                                        marginLeft: 10,
+                                        flex: 1,
+                                        borderWidth: 1,
+                                        borderRadius: 5
+                                    }}>
+                                        <Text>reply to: {replyToUserName}</Text>
+                                        <Text> </Text>
+                                    </View>
+                                    <TouchableOpacity style={{marginLeft: 5, paddingTop: 5}}
+                                                      onPress={handleCancelReply}>
+                                        <Text style={{fontSize: 40}}> x </Text>
+                                    </TouchableOpacity>
                                 </View>
                             }
-                      </View>
-                  </View>
-              </View>
-          </KeyboardAvoidingView>
-    </View>
-  )
+
+                            <View style={{
+                                flex: 1,
+                                flexDirection: 'row',
+                                justifyContent: 'space-around',
+                                width: width,
+                            }}>
+                                {
+                                    commentsEnabled ?
+                                        <TypeComponent onSubmitComment={handleSubmitComment} onHandleEdit={handleEditComment}></TypeComponent> : <></>
+                                }
+
+                            </View>
+                        </View>
+                    </View>
+                </View>
+            </KeyboardAvoidingView>
+        </View>
+    )
 }
 
 export default Comment
