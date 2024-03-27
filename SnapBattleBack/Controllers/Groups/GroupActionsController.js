@@ -284,8 +284,11 @@ module.exports.leaveGroup = async(req, res, next) => {
             return res.status(500).json({errorMessage: "Something went wrong..."});
         }
 
-        if (group.userList.length === 0) {
+        console.log(group.userList.length)
+        // for some reason doesn't update on time;
+        if (group.userList.length <= 1) {
             await Group.findByIdAndDelete(group._id);
+            console.log("group deleted")
         }
 
         next();
@@ -326,11 +329,11 @@ async function leave(userID, groupID){
         }
 
         // Remove group from user's group list
-        user.groups = user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
+        user.groups = await user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
         await user.save();
 
         // Remove user from group's user list
-        group.userList = group.userList.filter((id) => id.toString() !== user._id.toString());
+        group.userList = await group.userList.filter((id) => id.toString() !== user._id.toString());
         await group.save();
         return true;
     } catch (e) {
@@ -612,24 +615,28 @@ module.exports.kickUser = async (req, res) => {
  */
 module.exports.leaveAllGroups = async(req, res) => {
     try {
+        console.log("hello")
         const userID = req.params.userID;
         const {blockUsername} = req.body;
         const blockUser = await User.findOne({username: blockUsername})
         if (!blockUser) {
             return res.status(404).json({errorMessage: "User you are trying to block is not found"})
         }
+        console.log("block user exists")
 
         const user = await User.findById(userID);
         if (!user) {
             return res.status(404).json({errorMessage: "User not found"});
         }
+        console.log("user exists")
 
         for (let i = 0; i < user.groups.length; i++) {
             // go through each group
             const groupID = user.groups[i];
             console.log(groupID)
-            const group = await Group.findById(groupID);
+            const group = await Group.findById(groupID.toString());
             if (!group) {
+                console.log("group does not exist")
                 return res.status(404).json({errorMessage: "Group not found"});
             }
             console.log("group: " + group)
@@ -653,6 +660,7 @@ module.exports.leaveAllGroups = async(req, res) => {
                     group.adminUserID = newAdmin;
                     const newAdminUser = await User.findById(newAdmin)
                     group.adminUserName = newAdminUser.name;
+                    await group.save();
                 }
 
                 let leaveSuccess = await leave(userID, groupID);
@@ -662,6 +670,9 @@ module.exports.leaveAllGroups = async(req, res) => {
                 }
             }
         }
+        // add user to blocked array
+        user.blockedUsers.push(blockUser._id);
+        user.save();
         return res.status(200).json({leaveSuccess: true})
 
     } catch (error) {

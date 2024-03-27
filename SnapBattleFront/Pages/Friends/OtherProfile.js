@@ -5,7 +5,7 @@
  *
  * viewType = 0 -> other user is a friend
  * viewType = 1 -> other user is not a friend & no pending requests
- * viewType = 2 -> other user is a pending friend
+ * viewType = 2 -> other user is blocked
  *
  * @component
  * @return {JSX.Element} Renders a view of other users' profiles.
@@ -147,6 +147,38 @@ function OtherProfile({route, navigation}) {
                 }, 1000)
             } else {
                 setErrorMessageServer(err.response.data.errorMessage);
+                setErrorServer(true);
+            }
+        })
+    }
+
+    function unblockFriend(username) {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/unblock`,
+            {
+                unblockUsername: searchUsername
+            }
+        ).then((res) => {
+            setInfoPrompt(true);
+            setInfoMessage(res.data.message);
+            setView(1);
+        }).catch((error) => {
+            const {status, data} = error.response;
+            if (error.response) {
+                if (status !== 500) {
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    setTimeout(() => {
+                        navigation.navigate("Friends", {userID})
+                    }, 1000)
+                } else {
+                    console.log("Friends page: " + error);
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                }
+            } else {
+                console.log("Friends page: " + error);
+                setErrorMessageServer("Something went wrong...");
                 setErrorServer(true);
             }
         })
@@ -300,6 +332,15 @@ function OtherProfile({route, navigation}) {
                                 Block User
                             </Button>
                     </>)
+                    :
+                    <></>
+                }
+                {view === 2 ?
+                    <>
+                        <Button onPress={() => unblockFriend(searchUsername)}>
+                            Unblock User
+                        </Button>
+                    </>
                     :
                     <></>
                 }
