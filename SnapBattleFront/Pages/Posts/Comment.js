@@ -128,22 +128,24 @@ const Comment = ({size, route, navigation}) => {
     }
 
     const handleSubmitComment = async () => {
-        axios.post(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/create-comment/${postID}`,
-            {
-                commentBody: commentTyped,
-                replyTo: replyToID // TODO
-            }
-        )
-            .then((res) => {
-                setComments(res.data.comments)
-                console.log(res.data.comments);
-                setCommentTyped('');
-            })
-            .catch((err) => {
-                console.log(err)
-                // something went wrong popup TODO
-            })
+        if (commentsEnabled) {
+            axios.post(
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/create-comment/${postID}`,
+                {
+                    commentBody: commentTyped,
+                    replyTo: replyToID // TODO
+                }
+            )
+                .then((res) => {
+                    setComments(res.data.comments)
+                    console.log(res.data.comments);
+                    setCommentTyped('');
+                })
+                .catch((err) => {
+                    console.log(err)
+                    // something went wrong popup TODO
+                })
+        }
     }
 
     const ReplyItem = ({item, userID}) => {
@@ -514,8 +516,8 @@ const Comment = ({size, route, navigation}) => {
                                 <View style={{
                                     flex: 1,
                                     flexDirection: 'row',
-                                    justifyContent: 'center',
-                                    width: width * .95,
+                                    justifyContent: 'space-around',
+                                    width: width,
                                 }}>
                                     <Input
                                         placeholder='Type to comment'
@@ -529,8 +531,9 @@ const Comment = ({size, route, navigation}) => {
                                         inputStyle={{
                                             height: 50,
                                         }}
+                                        disabled={!commentsEnabled}
                                     />
-                                    <TouchableOpacity style={{ marginLeft: 15, paddingTop: 5,}} onPress={handleSubmitComment}>
+                                    <TouchableOpacity style={{marginRight: 10,paddingTop: 5,}} onPress={handleSubmitComment} disabled={!commentsEnabled}>
                                         <Image source={SendIcon} style={{width: 40, height: 40}}></Image>
                                     </TouchableOpacity>
                                 </View>

@@ -9,7 +9,6 @@ import LikeIcon from "../../assets/heart.webp"
 import OptionsIcon from "../../assets/dotdotdot.webp"
 
 
-
 const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, setActivePostID}) => {
 
     const {username, userID, groupID, token} = route.params;
@@ -104,6 +103,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
     //opens the options menu for the post at the given index in the posts array
     function openOptions(index) {
         console.log("opening options menu for post #" + index)
+        navigation.navigate('PostOptions', {username, userID, groupID, token, postID: posts[index]._id})
     }
 
     //conditionally render nothing or the posts carousel depending if there are posts or not
