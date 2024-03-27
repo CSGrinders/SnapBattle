@@ -35,7 +35,7 @@ function GroupHome({route, navigation}) {
     const {username, userID, groupID, token} = route.params
     const {width, height} = Dimensions.get('window');
     const [prompt, setPrompt] = useState("")
-    const [option, setOption] = useState(false);
+
 
     /*
         PERIOD 0 = waiting period (have not reached submission period yet)
