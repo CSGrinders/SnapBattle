@@ -39,6 +39,7 @@ module.exports.searchUser = async(req, res) => {
 
     try {
         const {userID, searchUsername} = req.params;
+        const user = await User.findById(userID);
         const searchUser = await User.findOne({username: searchUsername}).populate('requests')
         let pfpURL = '';
         try {
@@ -50,11 +51,25 @@ module.exports.searchUser = async(req, res) => {
         }
 
         if (searchUser) {
-
-
             //user searched for themselves
             if (searchUser._id.toString() === userID) {
                 return res.status(404).json({errorMessage: "You cannot search for yourself"})
+            }
+            // check if searched user is blocked
+            for (let i = 0; i < user.blockedUsers.length; i++) {
+                console.log("blocked user id: " + user.blockedUsers[i]._id.toString());
+                if (user.blockedUsers[i]._id.toString() === searchUser._id.toString()) {
+                    console.log("user is blocked")
+                    return res.status(200).json({
+                        searchName: searchUser.name,
+                        searchUsername: searchUser.username,
+                        searchBio: searchUser.biography,
+                        searchID: searchUser._id.toString(),
+                        viewType: 2,
+                        url: pfpURL,
+                        requestExists: null,
+                    });
+                }
             }
 
             //check if searched user is already a friend -> display profile without add friend button using viewType = 1
@@ -129,7 +144,6 @@ module.exports.removeRequest = async(req, res) => {
 
 module.exports.sendFriendRequest = async(req, res) => {
     try {
-
         const {userID} = req.params;
         const {receivingUsername} = req.body;
         console.log("SendFriendRequest module: User ${userID} sending a request to ${receivingUsername}");
@@ -178,6 +192,35 @@ module.exports.sendFriendRequest = async(req, res) => {
     }
 }
 
+/**
+ * Add small desc.
+ * route
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+
+module.exports.unblock = async(req, res) => {
+    try {
+        const {userID} = req.params;
+        const {unblockUsername} = req.body;
+
+        const user = await User.findById(userID)
+        const unblockUser = await User.findOne({username: unblockUsername})
+        if (user && unblockUser) {
+            console.log("before: " + user.blockedUsers.length)
+            user.blockedUsers = user.blockedUsers.filter((id) => id.toString() !== unblockUser._id.toString())
+            console.log("after: " + user.blockedUsers.length)
+            await user.save();
+            res.status(200).json({message: "User unblocked."});
+        } else {
+            res.status(404).json({errorMessage: "User could not be found"})
+        }
+    } catch (error) {
+        console.log("unblock module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
 
 /**
  * Add small desc.
