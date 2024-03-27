@@ -27,7 +27,8 @@ const {
 
 const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup,
     acceptGroupInvite, rejectGroupInvite, visitFriendProfile,
-    checkAdmin, transferAdmin, kickUser } = require("../../Controllers/Groups/GroupActionsController");
+    checkAdmin, transferAdmin, kickUser, leaveAllGroups,
+} = require("../../Controllers/Groups/GroupActionsController");
 const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVotingLength } = require("../../Controllers/Groups/GroupSettingsController");
 const { createPost } = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
@@ -37,7 +38,9 @@ const { viewComments, viewReplies, commentsEnabled, postComment, deleteComment, 
 router.get('/', getGroups);
 router.get("/:groupID/getChat", getChat)
 
-router.post('/create', createGroup);
+router.post('/create', createGroup)
+
+router.post('/block', leaveAllGroups)
 
 router.get('/list-users/:groupID', listUsers);
 
@@ -84,7 +87,5 @@ router.delete('/:groupID/delete-comment/:postID/:commentID', deleteComment)
 router.post('/:groupID/edit-comment/:postID', editComment)
 
 router.get('/:groupID/view-replies/:postID/:commentID', viewReplies)
-
-
 
 module.exports = router;
