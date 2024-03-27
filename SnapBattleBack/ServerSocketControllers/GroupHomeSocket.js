@@ -21,12 +21,10 @@ exports.groupHomeUpdates = (io) => {
                         console.log(`${user.userId} joined their group ${roomChat} group room.`);
                         socket.join(roomChat);
                         userSocketMap[user.userId] = socket.id;
-                        console.log(`SOCKET ID ${socket.id}`);
                         if (io.sockets.adapter.rooms.has(roomChat)) {
                             const clients = Array.from(io.sockets.adapter.rooms.get(roomChat));
                             console.log(`Clients in ${roomChat}:`, clients);
                         }
-                        console.log("UPDATE")
                         break;
                     case "leave":
                         console.log(`${token} left their group ${roomChat} group room.`);
@@ -107,7 +105,6 @@ exports.kickUpdateStatus = (userID, otherUserID, groupID) => {
     console.log("Sending update status");
     const socketId = userSocketMap[userID];
     const groupUser = group[userID];
-    console.log(socketId)
     if (groupID !== groupUser) {
         return
     }

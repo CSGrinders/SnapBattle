@@ -71,7 +71,6 @@ module.exports.editGroupName = async(req, res) => {
                         }
                     }
                 ]);
-                console.log(result);
                 if (result && result.length > 0) {
                     let groupsInfo = [];
                     result[0].groupInfo.forEach(group => {

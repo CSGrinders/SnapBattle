@@ -15,6 +15,7 @@ import {Button, Input} from "@rneui/themed";
 import {useCallback, useContext, useState} from "react";
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
+
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN} = process.env
 import {useFocusEffect} from "@react-navigation/native";
 import uuid from 'react-native-uuid'
@@ -60,20 +61,34 @@ function GroupMembers({route, navigation}) {
     // kick user
     const [kickUser, setKickUser] = useState("")
 
-    const [refreshing, setRefreshing] = useState(false);
     const {socket, leaveRoom} = useContext(SocketContext);
 
+    const [refreshPage, applyRefresh] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastRefresh, setLastRefresh] = useState(0);
+    const refreshCooldown = 10000;
+
     const onRefresh = useCallback(() => {
+        const now = Date.now();
+        if (now - lastRefresh < refreshCooldown) {
+            console.log('Refresh cooldown is active. ');
+            return;
+        }
+
         setRefreshing(true);
-        getGroupMembers().finally(() => setRefreshing(false));
-    }, []);
+        getGroupMembers()
+            .finally(() => {
+                setRefreshing(false);
+                setLastRefresh(Date.now());
+            });
+    }, [lastRefresh]);
 
     //getting information necessary for page display
     useFocusEffect(
         useCallback(() => {
             getGroupMembers();
 
-        }, [refreshing])
+        }, [])
     )
 
     //get user's list of groups
@@ -81,15 +96,15 @@ function GroupMembers({route, navigation}) {
         return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/list-users/${groupID}`
         )
-        .then((res) => {
-            setGroupMembers(res.data.list);
-            setAdminUser(res.data.adminUser);
-        })
-        .catch((err) => {
-            setErrorMessageServer("Something went wrong...");
-            setErrorServer(true);
-            console.log("CreateGroup page: " + err);
-        })
+            .then((res) => {
+                setGroupMembers(res.data.list);
+                setAdminUser(res.data.adminUser);
+            })
+            .catch((err) => {
+                setErrorMessageServer("Something went wrong...");
+                setErrorServer(true);
+                console.log("CreateGroup page: " + err);
+            })
     }
 
     //API call to check if user is a friend -> invites the friend to the group
@@ -133,22 +148,26 @@ function GroupMembers({route, navigation}) {
 
 
     function kickFunc() {
-        try {
-            axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/kick-user`, {
-                kickUsername: kickUser
-            }).then((response) => {
-                let {userKicked} = response.data;
-                setGroupMembers(groupMembers.filter(member => member.username !== kickUser));
-                if (userKicked) {
-                    setSuccessState(true);
-                    setSuccessMessage(kickUser + " has ben kicked successfully.");
+        axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/kick-user`, {
+            kickUsername: kickUser
+        }).then((response) => {
+            let {userKicked} = response.data;
+            setGroupMembers(groupMembers.filter(member => member.username !== kickUser));
+            if (userKicked) {
+                setSuccessState(true);
+                setSuccessMessage(kickUser + " has ben kicked successfully.");
+            }
+        }).catch((error) => {
+            console.log(error)
+            let {status, data} = error.response;
+            if (error.response) {
+                if (status === 404) {
+                    setGroupMembers(groupMembers.filter(member => member.username !== kickUser));
                 }
-            })
-        } catch (error) {
-            let {status, data} = error;
-            setErrorServer(true);
-            setErrorMessageServer(data.errorMessage);
-        }
+                setErrorServer(true);
+                setErrorMessageServer(data.errorMessage);
+            }
+        })
     }
 
     return (
@@ -162,7 +181,7 @@ function GroupMembers({route, navigation}) {
                 onRequestClose={() => {
                     setInvBoxVisibility(false)
                     setInvStatusMsg("")
-            }}>
+                }}>
                 <View style={{
                     flex: 1,
                     alignItems: 'center',
@@ -192,7 +211,8 @@ function GroupMembers({route, navigation}) {
                             alignItems: 'center'
                         }}>
                             <View style={{alignItems: 'center', justifyContent: 'center', marginBottom: 10}}>
-                                <Text>Enter the username of the friend you</Text><Text>would like to invite.</Text></View>
+                                <Text>Enter the username of the friend you</Text><Text>would like to
+                                invite.</Text></View>
                             <Input
                                 placeholder='username'
                                 onChangeText={username => setInvUser(username)}
@@ -228,14 +248,20 @@ function GroupMembers({route, navigation}) {
                 width: width,
                 flex: 1
             }}>
-                <ScrollView  refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-                    {(groupMembers[0]!== -1) ? groupMembers.map((member) => {
+                <ScrollView contentContainerStyle={{flex: 1}}
+                            refreshControl={
+                                <RefreshControl
+                                    refreshing={refreshing}
+                                    onRefresh={onRefresh}
+                                />
+                            }>
+                    {(groupMembers[0] !== -1) ? groupMembers.map((member) => {
                         return (
                             <View key={uuid.v4()} style={{
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
-                                marginVertical: 5}}
+                                marginVertical: 5
+                            }}
                             >
                                 <GroupMemberInfoCard
                                     navigation={navigation}
@@ -258,7 +284,7 @@ function GroupMembers({route, navigation}) {
                                 />
                             </View>
                         )
-                }) : <ActivityIndicator size="large" color="#000000"/>}
+                    }) : <ActivityIndicator size="large" color="#000000"/>}
                 </ScrollView>
             </View>
             <View style={{

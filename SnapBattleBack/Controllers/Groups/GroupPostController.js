@@ -58,7 +58,6 @@ module.exports.createPost = async(req, res) => {
 
                 //user has already submitted once -> need to replace existing post
                 if (existingPost !== null) {
-                    console.log("found existing post")
                     existingPost.picture = downloadURL
                     existingPost.submissionNumber = nextSubmissionNum
                     existingPost.likes = 0
@@ -75,7 +74,6 @@ module.exports.createPost = async(req, res) => {
 
                 //user has not submitted -> need to create a new post
                 else {
-                    console.log('creating new post')
                     //create new MongoDB document
                     let newPost = new Post({
                         pID: prompts[i]._id,

@@ -16,8 +16,28 @@ module.exports.getPrompt = async (req, res) => {
     const {userID, groupID} = req.params
 
     //nested populate
-    const group = await Group.findById(groupID).populate({path: 'prompts', populate: {path: 'posts', populate: {path: 'owner'}}})
+    const group = await Group.findById(groupID)
+        .populate([{
+            path: 'prompts',
+            populate: {path: 'posts',
+                populate: {path: 'owner'}
+            }
+            },
+            {
+             path: 'userList',
+             populate: '_id'
+            }
+            ]
+        )
+    if (!group) {
+        return res.status(404).json({errorMessage: 'Group not found.'})
+    }
     const prompts = group.prompts
+
+    const isUserInGroup = group.userList.some(user => user._id.toString() === userID);
+    if (!isUserInGroup) {
+        return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+    }
 
     //parsing from group
     const promptReleaseHour = parseInt(group.timeStart.substring(0, 2))
