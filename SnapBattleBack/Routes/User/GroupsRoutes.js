@@ -33,7 +33,7 @@ const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVo
 const { createPost } = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
 const {getPrompt} = require("../../Controllers/Groups/GroupPromptController");
-const { viewComments, viewReplies, commentsEnabled, deleteLike, postLike, postComment, deleteComment, editComment} = require("../../Controllers/Posts/CommentController");
+const { viewComments, toggleComments, viewReplies, commentsEnabled, deleteLike, postLike, postComment, deleteComment, editComment} = require("../../Controllers/Posts/CommentController");
 
 
 router.get('/', getGroups);

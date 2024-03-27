@@ -9,26 +9,20 @@ import {
     KeyboardAvoidingView,
     TouchableOpacity, Keyboard, TextInput
 } from 'react-native'
-import React, {useState, useEffect, useCallback, useRef} from 'react'
+import React, {useState, useEffect, useCallback, useRef, useLayoutEffect} from 'react'
 import BackButton from '../../Components/Button/BackButton';
-import axios from 'axios';
+import axios, {post} from 'axios';
 import { Input } from '@rneui/themed';
 import SendIcon from "../../assets/send.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import CommentItem from "../../Components/DailyPrompt/CommentItem";
+import {useFocusEffect} from "@react-navigation/native";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 const Comment = ({size, route, navigation}) => {
     const {width, height} = Dimensions.get('window');
     const {username, userID, groupID, token, postID} = route.params;
-
-    useEffect(() => {
-        console.log('Username:', username);
-        console.log('UserID:', userID);
-        console.log('GroupID:', groupID);
-        console.log('Token:', token);
-      }, [username, userID, groupID, token]);
 
     const [comments, setComments] = useState([])
     const [commentsEnabled, setCommentsEnabled] = useState(false)
@@ -40,32 +34,42 @@ const Comment = ({size, route, navigation}) => {
     const [editTyped, setEditTyped] = useState('');
     const [editCommentID, setEditCommentID] = useState();
 
-    useEffect(() => {
-        console.log("RUNNnNNNN@@@@@@@@@@@@@@")
-        axios.get(
+
+    useFocusEffect(
+        useCallback(() => {
+            checkAllowedComments();
+        }, [])
+    )
+
+    function getComments() {
+        return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/view-comments/${postID}`
         )
             .then((res) => {
                 console.log(res.data.comments)
-                setComments(res.data.comments)
+                setComments(res.data.comments);
             })
             .catch((err) => {
                 console.log(err)
             })
-    }, [])
+    }
 
-    useEffect(() => {
-        axios.get(
+    function checkAllowedComments() {
+        return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/comments-allowed/${postID}`
         )
             .then((res) => {
                 console.log("comments enabled:",res.data.commentsAllowed)
                 setCommentsEnabled(res.data.commentsAllowed)
+                if (res.data.commentsAllowed) {
+                    getComments();
+                }
             })
             .catch((err) => {
                 console.log(err)
             })
-    }, [])
+    }
+
 
     useEffect(() => {
         console.log("edit change")

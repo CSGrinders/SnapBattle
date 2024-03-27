@@ -15,7 +15,7 @@ import {
     Dimensions,
     TouchableOpacity,
     Platform,
-    KeyboardAvoidingView, ScrollView
+    KeyboardAvoidingView, ScrollView, RefreshControl
 } from "react-native";
 import BackButton from "../../Components/Button/BackButton";
 import BlockedFriendsIcon from "../../assets/blocked.webp"
@@ -53,6 +53,25 @@ function Friends({route, navigation}) {
     const [friends, setFriends] = useState([]);
     const [token, setToken] = useState([]);
     const {socket} = useContext(SocketContext);
+    const [refreshPage, applyRefresh] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastRefresh, setLastRefresh] = useState(0);
+    const refreshCooldown = 10000;
+
+    const onRefresh = useCallback(() => {
+        const now = Date.now();
+        if (now - lastRefresh < refreshCooldown) {
+            console.log('Refresh cooldown is active. ');
+            return;
+        }
+
+        setRefreshing(true);
+        getFriends()
+            .finally(() => {
+                setRefreshing(false);
+                setLastRefresh(Date.now());
+            });
+    }, [lastRefresh]);
 
     function searchUser() {
         axios.get(
@@ -200,7 +219,7 @@ function Friends({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={50} navigation={navigation} />
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Text style={{
@@ -241,74 +260,83 @@ function Friends({route, navigation}) {
                     />
                 </TouchableOpacity>
             </View>
-
-            {friendReqs.length !== 0 ?
-                <View style={{
-                    marginLeft: 10,
-                    marginBottom: 15
-                }}>
-                    <Text style={{...HeaderTheme.h2Style, marginBottom: 5}}>Pending Requests</Text>
-                    {friendReqs.map((req) => (
-                        <View key={uuid.v4()} style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                        }}>
-                            <Button
-                                style={{alignItems: 'flex-start'}}
-                                buttonStyle={{width: 200}}
-                                onPress={() => seeFriend(req.username, 2)}
-                            >
-                                @{req.username}
-                            </Button>
-                            <View style={{flexDirection: 'row', alignItems: 'flex-end', marginRight: 10}}>
-                                <TouchableOpacity onPress={() => acceptRequest(req.username)}>
-                                    <Image
-                                        source={AcceptIcon}
-                                        style={{
-                                            width: 50,
-                                            height: 50,
-                                            marginRight: 20
-                                        }}
-                                    />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => denyRequest(req.username)}>
-                                    <Image
-                                        source={RejectIcon}
-                                        style={{
-                                            width: 50,
-                                            height: 50
-                                        }}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    ))
-                    }
-                </View> : <></>
-            }
-
-            <View style={{
-                width: width,
-                marginLeft: 10,
-                flex: 1,
-            }}>
-                <Text style={{...HeaderTheme.h2Style, marginBottom: 5}}>Friends</Text>
-                <ScrollView contentContainerStyle={{flexGrow: 1}}>
-                    {friends.length !== 0 ? <View style={{gap: 10}}>
-                        {friends.map((friend) => (
-                            <Button key={uuid.v4()}
+            <ScrollView
+                contentContainerStyle={{flex: 1}}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                }
+            >
+                {friendReqs.length !== 0 ?
+                    <View style={{
+                        marginLeft: 10,
+                        marginBottom: 15
+                    }}>
+                        <Text style={{...HeaderTheme.h2Style, marginBottom: 5}}>Pending Requests</Text>
+                        {friendReqs.map((req) => (
+                            <View key={uuid.v4()} style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                            }}>
+                                <Button
+                                    style={{alignItems: 'flex-start'}}
                                     buttonStyle={{width: 200}}
-                                    onPress={() => seeFriend(friend.username, 0)}
-                            >
-                                @{friend.username}
-                            </Button>
+                                    onPress={() => seeFriend(req.username, 2)}
+                                >
+                                    @{req.username}
+                                </Button>
+                                <View style={{flexDirection: 'row', alignItems: 'flex-end', marginRight: 10}}>
+                                    <TouchableOpacity onPress={() => acceptRequest(req.username)}>
+                                        <Image
+                                            source={AcceptIcon}
+                                            style={{
+                                                width: 50,
+                                                height: 50,
+                                                marginRight: 20
+                                            }}
+                                        />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => denyRequest(req.username)}>
+                                        <Image
+                                            source={RejectIcon}
+                                            style={{
+                                                width: 50,
+                                                height: 50
+                                            }}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
                         ))
                         }
                     </View> : <></>
-                    }
-                </ScrollView>
-            </View>
+                }
+
+                <View style={{
+                    width: width,
+                    marginLeft: 10,
+                    flex: 1,
+                }}>
+                    <Text style={{...HeaderTheme.h2Style, marginBottom: 5}}>Friends</Text>
+                    <ScrollView contentContainerStyle={{flexGrow: 1}}>
+                        {friends.length !== 0 ? <View style={{gap: 10}}>
+                            {friends.map((friend) => (
+                                <Button key={uuid.v4()}
+                                        buttonStyle={{width: 200}}
+                                        onPress={() => seeFriend(friend.username, 0)}
+                                >
+                                    @{friend.username}
+                                </Button>
+                            ))
+                            }
+                        </View> : <></>
+                        }
+                    </ScrollView>
+                </View>
+            </ScrollView>
 
 
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>

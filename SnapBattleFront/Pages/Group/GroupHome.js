@@ -1,4 +1,14 @@
-import {View, Text,SafeAreaView, KeyboardAvoidingView, Platform, Dimensions, Pressable, TouchableOpacity} from "react-native";
+import {
+    View,
+    Text,
+    SafeAreaView,
+    KeyboardAvoidingView,
+    Platform,
+    Dimensions,
+    Pressable,
+    TouchableOpacity,
+    RefreshControl, ScrollView
+} from "react-native";
 import {Button} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 import Logo from "../../assets/logo.webp";
@@ -62,45 +72,76 @@ function GroupHome({route, navigation}) {
     const [infoMessage, setInfoMessage] = useState("")
     const [infoState, setInfoState] = useState(false)
     //const socket = useContext(SocketContext);
-    const { joinRoom, leaveRoom, socket } = useContext(SocketContext);
+    const {leaveRoom } = useContext(SocketContext);
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
 
     //gets the prompt object and underlying post and comment data
+    const [refreshPage, applyRefresh] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastRefresh, setLastRefresh] = useState(0);
+    const refreshCooldown = 10000;
 
+    const onRefresh = useCallback(() => {
+        const now = Date.now();
+        if (now - lastRefresh < refreshCooldown) {
+            console.log('Refresh cooldown is active. ');
+            return;
+        }
+
+        setRefreshing(true);
+        getPrompts()
+            .finally(() => {
+                setRefreshing(false);
+                setLastRefresh(Date.now());
+            });
+    }, [lastRefresh]);
 
 
     useFocusEffect(
         useCallback(() => {
-            console.log("ID BRUH" + groupID);
-            axios.get(
-                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
-            )
-                .then((res) => {
-                    const {promptObj, submissionAllowed, period, timeEnd} = res.data
-                    if (promptObj === null) {
-                        setPrompt("Prompt has not been released yet")
-                    }
-                    else {
-                        setPrompt(promptObj.prompt)
-                        setPosts(promptObj.posts)
-                        if (promptObj.posts.length > 0) {
-                            setActivePostID(promptObj.posts[0]._id)
-                        }
-                    }
-                    setPeriod(period)
-                    setTimeEnd(timeEnd)
-                    if (submissionAllowed) {
-                        setCamOpacity(1)
-                    }
-                    else {
-                        setCamOpacity(0.5)
-                    }
-                })
-                .catch((err) => {
-                    console.log(err)
-                })
+            getPrompts()
         }, [refresh, userID])
     )
 
+    function getPrompts() {
+        return axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
+        )
+            .then((res) => {
+                const {promptObj, submissionAllowed, period, timeEnd} = res.data
+                if (promptObj === null) {
+                    setPrompt("Prompt has not been released yet")
+                }
+                else {
+                    setPrompt(promptObj.prompt)
+                    setPosts(promptObj.posts)
+                    if (promptObj.posts.length > 0) {
+                        setActivePostID(promptObj.posts[0]._id)
+                    }
+                }
+                setPeriod(period)
+                setTimeEnd(timeEnd)
+                if (submissionAllowed) {
+                    setCamOpacity(1)
+                }
+                else {
+                    setCamOpacity(0.5)
+                }
+            })
+            .catch((err) => {
+                console.log("Group Home page: " + err);
+                const {data} = err.response;
+                if (err.response) {
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
+            })
+    }
 
 
     function clickCamera() {
@@ -161,15 +202,24 @@ function GroupHome({route, navigation}) {
             }}>
                 <DailyPrompt prompt={prompt} period={period} days={days} hours={hours} minutes={minutes} seconds={seconds}/>
             </View>
-            <View style={{
-                width: width,
-                alignItems: 'center',
-                height: height * 0.55
-            }}>
-                <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
-                               setActivePostID={setActivePostID}
-                />
-            </View>
+            <ScrollView
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                }
+            >
+                <View style={{
+                    width: width,
+                    alignItems: 'center',
+                    height: height * 0.55
+                }}>
+                    <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
+                                   setActivePostID={setActivePostID}
+                    />
+                </View>
+            </ScrollView>
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -185,8 +235,8 @@ function GroupHome({route, navigation}) {
                 </TouchableOpacity>
                 {period === 1 ?
                     (<TouchableOpacity
-                    style={{opacity: camOpacity}}
-                    onPress={clickCamera}>
+                        style={{opacity: camOpacity}}
+                        onPress={clickCamera}>
                         <Image
                             style={{width: 75, height: 75}}
                             source={Camera}
@@ -211,13 +261,14 @@ function GroupHome({route, navigation}) {
 
                 <TouchableOpacity onPress={() => navigation.navigate('GroupMembers', route.params)}>
                     <Image
-                    style={{width: 60, height: 60}}
-                    source={Group}
-                    contentFit="contain"
+                        style={{width: 60, height: 60}}
+                        source={Group}
+                        contentFit="contain"
                     />
                 </TouchableOpacity>
             </View>
             <InfoPrompt Message={infoMessage} state={infoState} setEnable={setInfoState}></InfoPrompt>
+            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
         </View>
     )
 }

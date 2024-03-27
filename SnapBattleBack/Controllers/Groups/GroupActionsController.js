@@ -276,7 +276,7 @@ module.exports.leaveGroup = async(req, res, next) => {
         if (!found) {
             //console.log(user.groups)
             console.log("leaveGroup module: group not in user's groups");
-            return res.status(404).json({errorMessage: "Group not in users's group"});
+            return res.status(404).json({errorMessage: "You don't belong to this group."});
         }
 
         let leaveSuccess = await leave(userID, groupID);
@@ -302,7 +302,21 @@ module.exports.leaveGroup = async(req, res, next) => {
 async function leave(userID, groupID){
     try {
         const user = await User.findById(userID);
-        const group = await Group.findById(groupID);
+        const group = await Group.findById(groupID).populate({
+            path: 'messages',
+            populate: {
+                path: 'user',
+                select: '_id name avatar'
+            }
+        });
+
+        if (!group) {
+            return false;
+        }
+
+        console.log(group)
+
+
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
             const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
@@ -335,6 +349,13 @@ async function leave(userID, groupID){
         // Remove group from user's group list
         user.groups = await user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
         await user.save();
+
+        for (let j = 0; j < group.messages.length; j++) {
+            let message = group.messages[j];
+            if (message.user._id === user._id.toString()) {
+                message.user.avatar = 'https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/default-profile-picture.webp?alt=media&token=9e817ce9-4a9a-40f0-9267-696eb4791f80';
+            }
+        }
 
         // Remove user from group's user list
         group.userList = await group.userList.filter((id) => id.toString() !== user._id.toString());
@@ -578,10 +599,13 @@ module.exports.transferAdmin = async (req, res) => {
 module.exports.kickUser = async (req, res) => {
     try {
         const {userID, groupID} = req.params;
-        const group = await Group.findById(groupID);
+        const group = await Group.findById(groupID).populate("userList", '_id');
         const {kickUsername} = req.body;
         const kickUser = await User.findOne({username: kickUsername});
-        console.log(group.name);
+        const isUserInGroup = group.userList.some(user => user._id.toString() === userID);
+        if (!isUserInGroup) {
+            return res.status(404).json({errorMessage: 'User don\'t belong to this group.'});
+        }
         if (group && kickUser) {
             // check if user is admin user
             if (group.adminUserID.toString() !== userID) {
@@ -603,6 +627,8 @@ module.exports.kickUser = async (req, res) => {
                     return res.status(200).json({userKicked: true});
                 }
             }
+            return res.status(404).json({errorMessage: "User is not a part of this group."});
+        } else {
             return res.status(404).json({errorMessage: "User is not a part of this group."});
         }
     } catch (error) {
@@ -669,7 +695,6 @@ module.exports.leaveAllGroups = async(req, res) => {
                 }
 
                 let leaveSuccess = await leave(userID, groupID);
-                console.log("left group")
                 if (!leaveSuccess) {
                     return res.status(500).json({errorMessage: "Something went wrong..."});
                 }

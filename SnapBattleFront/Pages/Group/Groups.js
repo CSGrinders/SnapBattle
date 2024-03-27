@@ -17,7 +17,7 @@ import {
     View,
     Image,
     ScrollView,
-    ActivityIndicator, TouchableOpacity, Modal,
+    ActivityIndicator, TouchableOpacity, Modal, RefreshControl,
 } from "react-native";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import PlusButton from "../../assets/plus.webp";
@@ -38,9 +38,14 @@ import CloseButton from "../../assets/close.webp";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
+
+const wait = (timeout) => {
+    return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
 function Groups({route, navigation}) {
 
-    const { userID } = route.params;
+    const {userID} = route.params;
     //user information
     const [token, setToken] = useState('');
     const [username, setUsername] = useState('');
@@ -66,9 +71,26 @@ function Groups({route, navigation}) {
     const [transferError, setTransferError] = useState('')
     const [newAdminUsername, setNewAdminUsername] = useState('')
 
-    const [refresh, applyRefresh] = useState(false);
     const {socket, joinRoom} = useContext(SocketContext);
+    const [refresh, applyRefresh] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [lastRefresh, setLastRefresh] = useState(0);
+    const refreshCooldown = 10000;
 
+    const onRefresh = useCallback(() => {
+        const now = Date.now();
+        if (now - lastRefresh < refreshCooldown) {
+            console.log('Refresh cooldown is active. ');
+            return;
+        }
+
+        setRefreshing(true);
+        getGroups()
+            .finally(() => {
+                setRefreshing(false);
+                setLastRefresh(Date.now());
+            });
+    }, [lastRefresh]);
 
     //getting user information
     useFocusEffect(
@@ -104,10 +126,9 @@ function Groups({route, navigation}) {
     )
 
 
-
     //get user's list of groups and the user's pending group invites
     function getGroups() {
-        axios.get(
+        return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups`
         )
             .then((res) => {
@@ -200,7 +221,8 @@ function Groups({route, navigation}) {
                 const {status, data} = error.response;
                 if (error.response) {
                     if (status !== 500) {
-                        setErrorMessageServer("Something went wrong...");
+                        setGroups(groups.filter(group => group.groupID !== groupID));
+                        setErrorMessageServer(data.errorMessage);
                         setErrorServer(true);
                     } else {
                         console.log("Main Group page: " + error);
@@ -225,13 +247,12 @@ function Groups({route, navigation}) {
                     leaveGroup(confirmGroup);
                 }
             }).catch((error) => {
-                const {status, data} = error.response;
-                console.log("Main Group page: " + error);
-                setErrorMessageServer(data.errorMessage);
-                setErrorServer(true);
+            const {status, data} = error.response;
+            console.log("Main Group page: " + error);
+            setErrorMessageServer(data.errorMessage);
+            setErrorServer(true);
         })
     }
-
 
 
     function transferPermissions(groupID) {
@@ -280,113 +301,128 @@ function Groups({route, navigation}) {
                     </Pressable>
                 </View>
             </View>
-            {groupInvites.length !== 0 ?
-            <View style={{
-                height: height * 0.15,
-                marginLeft: 10,
-                flex: 0
-            }}>
-                <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Pending Requests</Text>
-                <ScrollView contentContainerStyle={{flexGrow: 1}} key={refresh}>
-                    {(groupInvites[0] !== -1) ? groupInvites.map((group) => {
-                        return (
-                            <View key={uuid.v4()} style={{
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                marginVertical: 5
-                            }}
-                            >
-                                <Button buttonStyle={{width: 200}}>
-                                    {group.name}
-                                </Button>
-                                <TouchableOpacity
-                                    style={{marginRight: 10}}
-                                    onPress={() => acceptGroupInvite(group.groupID)}
-                                >
-                                    <Image
-                                        source={AcceptButton}
-                                        style={{
-                                            width: 50,
-                                            height: 50
-                                        }}
-                                    />
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={{marginRight: 10}}
-                                    onPress={() => rejectGroupInvite(group.groupID)}
-                                >
-                                    <Image
-                                        source={RejectButton}
-                                        style={{
-                                            width: 50,
-                                            height: 50
-                                        }}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-                        )
-                    }) : (errorServer && <ActivityIndicator size="large" color="#000000"/>)}
-                </ScrollView>
-            </View> : <></> }
-
-            <View style={{
-                marginLeft: 10,
-                flex: 1,
-                marginBottom: 100
-            }}>
-                <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Groups</Text>
-                <ScrollView contentContainerStyle={{flexGrow: 1}}>
-                    {(groups[0] !== -1) ? groups.map((group) => {
-                        return (
-                            <View key={uuid.v4()} style={{
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                marginVertical: 5
-                            }}
-                            >
-                                <Button
-                                    buttonStyle={{width: 200}}
-                                    onPress={() => {navigation.navigate("GroupHome", {
-                                        userID: userID,
-                                        groupID: group.groupID,
-                                        username: username,
-                                        token: token,
-                                    })
-                                        joinRoom(token, group.groupID);
+            <ScrollView
+                contentContainerStyle={{flex: 1}}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                }
+            >
+                {groupInvites.length !== 0 ?
+                    <View style={{
+                        height: height * 0.15,
+                        marginLeft: 10,
+                        flex: 0
+                    }}>
+                        <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Pending Requests</Text>
+                        <ScrollView contentContainerStyle={{flexGrow: 1}} key={refresh}>
+                            {(groupInvites[0] !== -1) ? groupInvites.map((group) => {
+                                return (
+                                    <View key={uuid.v4()} style={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                        marginVertical: 5
                                     }}
+                                    >
+                                        <Button buttonStyle={{width: 200}}>
+                                            {group.name}
+                                        </Button>
+                                        <TouchableOpacity
+                                            style={{marginRight: 10}}
+                                            onPress={() => acceptGroupInvite(group.groupID)}
+                                        >
+                                            <Image
+                                                source={AcceptButton}
+                                                style={{
+                                                    width: 50,
+                                                    height: 50
+                                                }}
+                                            />
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={{marginRight: 10}}
+                                            onPress={() => rejectGroupInvite(group.groupID)}
+                                        >
+                                            <Image
+                                                source={RejectButton}
+                                                style={{
+                                                    width: 50,
+                                                    height: 50
+                                                }}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                )
+                            }) : (errorServer && <ActivityIndicator size="large" color="#000000"/>)}
+                        </ScrollView>
+                    </View> : <></>}
+
+                <View style={{
+                    marginLeft: 10,
+                    flex: 1,
+                    marginBottom: 100
+                }}>
+                    <Text style={{fontSize: 24, fontFamily: "OpenSansBold"}}>Groups</Text>
+                    <ScrollView contentContainerStyle={{flexGrow: 1}}>
+                        {(groups[0] !== -1) ? groups.map((group) => {
+                            return (
+                                <View key={uuid.v4()} style={{
+                                    flexDirection: 'row',
+                                    justifyContent: 'space-between',
+                                    marginVertical: 5
+                                }}
                                 >
-                                    {group.name}
-                                </Button>
-                                <Pressable onPress={() => {
-                                    setConfirm(true);
-                                    setConfirmStatus("Are you sure?");
-                                    setConfirmGroup(group.groupID);
-                                }}>
-                                    <Image
-                                        source={LeaveButton}
-                                        style={{
-                                            width: 50,
-                                            height: 50
+                                    <Button
+                                        buttonStyle={{width: 200}}
+                                        onPress={() => {
+                                            navigation.navigate("GroupHome", {
+                                                userID: userID,
+                                                groupID: group.groupID,
+                                                username: username,
+                                                token: token,
+                                            })
+                                            joinRoom(token, group.groupID);
                                         }}
-                                    />
-                                </Pressable>
-                                {group.adminName === username && (
-                                    <Pressable style={{marginRight: 20}} onPress={() => navigation.navigate("GroupSettings", {userID: userID, groupID: group.groupID, username: username})}>
+                                    >
+                                        {group.name}
+                                    </Button>
+                                    <Pressable onPress={() => {
+                                        setConfirm(true);
+                                        setConfirmStatus("Are you sure?");
+                                        setConfirmGroup(group.groupID);
+                                    }}>
                                         <Image
-                                            source={SettingsButton}
+                                            source={LeaveButton}
                                             style={{
                                                 width: 50,
                                                 height: 50
                                             }}
                                         />
-                                </Pressable>
-                                )}
-                            </View>
-                        )
-                    }) : (errorServer && <ActivityIndicator size="large" color="#000000"/>)}
-                </ScrollView>
-            </View>
-
+                                    </Pressable>
+                                    {group.adminName === username && (
+                                        <Pressable style={{marginRight: 20}}
+                                                   onPress={() => navigation.navigate("GroupSettings", {
+                                                       userID: userID,
+                                                       groupID: group.groupID,
+                                                       username: username
+                                                   })}>
+                                            <Image
+                                                source={SettingsButton}
+                                                style={{
+                                                    width: 50,
+                                                    height: 50
+                                                }}
+                                            />
+                                        </Pressable>
+                                    )}
+                                </View>
+                            )
+                        }) : (errorServer && <ActivityIndicator size="large" color="#000000"/>)}
+                    </ScrollView>
+                </View>
+            </ScrollView>
 
             <View style={{
                 position: 'absolute',
@@ -456,7 +492,8 @@ function Groups({route, navigation}) {
 
                         }}>
                             <View style={{marginBottom: 10}}>
-                                <Text>You are the administrator. To leave, type the username of an existing member to transfer your permissions to. </Text>
+                                <Text>You are the administrator. To leave, type the username of an existing member
+                                    to transfer your permissions to. </Text>
                             </View>
                             <Input
                                 placeholder='username'
