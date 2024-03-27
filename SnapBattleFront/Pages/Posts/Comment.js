@@ -457,8 +457,8 @@ const Comment = ({size, route, navigation}) => {
                 {/*}*/}
 
             </View>
-        )
-    };
+        );
+    })
 
     const TypeComponent = ({onSubmitComment, onHandleEdit}) => {
         const [commentTyped, setCommentTyped] = useState(editComment ? editTyped : '');
