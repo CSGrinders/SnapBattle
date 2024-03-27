@@ -1,4 +1,4 @@
-import {Dimensions, FlatList, Text, View, Image, TouchableOpacity, Pressable, Modal} from "react-native";
+import {Dimensions, FlatList, Text, View, Image, TouchableOpacity, Pressable, Modal, Share} from "react-native";
 import React, {useEffect, useRef, useState} from "react";
 import Carousel from "react-native-snap-carousel";
 import OtherProfilePicture from "../Profile/OtherProfilePicture";
@@ -12,7 +12,6 @@ import CloseButton from "../../assets/close.webp";
 import {Button, Switch} from "@rneui/themed";
 import axios from "axios";
 
-
 const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, setActivePostID}) => {
 
     const {username, userID, groupID, token} = route.params;
@@ -22,6 +21,24 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
     const [isCooldownActive, setIsCooldownActive] = useState(false);
     const [cooldownTimer, setCooldownTimer] = useState(0);
     const [disable, setDisable] = useState(false);
+
+    const onShare = async (itemPictureURL) => {
+        try {
+            const result = await Share.share({
+                url: itemPictureURL,
+            });
+
+            if (result.action === Share.sharedAction) {
+                if (result.activityType) {
+                    console.log('Share was successful');
+                }
+            } else if (result.action === Share.dismissedAction) {
+                console.log('Share closed ');
+            }
+        } catch (error) {
+            alert(error.message);
+        }
+    };
 
     const renderPageView = () => {
         return (
@@ -108,7 +125,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                                 }}
                             />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => openShare(index)}>
+                        <TouchableOpacity onPress={() => onShare(item.picture)}>
                             <Image
                                 source={ShareIcon}
                                 style={{
@@ -227,16 +244,6 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
         navigation.navigate('Comments', {username, userID, groupID, token, postID: posts[index]._id})
     }
 
-    //opens the share menu for the post at the given index in the posts array
-    function openShare(index) {
-        console.log("opening share menu for post #" + index)
-    }
-
-    //opens the options menu for the post at the given index in the posts array
-    function openOptions(index) {
-        console.log("opening options menu for post #" + index)
-        navigation.navigate('PostOptions', {username, userID, groupID, token, postID: posts[index]._id})
-    }
 
     //conditionally render nothing or the posts carousel depending if there are posts or not
     if (posts === null || posts.length === 0) {
