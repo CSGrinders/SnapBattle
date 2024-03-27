@@ -9,7 +9,7 @@ import {
     KeyboardAvoidingView,
     TouchableOpacity, Keyboard, TextInput
 } from 'react-native'
-import React, {useState, useEffect, useCallback, useRef, useLayoutEffect} from 'react'
+import React, {useState, useEffect, useCallback, memo} from 'react'
 import BackButton from '../../Components/Button/BackButton';
 import axios, {post} from 'axios';
 import {Input} from '@rneui/themed';
@@ -43,11 +43,12 @@ const Comment = ({size, route, navigation}) => {
     )
 
     function getComments() {
+        console.log("getComments Called")
         return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/view-comments/${postID}`
         )
             .then((res) => {
-                console.log(res.data.comments)
+                // console.log(res.data.comments)
                 setComments(res.data.comments);
                 setLoading(false);
             })
@@ -57,6 +58,7 @@ const Comment = ({size, route, navigation}) => {
     }
 
     function checkAllowedComments() {
+        console.log("checkAllocedComments Called")
         return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/comments-allowed/${postID}`
         )
@@ -94,7 +96,7 @@ const Comment = ({size, route, navigation}) => {
     }
 
     const handleReplyTo = async (item) => {
-        console.log("reply", item);
+        console.log("replyTo clicked");
         setReplyToID(item._id);
         setReplyToUserName(item.userID.username);
         setEditComment(false);
@@ -103,6 +105,7 @@ const Comment = ({size, route, navigation}) => {
     }
 
     const handleCancelReply = () => {
+        console.log("reply cancel clicked");
         setReplyToID('');
         setReplyToUserName('');
     }
@@ -152,7 +155,7 @@ const Comment = ({size, route, navigation}) => {
     }
 
     const ReplyItem = ({item, userID}) => {
-        console.log("reply Item", item, userID);
+        console.log("reply Item component created");
 
         const handleLikeComment = async () => {
             console.log("like", item._id, userID);
@@ -188,8 +191,8 @@ const Comment = ({size, route, navigation}) => {
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
-                    marginLeft: 30,
-                    backgroundColor: "#cccccc",
+                    marginLeft: 50,
+                    // backgroundColor: "#cccccc",
                 }}>
                     <View style={{
                         padding: 12,
@@ -289,13 +292,13 @@ const Comment = ({size, route, navigation}) => {
             </View>)
     }
 
-    const CommentItem = ({item, userID}) => {
-        console.log("commentItem likes: ", item);
+    const CommentItem = memo(({item, userID}) => {
+        // console.log("commentItem likes: ", item);
         const [showReplies, setShowReplies] = useState(false);
         const [replies, setReplies] = useState([]);
 
         const handleLikeComment = async () => {
-            console.log("like", item._id, userID);
+            // console.log("like", item._id, userID);
             axios.post(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/post-like/${item.postID}/${item._id}`,
             )
@@ -310,7 +313,7 @@ const Comment = ({size, route, navigation}) => {
 
 
         const handleUnlikeComment = async () => {
-            console.log("unlike", item._id, userID);
+            // console.log("unlike", item._id, userID);
             axios.delete(
                 `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/delete-like/${item.postID}/${item._id}`,
             )
@@ -327,7 +330,7 @@ const Comment = ({size, route, navigation}) => {
         useEffect(() => {
             if (item.replyBy !== null && item.replyBy.length > 0) {
                 setReplies(item.replyBy);
-                console.log("plse", item.replyBy);
+                // console.log("plse", item.replyBy);
             }
         }, [])
 
@@ -414,11 +417,12 @@ const Comment = ({size, route, navigation}) => {
 
                             {item.replyBy !== undefined && item.replyBy.length > 0 &&
                                 <View>
-                                    <TouchableOpacity onPress={() => {
-                                        toggleReplies();
-                                    }}>
-                                        <Text> more replies </Text>
-                                    </TouchableOpacity>
+                                    <Text>_____________________________</Text>
+                                    {/*<TouchableOpacity onPress={() => {*/}
+                                    {/*    toggleReplies();*/}
+                                    {/*}}>*/}
+                                    {/*    <Text> more replies </Text>*/}
+                                    {/*</TouchableOpacity>*/}
                                 </View>
                             }
                         </View>
@@ -442,7 +446,7 @@ const Comment = ({size, route, navigation}) => {
                         </View>
                     </View>
                 </View>
-                {showReplies &&
+                {/*{showReplies &&*/}
                     <View>
                         <FlatList
                             data={replies}
@@ -450,7 +454,7 @@ const Comment = ({size, route, navigation}) => {
                             keyExtractor={(item, index) => index.toString()}
                         />
                     </View>
-                }
+                {/*}*/}
 
             </View>
         )
