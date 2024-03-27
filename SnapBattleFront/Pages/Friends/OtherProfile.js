@@ -184,9 +184,9 @@ function OtherProfile({route, navigation}) {
                 console.log("remove request")
             }
         }
-        console.log("here")
+        console.log("leaving groups")
         // leaving all groups with user in it
-        axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/friends/block`, {
+        axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/block`, {
                 blockUsername: username
             }
         ).then((res) => {
@@ -201,7 +201,7 @@ function OtherProfile({route, navigation}) {
             }
         }).catch((error) => {
             let {status, data} = error;
-            console.log(status)
+            console.log(error)
             setErrorMessageServer(data.errorMessage);
             setErrorServer(true);
         })

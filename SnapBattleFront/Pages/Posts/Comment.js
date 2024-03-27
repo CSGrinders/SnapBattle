@@ -11,12 +11,8 @@ import {
 } from 'react-native'
 import React, {useState, useEffect, useCallback, useRef} from 'react'
 import BackButton from '../../Components/Button/BackButton';
-import Logo from "../../assets/logo.webp";
 import axios from 'axios';
 import { Input } from '@rneui/themed';
-import { Button } from '@rneui/base';
-import GroupSettingsSubmitIcon from '../../Components/Group/SubmitSettingsIcon';
-import ProfilePicture from '../../Components/Profile/ProfilePicture';
 import SendIcon from "../../assets/send.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
@@ -633,8 +629,8 @@ const Comment = ({size, route, navigation}) => {
                                 <View style={{
                                     flex: 1,
                                     flexDirection: 'row',
-                                    justifyContent: 'center',
-                                    width: width * .95,
+                                    justifyContent: 'space-around',
+                                    width: width,
                                 }}>
                                     <TypeComponent onSubmitComment={handleSubmitComment}></TypeComponent>
                                 </View>

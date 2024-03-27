@@ -20,7 +20,7 @@
 const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 const Prompt = require("../../Models/Prompt");
-const {Post} = require("../../Models/Post");
+const {Post, Comment} = require("../../Models/Post");
 
 const {getPhoto} = require("../Profile/ProfileController");
 const {
@@ -279,23 +279,10 @@ module.exports.leaveGroup = async(req, res, next) => {
             return res.status(404).json({errorMessage: "Group not in users's group"});
         }
 
-        // delete posts from user
-        for (let i = 0; i < group.prompts.length; i++) {
-            const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
-            prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
-            await prompt.save();
+        let leaveSuccess = await leave(userID, groupID);
+        if (!leaveSuccess) {
+            return res.status(500).json({errorMessage: "Something went wrong..."});
         }
-
-        // Remove group from user's group list
-        //console.log("before:",user.groups);
-        user.groups = user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
-        //console.log("after:",user.groups);
-        await user.save();
-        
-
-        // Remove user from group's user list
-        group.userList = group.userList.filter((id) => id.toString() !== user._id.toString());
-        await group.save();
 
         if (group.userList.length === 0) {
             await Group.findByIdAndDelete(group._id);
@@ -307,6 +294,68 @@ module.exports.leaveGroup = async(req, res, next) => {
         console.log("leaveGroup module " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
+}
+
+async function leave(userID, groupID){
+    try {
+        const user = await User.findById(userID);
+        const group = await Group.findById(groupID);
+        // delete posts from user
+        for (let i = 0; i < group.prompts.length; i++) {
+            const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
+            for (let j = 0; j < prompt.posts.length; j++) {
+                // delete comments of that user
+                const post = await Post.findById(prompt.posts[j]).populate('comments');
+                if (post.comments.length === 0 || post.owner.toString() === user._id.toString()) {
+                    break;
+                }
+                for (let k = 0; k < post.comments.length; k++) {
+                    const comment = await Comment.findById(post.comments[k])
+                    if (comment !== null) {
+                        if (comment.userID.toString() === user._id.toString()) {
+                            await deleteComment(comment._id);
+                        }
+                    }
+                }
+                console.log(post.comments)
+                post.comments = post.comments.filter((comment) => comment.userID.toString() !== userID.toString())
+                await post.save();
+            }
+            prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
+            await prompt.save();
+        }
+
+        // Remove group from user's group list
+        user.groups = user.groups.filter((groupID) => groupID.toString() !== group._id.toString());
+        await user.save();
+
+        // Remove user from group's user list
+        group.userList = group.userList.filter((id) => id.toString() !== user._id.toString());
+        await group.save();
+        return true;
+    } catch (e) {
+        console.log("leave function: leaving group failed " + e)
+        return false;
+    }
+}
+
+async function deleteComment(commentID) {
+    // find comment
+    const comment = await Comment.findById(commentID);
+    // if comment does not have any replies
+    if (comment.replyBy.length !== 0) { // if original comment has replies
+        // delete all replies to that comment
+        for (let i = 0; i < comment.replyBy.length; i++) {
+            await deleteComment(comment.replyBy[i]);
+        }
+    }
+    // if comment is a reply to another comment, edit parent comment's replyBy
+    if (comment.replyTo !== null) {
+        const parent = await Comment.findById(comment.replyTo).populate('replyBy');
+        parent.replyBy = parent.replyBy.filter((reply) => reply._id.toString() !== comment._id.toString())
+    }
+    // delete comment
+    await Comment.findByIdAndDelete(comment._id);
 }
 
 /**
@@ -534,20 +583,12 @@ module.exports.kickUser = async (req, res) => {
             // Check if group is in user's group
             for (let i = 0; i < kickUser.groups.length; i++) {
                 if (kickUser.groups[i]._id.toString() === groupID) {
-                    // delete posts from user
-                    for (let i = 0; i < group.prompts.length; i++) {
-                        const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
-                        prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== kickUser._id.toString())
-                        await prompt.save();
+
+                    let kickSuccess = await leave(kickUser._id, groupID);
+
+                    if (!kickSuccess) {
+                        return res.status(500).json({errorMessage: "Something went wrong..."})
                     }
-
-                    // Remove group from user's group list
-                    kickUser.groups = kickUser.groups.filter((groupID) => groupID.toString() !== group._id.toString());
-                    await kickUser.save();
-
-                    // Remove user from group's user list
-                    group.userList = group.userList.filter((id) => id.toString() !== kickUser._id.toString());
-                    await group.save();
 
                     console.log("Kicking user");
                     kickUpdateStatus(kickUser._id.toString(), userID, groupID);
@@ -558,6 +599,73 @@ module.exports.kickUser = async (req, res) => {
         }
     } catch (error) {
         console.log("kickUser module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+/**
+ * Add small desc.
+ * route
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+module.exports.leaveAllGroups = async(req, res) => {
+    try {
+        const userID = req.params.userID;
+        const {blockUsername} = req.body;
+        const blockUser = await User.findOne({username: blockUsername})
+        if (!blockUser) {
+            return res.status(404).json({errorMessage: "User you are trying to block is not found"})
+        }
+
+        const user = await User.findById(userID);
+        if (!user) {
+            return res.status(404).json({errorMessage: "User not found"});
+        }
+
+        for (let i = 0; i < user.groups.length; i++) {
+            // go through each group
+            const groupID = user.groups[i];
+            console.log(groupID)
+            const group = await Group.findById(groupID);
+            if (!group) {
+                return res.status(404).json({errorMessage: "Group not found"});
+            }
+            console.log("group: " + group)
+
+            // if user that you are blocking is found in group
+            let found;
+            for (let j = 0; j < group.userList.length; j++) {
+                if (group.userList[j].toString() === blockUser._id.toString()) {
+                    found = 1;
+                    break;
+                }
+                found = 0;
+            }
+            console.log("found: " + found)
+
+            if (found) {
+                // if you are leaving a group you are admin in
+                if (group.adminUserID.toString() === user._id.toString()) {
+                    // set to any random person in the group
+                    const newAdmin = group.userList.find((id) => id.toString() !== user._id.toString());
+                    group.adminUserID = newAdmin;
+                    const newAdminUser = await User.findById(newAdmin)
+                    group.adminUserName = newAdminUser.name;
+                }
+
+                let leaveSuccess = await leave(userID, groupID);
+                console.log("left group")
+                if (!leaveSuccess) {
+                    return res.status(500).json({errorMessage: "Something went wrong..."});
+                }
+            }
+        }
+        return res.status(200).json({leaveSuccess: true})
+
+    } catch (error) {
+        console.log("leaveAllGroups module " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }

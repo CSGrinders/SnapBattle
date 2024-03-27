@@ -19,8 +19,7 @@
 
 const {searchUser, sendFriendRequest, getFriendRequests, getFriends, acceptFriendRequest, denyFriendRequest, removeFriend,
     getFriendsAndRequests,
-    removeRequest,
-    leaveAllGroups
+    removeRequest
 } = require("../../Controllers/Friends/FriendsController");
 const router = require("express").Router( { mergeParams: true });
 
@@ -31,6 +30,5 @@ router.post("/accept", acceptFriendRequest);
 router.post("/deny", denyFriendRequest);
 router.post("/remove", removeFriend);
 router.post("/remove-request", removeRequest);
-router.post("/block", leaveAllGroups)
 
 module.exports = router;
