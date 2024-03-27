@@ -66,15 +66,18 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                                 }}
                             />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={() => openOptions(index)}>
-                            <Image
-                                source={OptionsIcon}
-                                style={{
-                                    width: 30,
-                                    height: 30
-                                }}
-                            />
-                        </TouchableOpacity>
+                        {
+                            item.owner._id === userID ?
+                                <TouchableOpacity onPress={() => openOptions(index)}>
+                                    <Image
+                                        source={OptionsIcon}
+                                        style={{
+                                            width: 30,
+                                            height: 30
+                                        }}
+                                    />
+                                </TouchableOpacity> : <></>
+                        }
                     </View>
                 </View>
             <Image
