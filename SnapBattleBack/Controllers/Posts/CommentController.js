@@ -19,21 +19,24 @@
 
 const {User} = require('../../Models/User');
 const {Post, Comment} = require('../../Models/Post');
+const Group = require("../../Models/Group");
 
 
 module.exports.viewComments = async(req, res) => {
     try {
         const {postID} = req.params;
 
-        const post = await Post.findById(postID).populate({
-            path: 'comments',
-            populate: {
-                path: 'userID',
-                model: 'User'
-            }
+
+        const post = await Post.findById(postID).populate({path: 'comments',
+            populate: [{ path: 'userID', model: 'User'},
+                {path: 'replyBy', populate: {path: 'userID'}},
+                {path: 'replyTo', populate: {path: 'userID'}}
+            ]
         });
+
         if (post) {
             const comments = post.comments;
+            console.log("comments: ", comments)
             res.status(200).json({comments: comments});
         } else {
             res.status(404).json({errorMessage: "Post not found"});
@@ -46,6 +49,7 @@ module.exports.viewComments = async(req, res) => {
 
 module.exports.viewReplies = async(req, res) => {
     try {
+        console.log("viewReplies:", req.params);
         const {commentID} = req.params;
 
         const comment = await Comment.findById(commentID);
@@ -63,6 +67,8 @@ module.exports.viewReplies = async(req, res) => {
                 // what to do
             }
         }
+
+        console.log(replyComments);
 
         return res.status(200).json({replyComments: replyComments});
     } catch (error) {
@@ -83,19 +89,26 @@ module.exports.postComment = async(req, res) => {
         if (commentBody === '' || commentBody.trim() === '') {
             return res.status(500).json({errorMessage: "empty message is not available"});
         }
-        console.log(userID, postID, commentBody, replyTo);
+        // console.log(userID, postID, commentBody, replyTo);
 
         const user = await User.findById(userID);
         const post = await Post.findById(postID);
         let replyComment = null;
+        let originalReplyComment = null;
+        let replyTraverseID;
 
-        console.log(replyComment);
         if (replyTo !== null && replyTo !== undefined && replyTo !== '') {
-            replyComment = await Comment.findById(replyTo);
+            originalReplyComment = await Comment.findById(replyTo);
+            replyTraverseID = replyTo;
+            do {
+                replyComment = await Comment.findById(replyTraverseID);
+                replyTraverseID = replyComment.replyTo;
+            } while(replyTraverseID !== null && replyTraverseID !== undefined);
         }
 
-        if (replyComment && user) {
-            commentBody = "@" + user.username + " " + commentBody;
+        if (originalReplyComment && user) {
+            const originalReplyUser = await User.findById(originalReplyComment.userID);
+            commentBody = "@" + originalReplyUser.username + " " + commentBody;
         }
 
         if (!user) {
@@ -110,7 +123,8 @@ module.exports.postComment = async(req, res) => {
             postID: postID,
             body: commentBody,
             replyTo: replyComment,
-            replyBy: []
+            replyBy: [],
+            likes: [],
         });
 
         console.log("PostComment module: New comment created");
@@ -127,12 +141,11 @@ module.exports.postComment = async(req, res) => {
 
 
 
-        const post_temp = await Post.findById(postID).populate({
-            path: 'comments',
-            populate: {
-                path: 'userID',
-                model: 'User'
-            }
+        const post_temp = await Post.findById(postID).populate({path: 'comments',
+            populate: [{ path: 'userID', model: 'User'},
+                {path: 'replyBy', populate: {path: 'userID'}},
+                {path: 'replyTo', populate: {path: 'userID'}}
+            ]
         });
 
         const comments = post_temp.comments;
@@ -168,12 +181,11 @@ module.exports.deleteComment = async(req, res) => {
 
     await Comment.findByIdAndDelete(commentID);
 
-    const post_temp = await Post.findById(postID).populate({
-        path: 'comments',
-        populate: {
-            path: 'userID',
-            model: 'User'
-        }
+    const post_temp = await Post.findById(postID).populate({path: 'comments',
+        populate: [{ path: 'userID', model: 'User'},
+            {path: 'replyBy', populate: {path: 'userID'}},
+            {path: 'replyTo', populate: {path: 'userID'}}
+        ]
     });
 
     const comments = post_temp.comments;
@@ -209,12 +221,11 @@ module.exports.editComment = async(req, res) => {
         comment.body = content;
         await comment.save();
 
-        const post_temp = await Post.findById(postID).populate({
-            path: 'comments',
-            populate: {
-                path: 'userID',
-                model: 'User'
-            }
+        const post_temp = await Post.findById(postID).populate({path: 'comments',
+            populate: [{ path: 'userID', model: 'User'},
+                {path: 'replyBy', populate: {path: 'userID'}},
+                {path: 'replyTo', populate: {path: 'userID'}}
+            ]
         });
 
         const comments = post_temp.comments;
@@ -274,4 +285,77 @@ module.exports.commentsEnabled = async(req, res) => {
         console.log("Comment enabled: server error")
         res.status(500).json({errorMessage: "Server error"})
     }
+}
+module.exports.postLike = async(req, res) => {
+    console.log("getLikes");
+    const {postID, commentID, userID} = req.params;
+
+    const post = await Post.findById(postID);
+    const comment = await Comment.findById(commentID);
+    const user = await User.findById(userID);
+
+    if (!post) {
+        return res.status(404).json({errorMessage: "Post not found"});
+    }
+
+    if (!comment) {
+        return res.status(404).json({errorMessage: "Comment not found"});
+    }
+
+    if (!comment.likes.includes(user._id)) {
+        comment.likes.push(user);
+        await comment.save();
+    } else {
+        return res.status(500).json({errorMessage: "user already liked it"});
+    }
+
+    const post_temp = await Post.findById(postID).populate({path: 'comments',
+        populate: [{ path: 'userID', model: 'User'},
+            {path: 'replyBy', populate: {path: 'userID'}},
+            {path: 'replyTo', populate: {path: 'userID'}}
+        ]
+    });
+
+    const comments = post_temp.comments;
+
+    return res.status(200).json({commentUpdated: true, comments: comments});
+
+    console.log(comment);
+    res.status(200).json({likes: comment.likes});
+}
+
+
+module.exports.deleteLike = async(req, res) => {
+    console.log("delete Likes");
+    const {postID, commentID, userID} = req.params;
+
+    const post = await Post.findById(postID);
+    const comment = await Comment.findById(commentID);
+    const user = await User.findById(userID);
+
+    if (!post) {
+        return res.status(404).json({errorMessage: "Post not found"});
+    }
+
+    if (!comment) {
+        return res.status(404).json({errorMessage: "Comment not found"});
+    }
+
+    // delete likes
+    comment.likes = comment.likes.filter(like => like.toString() !== userID);
+    await comment.save();
+
+    const post_temp = await Post.findById(postID).populate({path: 'comments',
+        populate: [{ path: 'userID', model: 'User'},
+            {path: 'replyBy', populate: {path: 'userID'}},
+            {path: 'replyTo', populate: {path: 'userID'}}
+        ]
+    });
+
+    const comments = post_temp.comments;
+
+    return res.status(200).json({commentUpdated: true, comments: comments});
+
+    console.log(comment);
+    res.status(200).json({likes: comment.likes});
 }

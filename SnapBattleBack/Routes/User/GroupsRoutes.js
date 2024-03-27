@@ -33,7 +33,8 @@ const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVo
 const { createPost } = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
 const {getPrompt} = require("../../Controllers/Groups/GroupPromptController");
-const { viewComments, viewReplies, commentsEnabled, postComment, deleteComment, editComment, toggleComments} = require("../../Controllers/Posts/CommentController");
+const { viewComments, viewReplies, commentsEnabled, deleteLike, postLike, postComment, deleteComment, editComment} = require("../../Controllers/Posts/CommentController");
+
 
 router.get('/', getGroups);
 router.get("/:groupID/getChat", getChat)
@@ -87,6 +88,10 @@ router.delete('/:groupID/delete-comment/:postID/:commentID', deleteComment)
 router.post('/:groupID/edit-comment/:postID', editComment)
 
 router.get('/:groupID/view-replies/:postID/:commentID', viewReplies)
+
+router.post('/:groupID/post-like/:postID/:commentID', postLike)
+
+router.delete('/:groupID/delete-like/:postID/:commentID', deleteLike)
 
 router.post('/:groupID/toggle-comments/:postID', toggleComments)
 
