@@ -126,7 +126,7 @@ function Friends({route, navigation}) {
     }
 
     function getFriends() {
-        axios.get(
+        return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/get-friends`
         )
             .then((res) => {
