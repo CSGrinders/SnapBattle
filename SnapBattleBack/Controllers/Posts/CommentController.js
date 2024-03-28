@@ -181,7 +181,7 @@ module.exports.deleteComment = async(req, res) => {
         console.log("delteed reply by: ", comment.userID);
         if (comment.replyBy.length > 0) {
             console.log("replies not empty");
-            comment.body = "deleted";
+            comment.body = "This message is deleted by the user";
             // comment.userID = new User({
             //     username: 'deletedUser',
             //     email: 'delete',

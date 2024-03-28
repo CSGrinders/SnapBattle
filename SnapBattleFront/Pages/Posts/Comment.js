@@ -384,14 +384,17 @@ const Comment = ({size, route, navigation}) => {
                                 {item.body}
                             </Text>
                             <View style={{flexDirection: 'row', gap: 10}}>
-                                <TouchableOpacity style={{paddingTop: 5}} onPress={() => {
-                                    handleReplyTo(item)
-                                }}>
-                                    <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
-                                        reply
-                                    </Text>
-                                </TouchableOpacity>
-                                {item.userID._id === userID &&
+                                {item.body !== "This message is deleted by the user" &&
+                                    <TouchableOpacity style={{paddingTop: 5}} onPress={() => {
+                                        handleReplyTo(item)
+                                    }}>
+                                        <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                            reply
+                                        </Text>
+                                    </TouchableOpacity>
+                                }
+                                {item.body !== "This message is deleted by the user" &&
+                                    item.userID._id === userID &&
                                     <TouchableOpacity style={{paddingTop: 5}} onPress={() => {
                                         setEditComment(!editComment)
                                         setEditTyped(item.body)
@@ -408,6 +411,7 @@ const Comment = ({size, route, navigation}) => {
                                     </TouchableOpacity>
                                 }
                                 {item.userID._id === userID &&
+                                (item.body !== "This message is deleted by the user" || item.replyBy.length <= 0) &&
                                     <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
                                         handleDeleteComment(item._id)
                                     }}>
