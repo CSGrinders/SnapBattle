@@ -26,7 +26,7 @@ function GroupChat({route, navigation}) {
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
     const [avatar, setAvatar] = useState("");
-    const {socket} = useContext(SocketContext);
+    const {socket, leaveRoom} = useContext(SocketContext);
     const [successMessage, setSuccessMessage] = useState('');
     const [successState, setSuccessState] = useState(false);
 
@@ -39,7 +39,7 @@ function GroupChat({route, navigation}) {
                 setAvatar(avatar_img);
             }
             axios.get(
-                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/getChat`
+                `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/getChat`,
             )
                 .then((res) => {
                     const {isEmpty, messages} = res.data;
@@ -49,11 +49,18 @@ function GroupChat({route, navigation}) {
                         setMessages([]);
                     }
                 })
-                .catch((error) => {
-                    console.log("Group Settings page: " + error);
-                    setErrorMessageServer("Something went wrong...");
-                    setErrorServer(true);
-                });
+                .catch((err) => {
+                    console.log("Group Home page: " + err);
+                    const {data} = err.response;
+                    if (err.response) {
+                        setErrorMessageServer(data.errorMessage);
+                        setErrorServer(true);
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
+                })
 
 
         }, [userID, EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL, EXPO_PUBLIC_API_URL, groupID])

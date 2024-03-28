@@ -22,8 +22,6 @@ module.exports.createPost = async(req, res) => {
 
         //current time
         const now = new Date()
-        //console.log(now)
-        //console.log(now.getMonth())
 
         //save the downloadable url to MongoDB in corresponding prompt
         const group = await Group.findById(groupID).populate({path: 'prompts', populate: {path: 'posts'}})

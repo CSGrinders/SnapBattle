@@ -162,12 +162,10 @@ module.exports.editPromptTime = async(req, res) => {
             }
             let lengthHr = parseInt(group.timeToVote.substring(0, 2))
             let totalVotingMin = (parseInt(group.timeToVote.substring(3)) + lengthHr * 60) * 2;
-            console.log(totalVotingMin)
 
             let hrsUsed = subHr - newHr
             let minUsed = subMin - newMin + (hrsUsed * 60)
             let minAvailable = 60 * 24 - minUsed
-            console.log(minAvailable)
 
             if (minAvailable - totalVotingMin < 0) {
                 return res.status(402).json({errorMessage: "Shorten voting length or push back prompt time."})
@@ -248,9 +246,7 @@ module.exports.editVotingLength = async (req, res) => {
 
             //convert voting time to minutes, multiply by 2 b/c of 2 voting periods
             const votingHours = parseInt(votingLength.substring(0, 2))
-            console.log("voting hours: ", votingHours)
             const votingMin = parseInt(votingLength.substring(3))
-            console.log("voting minutes: ", votingMin)
             const totalVotingMin = 2 * (votingHours * 60 + votingMin)
 
             //calculate minutes available after the prompt to submission time

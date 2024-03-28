@@ -284,7 +284,6 @@ module.exports.leaveGroup = async(req, res, next) => {
             return res.status(500).json({errorMessage: "Something went wrong..."});
         }
 
-        console.log(group.userList.length)
         // for some reason doesn't update on time;
         if (group.userList.length <= 1) {
             await Group.findByIdAndDelete(group._id);
@@ -302,7 +301,8 @@ module.exports.leaveGroup = async(req, res, next) => {
 async function leave(userID, groupID){
     try {
         const user = await User.findById(userID);
-        const group = await Group.findById(groupID).populate({
+        const group = await Group.findById(groupID).populate(
+            {
             path: 'messages',
             populate: {
                 path: 'user',
@@ -313,8 +313,6 @@ async function leave(userID, groupID){
         if (!group) {
             return false;
         }
-
-        console.log(group)
 
 
         // delete posts from user
@@ -334,11 +332,8 @@ async function leave(userID, groupID){
                         if (comment.userID.toString() === user._id.toString()) {
                             await deleteComment(comment._id);
                         }
-                    } else {
-                        console.log("comment was reply and alr got booted")
                     }
                 }
-                console.log(post.comments)
                 post.comments = post.comments.filter((comment) => comment.userID.toString() !== userID.toString())
                 await post.save();
             }
@@ -369,7 +364,7 @@ async function leave(userID, groupID){
 
 async function deleteComment(commentID) {
     // find comment
-    const comment = await Comment.findById(commentID);
+    const comment = await Comment.findById(commentID).populate('replyBy').populate('replyTo', '_id');
     // if comment does not have any replies
     if (comment.replyBy.length !== 0) { // if original comment has replies
         // delete all replies to that comment
@@ -379,7 +374,7 @@ async function deleteComment(commentID) {
     }
     // if comment is a reply to another comment, edit parent comment's replyBy
     if (comment.replyTo !== null) {
-        const parent = await Comment.findById(comment.replyTo).populate('replyBy');
+        const parent = await Comment.findById(comment.replyTo._id.toString()).populate('replyBy');
         parent.replyBy = parent.replyBy.filter((reply) => reply._id.toString() !== comment._id.toString())
         await parent.save();
     }
@@ -443,7 +438,6 @@ module.exports.deleteGroup = async(req, res) => {
                         }
                     }
                 ]);
-                console.log(result)
                 if (result !== null && result.length > 0) {
                     let groupsInfo = [];
                     result[0].groupInfo.forEach(group => {
@@ -622,7 +616,6 @@ module.exports.kickUser = async (req, res) => {
                         return res.status(500).json({errorMessage: "Something went wrong..."})
                     }
 
-                    console.log("Kicking user");
                     kickUpdateStatus(kickUser._id.toString(), userID, groupID);
                     return res.status(200).json({userKicked: true});
                 }
@@ -646,64 +639,63 @@ module.exports.kickUser = async (req, res) => {
  */
 module.exports.leaveAllGroups = async(req, res) => {
     try {
-        console.log("hello")
         const userID = req.params.userID;
         const {blockUsername} = req.body;
+
         const blockUser = await User.findOne({username: blockUsername})
         if (!blockUser) {
-            return res.status(404).json({errorMessage: "User you are trying to block is not found"})
+            return res.status(404).json({errorMessage: "User you are trying to block is not found.", viewType: 0})
         }
-        console.log("block user exists")
 
-        const user = await User.findById(userID);
+        const user = await User.findById(userID).populate([
+            {
+                path: 'groups',
+                populate: [
+                    {
+                        path: 'userList',
+                        select: '_id username'
+                    },
+                    {
+                        path: 'adminUserID',
+                        select: '_id username'
+                    }
+                ]
+            }
+        ]);
         if (!user) {
-            return res.status(404).json({errorMessage: "User not found"});
+            console.log("leaveAllGroups module: 500 error");
+            return res.status(500).json({errorMessage: "Something went wrong..."});
         }
-        console.log("user exists")
 
         for (let i = 0; i < user.groups.length; i++) {
             // go through each group
-            const groupID = user.groups[i];
-            console.log(groupID)
-            const group = await Group.findById(groupID.toString());
+            const group = user.groups[i];
             if (!group) {
-                console.log("group does not exist")
-                return res.status(404).json({errorMessage: "Group not found"});
+                continue;
             }
-            console.log("group: " + group)
 
             // if user that you are blocking is found in group
-            let found;
-            for (let j = 0; j < group.userList.length; j++) {
-                if (group.userList[j].toString() === blockUser._id.toString()) {
-                    found = 1;
-                    break;
-                }
-                found = 0;
-            }
-            console.log("found: " + found)
+            const isUserBlock = group.userList.some(userL => userL._id.toString() === blockUser._id.toString());
 
-            if (found) {
+            if (isUserBlock) {
                 // if you are leaving a group you are admin in
-                if (group.adminUserID.toString() === user._id.toString()) {
+                if (group.adminUserID._id.toString() === user._id.toString()) {
                     // set to any random person in the group
-                    const newAdmin = group.userList.find((id) => id.toString() !== user._id.toString());
-                    group.adminUserID = newAdmin;
-                    const newAdminUser = await User.findById(newAdmin)
-                    group.adminName = newAdminUser.username;
+                    group.adminUserID = group.userList.find(userL => userL._id.toString() !== user._id.toString());
+                    group.adminName = group.adminUserID.username;
                     await group.save();
                 }
 
-                let leaveSuccess = await leave(userID, groupID);
+                let leaveSuccess = await leave(userID, group._id.toString());
                 if (!leaveSuccess) {
+                    console.log("leaveAllGroups module: 500 error");
                     return res.status(500).json({errorMessage: "Something went wrong..."});
                 }
             }
         }
-        // add user to blocked array
-        user.blockedUsers.push(blockUser._id);
-        user.save();
-        return res.status(200).json({leaveSuccess: true})
+
+        await user.save();
+        return res.status(200).json({success: true})
 
     } catch (error) {
         console.log("leaveAllGroups module " + error);

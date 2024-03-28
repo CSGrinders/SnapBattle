@@ -9,7 +9,7 @@ import {
     KeyboardAvoidingView,
     TouchableOpacity, Keyboard, TextInput, ScrollView
 } from 'react-native'
-import React, {useState, useEffect, useCallback, memo} from 'react'
+import React, {useState, useEffect, useCallback, memo, useContext} from 'react'
 import BackButton from '../../Components/Button/BackButton';
 import axios, {post} from 'axios';
 import {Input} from '@rneui/themed';
@@ -18,6 +18,8 @@ import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import CommentItem from "../../Components/DailyPrompt/CommentItem";
 import {useFocusEffect} from "@react-navigation/native";
+import {SocketContext} from "../../Storage/Socket";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -35,6 +37,10 @@ const Comment = ({size, route, navigation}) => {
     const [editComment, setEditComment] = useState(false)
     const [editTyped, setEditTyped] = useState('');
     const [editCommentID, setEditCommentID] = useState();
+
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
+    const {leaveRoom} = useContext(SocketContext);
 
 
     useFocusEffect(
@@ -55,7 +61,15 @@ const Comment = ({size, route, navigation}) => {
                 setLoading(false);
             })
             .catch((err) => {
-                console.log(err)
+                const {data} = err.response;
+                if (err.response) {
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             })
     }
 
@@ -72,7 +86,15 @@ const Comment = ({size, route, navigation}) => {
                 }
             })
             .catch((err) => {
-                console.log(err)
+                const {data} = err.response;
+                if (err.response) {
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             })
     }
 
@@ -568,56 +590,59 @@ const Comment = ({size, route, navigation}) => {
                     <Text style={{fontSize: 32, fontFamily: 'OpenSansBold'}}>Comments</Text>
                 </View>
             </View>
-                <View style={{flex: 1}}>
-                    {
-                        commentsEnabled ? (
-                            comments.length === 0 ? (
-                                <View style={{
-                                    flex: 1,
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}>
-                                    {
-                                        loading ? (
-                                            <Text style={{
-                                                color: 'grey',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                Loading comments...
-                                            </Text>
-                                        ) : (
-                                            <Text style={{
-                                                color: 'grey',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                No comments
-                                            </Text>
-                                        )
-                                    }
-                                </View>
-                            ) : (
-                                <FlatList
-                                    data={comments}
-                                    renderItem={({ item }) => <CommentItem item={item} userID={userID} />}
-                                    keyExtractor={(comment) => comment._id.toString()}
-                                />
-                            )
-                        ) : (
+            <View style={{flex: 1}}>
+                {
+                    commentsEnabled ? (
+                        comments.length === 0 ? (
                             <View style={{
                                 flex: 1,
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}>
-                                <Text style={{
-                                    color: 'grey',
-                                    fontWeight: 'bold'
-                                }}>
-                                    Comments Disabled
-                                </Text>
+                                {
+                                    loading ? (
+                                        <Text style={{
+                                            color: 'grey',
+                                            fontWeight: 'bold',
+                                            fontSize: 25,
+                                        }}>
+                                            Loading comments...
+                                        </Text>
+                                    ) : (
+                                        <Text style={{
+                                            color: 'grey',
+                                            fontWeight: 'bold',
+                                            fontSize: 25,
+                                        }}>
+                                            No comments
+                                        </Text>
+                                    )
+                                }
                             </View>
+                        ) : (
+                            <FlatList
+                                data={comments}
+                                renderItem={({ item }) => <CommentItem item={item} userID={userID} />}
+                                keyExtractor={(comment) => comment._id.toString()}
+                            />
                         )
-                    }
-                </View>
+                    ) : (
+                        <View style={{
+                            flex: 1,
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Text style={{
+                                color: 'grey',
+                                fontWeight: 'bold',
+                                fontSize: 25,
+                            }}>
+                                Comments Disabled
+                            </Text>
+                        </View>
+                    )
+                }
+            </View>
             <KeyboardAvoidingView
                 style={{ }}
                 behavior={"padding"}
@@ -628,6 +653,7 @@ const Comment = ({size, route, navigation}) => {
                     : <></>
                 }
             </KeyboardAvoidingView>
+            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
         </SafeAreaView>
     )
 }

@@ -24,7 +24,6 @@ export const SocketProvider = ({children}) => {
 
         socketInstance.on("groupHome", (updateDetails) => {
             if (updateDetails.kicked === true) {
-                console.log(updateDetails);
                 setInfoState(true);
                 setInfoMessage("You have been kicked from the group.");
                 socketInstance.emit('groupHome', updateDetails.userID, "leave", updateDetails.groupID);
@@ -50,7 +49,6 @@ export const SocketProvider = ({children}) => {
 
     // Leave a group room
     const leaveRoom = (token, groupID) => {
-        console.log(groupID)
         if (socket) {
             socket.emit('groupHome', token, "leave", groupID);
         }
