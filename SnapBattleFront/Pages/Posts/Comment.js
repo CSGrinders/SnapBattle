@@ -517,7 +517,7 @@ const Comment = ({size, route, navigation}) => {
                     <View style={{
                         flexDirection: 'row',
                         justifyContent: 'space-around',
-                        width: width,
+                        width: width * .98,
                     }}>
                         <Input
                             placeholder={editComment ? 'Type to edit' : 'Type your comment here...'}
