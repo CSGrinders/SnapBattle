@@ -177,11 +177,25 @@ module.exports.deleteComment = async(req, res) => {
     }
 
     if (post.comments.includes(commentID)) {
-        post.comments.pull(commentID);
-        await post.save();
+        await comment.populate([{path: 'replyBy'}, {path: 'userID'}]);
+        console.log("delteed reply by: ", comment.userID);
+        if (comment.replyBy.length > 0) {
+            console.log("replies not empty");
+            comment.body = "deleted";
+            // comment.userID = new User({
+            //     username: 'deletedUser',
+            //     email: 'delete',
+            //     password: 'afsdf'
+            // });
+            // shat
+            await comment.save();
+            console.log(comment.userID);
+        } else {
+            post.comments.pull(commentID);
+            await post.save();
+            await Comment.findByIdAndDelete(commentID);
+        }
     }
-
-    await Comment.findByIdAndDelete(commentID);
 
     const post_temp = await Post.findById(postID).populate({path: 'comments',
         populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
