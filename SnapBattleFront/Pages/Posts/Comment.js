@@ -7,7 +7,7 @@ import {
     FlatList,
     Platform,
     KeyboardAvoidingView,
-    TouchableOpacity, Keyboard, TextInput
+    TouchableOpacity, Keyboard, TextInput, ScrollView
 } from 'react-native'
 import React, {useState, useEffect, useCallback, memo} from 'react'
 import BackButton from '../../Components/Button/BackButton';
@@ -18,11 +18,13 @@ import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import CommentItem from "../../Components/DailyPrompt/CommentItem";
 import {useFocusEffect} from "@react-navigation/native";
+import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 const Comment = ({size, route, navigation}) => {
     const {width, height} = Dimensions.get('window');
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
     const {username, userID, groupID, token, postID} = route.params;
     const [loading, setLoading] = useState(true);
     const [comments, setComments] = useState([])
@@ -38,6 +40,7 @@ const Comment = ({size, route, navigation}) => {
 
     useFocusEffect(
         useCallback(() => {
+            console.log("USESTATE 1")
             checkAllowedComments();
         }, [])
     )
@@ -95,14 +98,15 @@ const Comment = ({size, route, navigation}) => {
             })
     }
 
-    const handleReplyTo = async (item) => {
+
+    const handleReplyTo = useCallback((item) => {
         console.log("replyTo clicked");
         setReplyToID(item._id);
         setReplyToUserName(item.userID.username);
         setEditComment(false);
 
         console.log("replyTo: ", item._id, item.userID.username);
-    }
+    }, []); // Add any dependencies if necessary
 
     const handleCancelReply = () => {
         console.log("reply cancel clicked");
@@ -447,13 +451,13 @@ const Comment = ({size, route, navigation}) => {
                     </View>
                 </View>
                 {/*{showReplies &&*/}
-                    <View>
-                        <FlatList
-                            data={replies}
-                            renderItem={({item}) => <ReplyItem item={item} userID={userID}/>}
-                            keyExtractor={(item, index) => index.toString()}
-                        />
-                    </View>
+                <View>
+                    <FlatList
+                        data={replies}
+                        renderItem={({item}) => <ReplyItem item={item} userID={userID}/>}
+                        keyExtractor={(item, index) => index.toString()}
+                    />
+                </View>
                 {/*}*/}
 
             </View>
@@ -467,13 +471,12 @@ const Comment = ({size, route, navigation}) => {
             setCommentTyped(inputText);
         }, []);
 
-        const handleEditComment = () => {
-            onHandleEdit(commentTyped);
-            // Optionally clear the input after submission
-            setCommentTyped('');
-        };
         const handleSubmitComment = () => {
-            onSubmitComment(commentTyped);
+            if (editComment) {
+                onHandleEdit(commentTyped);
+            } else {
+                onSubmitComment(commentTyped);
+            }
             // Optionally clear the input after submission
             setCommentTyped('');
         };
@@ -481,196 +484,152 @@ const Comment = ({size, route, navigation}) => {
 
         return (
             <>
-                {
-                    editComment ?
-                        <>
-                            <Input
-                                placeholder='Type to edit'
-                                onChangeText={handleInputChange}
-                                value={commentTyped}
-                                style={{
-                                    height: 50,
-                                    width: '80%',
-                                    borderWidth: 1,
-                                    borderColor: 'gray',
-                                    paddingHorizontal: 10,
-                                }}
-                            />
-                            <TouchableOpacity onPress={handleEditComment}>
-                                <Image source={sendMessage} style={{width: 50, height: 50}}/>
+                <View style={{
+                    display: "flex", flexDirection: "column", zIndex: 1
+                }}>
+                    {replyToID !== '' && replyToUserName !== '' &&
+                        <View style={{
+                            flexDirection: "row",
+                            width: 329,
+                            borderTopLeftRadius: 8,
+                            borderTopRightRadius: 8,
+                            marginLeft: 17,
+                            borderWidth: 1,
+                            borderColor: '#252323',
+                        }}>
+                            <View style={{
+                                flex: 1,
+                            }}>
+                                <Text style={{fontSize: 20}}>Reply to: {replyToUserName}</Text>
+                            </View>
+                            <TouchableOpacity style={{
+                                padding: 4
+                            }} onPress={handleCancelReply}>
+                                <Image
+                                    style={{
+                                        width: 24,
+                                        height: 24,
+                                    }}
+                                    source={require('../../assets/close.webp')}
+                                />
                             </TouchableOpacity>
-                        </>
-                        :
-                        <>
-                            <Input
-                                value={commentTyped}
-                                onChangeText={handleInputChange}
-                                placeholder="Type your comment here..."
-                                style={{
-                                    height: 50,
-                                    width: '80%',
-                                    borderWidth: 1,
-                                    borderColor: 'gray',
-                                    paddingHorizontal: 10,
-                                }}
-                            />
-                            <TouchableOpacity onPress={handleSubmitComment}>
-                                <Image source={sendMessage} style={{width: 50, height: 50}}/>
-                            </TouchableOpacity>
-                        </>
-
-                }
-
+                        </View>
+                    }
+                    <View style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-around',
+                        width: width,
+                    }}>
+                        <Input
+                            placeholder={editComment ? 'Type to edit' : 'Type your comment here...'}
+                            onChangeText={handleInputChange}
+                            value={commentTyped}
+                            style={{
+                                height: 50,
+                                width: '80%',
+                                borderColor: 'gray',
+                                paddingHorizontal: 10,
+                                borderTopLeftRadius: replyToID !== '' && replyToUserName !== '' ? 0 : 8,
+                                borderTopRightRadius: replyToID !== '' && replyToUserName !== '' ? 0 : 8,
+                            }}
+                        />
+                        <TouchableOpacity onPress={handleSubmitComment}>
+                            <Image source={sendMessage} style={{width: 50, height: 50}}/>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </>
         );
     };
 
+
     return (
-        <View style={{
-            display: "flex",
-            flex: 1
-        }}>
+        <SafeAreaView style={{flex: 1}}>
             <View style={{
-                display: "flex",
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                // height: height * 0.15,
-                flex: 0.15,
-                marginTop: 20
+                justifyContent: 'flex-start',
+                height: height * 0.09,
             }}>
                 <View style={{
                     paddingLeft: 15,
+                    paddingBottom: 5,
                     alignItems: 'flex-start',
                     width: width * 0.2
                 }}>
                     <BackButton size={50} navigation={navigation}/>
                 </View>
-                <View style={{width: width * 0.6, justifyContent: 'center', alignItems: 'center'}}>
-                    <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>
-                        Comments
-                    </Text>
-                </View>
                 <View style={{
-                    // something
-                    width: width * 0.2
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    paddingRight: 80,
+                    paddingBottom: 5
                 }}>
+                    <Text style={{fontSize: 32, fontFamily: 'OpenSansBold'}}>Comments</Text>
                 </View>
             </View>
-            <View style={{
-                display: "flex",
-                overflow: 'scroll',
-                flex: 0.7,
-                marginBottom: 5,
-            }}>
-                {
-                    commentsEnabled
-                        ?
-                        (comments.length === 0 ?
+                <View style={{flex: 1}}>
+                    {
+                        commentsEnabled ? (
+                            comments.length === 0 ? (
                                 <View style={{
                                     flex: 1,
                                     justifyContent: 'center',
                                     alignItems: 'center'
                                 }}>
                                     {
-                                        loading ?
+                                        loading ? (
                                             <Text style={{
                                                 color: 'grey',
                                                 fontWeight: 'bold'
                                             }}>
                                                 Loading comments...
                                             </Text>
-                                            :
+                                        ) : (
                                             <Text style={{
                                                 color: 'grey',
                                                 fontWeight: 'bold'
                                             }}>
                                                 No comments
                                             </Text>
+                                        )
                                     }
                                 </View>
-                                :
+                            ) : (
                                 <FlatList
                                     data={comments}
-                                    renderItem={({item}) => <CommentItem item={item} userID={userID}/>}
+                                    renderItem={({ item }) => <CommentItem item={item} userID={userID} />}
                                     keyExtractor={(comment) => comment._id.toString()}
-                                    // style={{flex: 1}}
                                 />
-                        )
-                        :
-                        <View style={{
-                            flex: 1,
-                            marginBottom: 200,
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}>
-                            <Text style={{
-                                color: 'grey',
-                                fontWeight: 'bold'
-                            }}>
-                                Comments Disabled
-                            </Text>
-                        </View>
-                }
-            </View>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : null}
-                style={replyToID !== '' && replyToUserName !== '' ? {display: "flex", flex: 0.2} : {
-                    display: "flex",
-                    flex: 0.1
-                }}
-            >
-                <View style={{
-                    display: "flex",
-                    flex: 1,
-                }}>
-                    <View style={{
-                        display: "flex",
-                        flex: 1,
-                        flexDirection: "row"
-                    }}>
-                        <View style={{
-                            display: "flex", flexDirection: "column"
-                        }}>
-                            {replyToID !== '' && replyToUserName !== '' &&
-                                <View style={{
-                                    display: "flex-inline",
-                                    flexDirection: "row",
-                                    alignItems: "center"
-                                }}>
-                                    <View style={{
-                                        marginLeft: 10,
-                                        flex: 1,
-                                        borderWidth: 1,
-                                        borderRadius: 5
-                                    }}>
-                                        <Text>reply to: {replyToUserName}</Text>
-                                        <Text> </Text>
-                                    </View>
-                                    <TouchableOpacity style={{marginLeft: 5, paddingTop: 5}}
-                                                      onPress={handleCancelReply}>
-                                        <Text style={{fontSize: 40}}> x </Text>
-                                    </TouchableOpacity>
-                                </View>
-                            }
-
+                            )
+                        ) : (
                             <View style={{
                                 flex: 1,
-                                flexDirection: 'row',
-                                justifyContent: 'space-around',
-                                width: width,
+                                justifyContent: 'center',
+                                alignItems: 'center'
                             }}>
-                                {
-                                    commentsEnabled ?
-                                        <TypeComponent onSubmitComment={handleSubmitComment} onHandleEdit={handleEditComment}></TypeComponent> : <></>
-                                }
-
+                                <Text style={{
+                                    color: 'grey',
+                                    fontWeight: 'bold'
+                                }}>
+                                    Comments Disabled
+                                </Text>
                             </View>
-                        </View>
-                    </View>
+                        )
+                    }
                 </View>
+            <KeyboardAvoidingView
+                style={{ }}
+                behavior={"padding"}
+            >
+                {
+                    commentsEnabled ?
+                        <TypeComponent onSubmitComment={handleSubmitComment} onHandleEdit={handleEditComment} />
+                    : <></>
+                }
             </KeyboardAvoidingView>
-        </View>
+        </SafeAreaView>
     )
 }
 
