@@ -28,9 +28,11 @@ module.exports.viewComments = async(req, res) => {
 
 
         const post = await Post.findById(postID).populate({path: 'comments',
-            populate: [{ path: 'userID', model: 'User'},
-                {path: 'replyBy', populate: {path: 'userID'}},
-                {path: 'replyTo', populate: {path: 'userID'}}
+            populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
+                {path: 'replyBy', populate: {path: 'userID', select: '_id name profilePicture username'
+                }},
+                {path: 'replyTo', populate: {path: 'userID', select: '_id name profilePicture username'
+                }}
             ]
         });
 
@@ -142,7 +144,7 @@ module.exports.postComment = async(req, res) => {
 
 
         const post_temp = await Post.findById(postID).populate({path: 'comments',
-            populate: [{ path: 'userID', model: 'User'},
+            populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
                 {path: 'replyBy', populate: {path: 'userID'}},
                 {path: 'replyTo', populate: {path: 'userID'}}
             ]
@@ -182,7 +184,7 @@ module.exports.deleteComment = async(req, res) => {
     await Comment.findByIdAndDelete(commentID);
 
     const post_temp = await Post.findById(postID).populate({path: 'comments',
-        populate: [{ path: 'userID', model: 'User'},
+        populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
             {path: 'replyBy', populate: {path: 'userID'}},
             {path: 'replyTo', populate: {path: 'userID'}}
         ]
@@ -222,9 +224,9 @@ module.exports.editComment = async(req, res) => {
         await comment.save();
 
         const post_temp = await Post.findById(postID).populate({path: 'comments',
-            populate: [{ path: 'userID', model: 'User'},
-                {path: 'replyBy', populate: {path: 'userID'}},
-                {path: 'replyTo', populate: {path: 'userID'}}
+            populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
+                {path: 'replyBy', populate: {path: 'userID', select: '_id name profilePicture username'}},
+                {path: 'replyTo', populate: {path: 'userID', select: '_id name profilePicture username'}}
             ]
         });
 
@@ -310,9 +312,9 @@ module.exports.postLike = async(req, res) => {
     }
 
     const post_temp = await Post.findById(postID).populate({path: 'comments',
-        populate: [{ path: 'userID', model: 'User'},
-            {path: 'replyBy', populate: {path: 'userID'}},
-            {path: 'replyTo', populate: {path: 'userID'}}
+        populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
+            {path: 'replyBy', populate: {path: 'userID', select: '_id name profilePicture username'}},
+            {path: 'replyTo', populate: {path: 'userID', select: '_id name profilePicture username'}}
         ]
     });
 
@@ -346,9 +348,9 @@ module.exports.deleteLike = async(req, res) => {
     await comment.save();
 
     const post_temp = await Post.findById(postID).populate({path: 'comments',
-        populate: [{ path: 'userID', model: 'User'},
-            {path: 'replyBy', populate: {path: 'userID'}},
-            {path: 'replyTo', populate: {path: 'userID'}}
+        populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
+            {path: 'replyBy', populate: {path: 'userID', select: '_id name profilePicture username'}},
+            {path: 'replyTo', populate: {path: 'userID', select: '_id name profilePicture username'}}
         ]
     });
 

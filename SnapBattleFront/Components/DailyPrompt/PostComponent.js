@@ -16,6 +16,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
 
     const {username, userID, groupID, token} = route.params;
     const [option, setOption] = useState(false);
+    const [indexP, setIndex] = useState(0);
     const [commentStatus, setCommentStatus] = useState(false);
     const [postID, setPostID] = useState(false);
     const [isCooldownActive, setIsCooldownActive] = useState(false);
@@ -67,6 +68,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
 
         setIsCooldownActive(true);
         setCooldownTimer(10);
+        posts[indexP].commentsAllowed = value;
         axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/toggle-comments/${id}`, {
             postID: postID,
             userID: userID,
@@ -139,6 +141,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                                 <TouchableOpacity onPress={() => {
                                     setOption(true)
                                     setPostID(item._id);
+                                    setIndex(index)
                                     setCommentStatus(item.commentsAllowed);
                                 }}>
                                     <Image
