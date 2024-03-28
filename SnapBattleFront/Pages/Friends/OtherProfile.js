@@ -23,6 +23,7 @@ import {useFocusEffect} from "@react-navigation/native";
 import {getUserInfo} from "../../Storage/Storage";
 import {SocketContext} from "../../Storage/Socket";
 import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
+
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function OtherProfile({route, navigation}) {
@@ -138,18 +139,18 @@ function OtherProfile({route, navigation}) {
                 navigation.navigate("Friends", {userID})
             }, 1000)
         })
-        .catch((err) => {
-            if (err.response.status !== 500) {
-                setErrorMessageServer(err.response.data.errorMessage);
-                setErrorServer(true);
-                setTimeout(() => {
-                    navigation.navigate("Friends", {userID})
-                }, 1000)
-            } else {
-                setErrorMessageServer(err.response.data.errorMessage);
-                setErrorServer(true);
-            }
-        })
+            .catch((err) => {
+                if (err.response.status !== 500) {
+                    setErrorMessageServer(err.response.data.errorMessage);
+                    setErrorServer(true);
+                    setTimeout(() => {
+                        navigation.navigate("Friends", {userID})
+                    }, 1000)
+                } else {
+                    setErrorMessageServer(err.response.data.errorMessage);
+                    setErrorServer(true);
+                }
+            })
     }
 
     function unblockFriend(username) {
@@ -162,6 +163,9 @@ function OtherProfile({route, navigation}) {
             setInfoPrompt(true);
             setInfoMessage(res.data.message);
             setView(1);
+            setTimeout(() => {
+                navigation.navigate("Friends", {userID})
+            }, 1000)
         }).catch((error) => {
             const {status, data} = error.response;
             if (error.response) {
@@ -184,58 +188,34 @@ function OtherProfile({route, navigation}) {
         })
     }
 
+
     function blockFriend(username) {
-        // removing as friend/removing request based on current relationship w user
-        if (view === 0) {
-            // copy and pasted bc i don't want it to show confirmation on success
-            axios.post(
-                `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/remove`,
-                {
-                    removeUsername: username
-                }
-            ).then((res) => {
-                setView(1);
-                setExistRqFriend(false);
-            })
-                .catch((err) => {
-                    if (err.response.status !== 500) {
-                        setErrorMessageServer(err.response.data.errorMessage);
-                        setErrorServer(true);
-                        setTimeout(() => {
-                            navigation.navigate("Friends", {userID})
-                        }, 1000)
-                    } else {
-                        setErrorMessageServer(err.response.data.errorMessage);
-                        setErrorServer(true);
-                    }
-                })
-            console.log("remove friend")
-        } else {
-            if (existRqFriend) {
-                removeRequest();
-                console.log("remove request")
-            }
-        }
-        console.log("leaving groups")
-        // leaving all groups with user in it
-        axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/block`, {
+        // copy and pasted bc i don't want it to show confirmation on success
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/block`,
+            {
                 blockUsername: username
             }
         ).then((res) => {
-            const success = res.data;
-            console.log("blocked")
+            const {success} = res.data;
             if (success) {
+                setView(2);
                 setInfoMessage("User blocked. You have left all the groups that you share with this user.")
                 setInfoPrompt(true);
-                setTimeout(() => {
-                    navigation.navigate("Main", {userID})
-                }, 2000)
+                setExistRqFriend(false);
             }
-        }).catch((error) => {
-            let {status, data} = error;
-            console.log(error)
-            setErrorMessageServer(data.errorMessage);
-            setErrorServer(true);
+        }).catch((err) => {
+            if (err.response.status !== 500) {
+                setErrorMessageServer(err.response.data.errorMessage);
+                setErrorServer(true);
+                setTimeout(() => {
+                    navigation.navigate("Friends", {userID})
+                }, 1000)
+            } else {
+                console.log(err)
+                setErrorMessageServer(err.response.data.errorMessage);
+                setErrorServer(true);
+            }
         })
     }
 
@@ -331,7 +311,7 @@ function OtherProfile({route, navigation}) {
                             <Button onPress={() => setConfirmStatus(true)}>
                                 Block User
                             </Button>
-                    </>)
+                        </>)
                     :
                     <></>
                 }

@@ -42,6 +42,7 @@ exports.groupHomeUpdates = (io) => {
                 Object.keys(userSocketMap).forEach(userId => {
                     if (userSocketMap[userId] === socket.id) {
                         delete userSocketMap[userId];
+                        delete group[userId];
                         console.log(`${userId} disconnected and was removed from their group room.`);
                     }
                 });

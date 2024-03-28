@@ -108,7 +108,7 @@ module.exports.getPrompt = async (req, res) => {
 
     //if not found, need to create a new prompt
     if (todayPrompt === null) {
-        console.log("creating new prompt ")
+        console.log("Create prompt module: creating new prompt ")
 
         //getting response from chat-gpt
         const openai = new OpenAI({apiKey: OPENAI_API_KEY})

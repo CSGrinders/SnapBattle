@@ -15,11 +15,17 @@ const Group = require('../../Models/Group');
 
 module.exports.getChat = async(req, res)=> {
     try {
-        const groupID = req.params.groupID;
+        const { groupID, userID} = req.params;
         const groupChat = await Group.findById(groupID).populate('messages')
             .populate({
                 path: 'messages',
-        });
+        }).populate('userList', '_id');
+
+        const isUserInGroup = groupChat.userList.some(user => user._id.toString() === userID);
+        if (!isUserInGroup) {
+            return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+        }
+
 
         if (!groupChat) { //Group not found
             return res.status(500).json({errorMessage: "Something went wrong..."});

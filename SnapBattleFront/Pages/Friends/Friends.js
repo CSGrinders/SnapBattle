@@ -74,6 +74,11 @@ function Friends({route, navigation}) {
     }, [lastRefresh]);
 
     function searchUser() {
+        if (search == null || search === '') {
+            setErrorMessageServer("Empty Field.");
+            setErrorServer(true);
+            return;
+        }
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search}`,
         )
@@ -100,6 +105,11 @@ function Friends({route, navigation}) {
     }
 
     function seeFriend(username, viewType) {
+        if (username == null ||username === '') {
+            setErrorMessageServer("User not found.");
+            setErrorServer(true);
+            return;
+        }
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${username}`,
         )
@@ -228,8 +238,7 @@ function Friends({route, navigation}) {
                     }}>Friends</Text>
                 </View>
                 <View style={{marginRight: 20}}>
-                    <TouchableOpacity onPress={() => {
-                    }}>
+                    <TouchableOpacity onPress={() => {navigation.navigate("BlockUserList", {...route.params, token: token})}}>
                         <Image
                             source={BlockedFriendsIcon}
                             style={{

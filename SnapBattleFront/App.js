@@ -22,6 +22,7 @@ import {SocketProvider} from "./Storage/Socket";
 import SubmissionCamera from "./Pages/Group/SubmissionCamera";
 import GroupChat from "./Pages/Group/GroupChat";
 import Comment from './Pages/Posts/Comment';
+import blockUsers from "./Pages/Friends/BlockUsers";
 
 
 function App() {
@@ -56,6 +57,7 @@ function App() {
                         <Stack.Screen name="GroupChat" component={GroupChat}/>
                         <Stack.Screen name="Prompts" component={GroupChat}/>
                         <Stack.Screen name="Comments" component={Comment}/>
+                        <Stack.Screen name="BlockUserList" component={blockUsers}/>
                     </Stack.Navigator>
                 </SocketProvider>
             </NavigationContainer>

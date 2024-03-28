@@ -259,7 +259,6 @@ function Groups({route, navigation}) {
         axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/transfer-admin`, {
             newAdminUsername: newAdminUsername,
         }).then((res) => {
-            console.log("works?")
             if (res.data.adminChange) {
                 setTransferVisible(false);
                 leaveGroup(confirmGroup);

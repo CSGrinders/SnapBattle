@@ -41,8 +41,6 @@ router.get("/:groupID/getChat", getChat)
 
 router.post('/create', createGroup)
 
-router.post('/block', leaveAllGroups)
-
 router.get('/list-users/:groupID', listUsers);
 
 router.post('/:groupID/invite', inviteToGroup);

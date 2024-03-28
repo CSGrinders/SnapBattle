@@ -2,6 +2,7 @@ import {Dimensions, FlatList, Text, View, Image, TouchableOpacity, Pressable, Mo
 import React, {useEffect, useRef, useState} from "react";
 import Carousel from "react-native-snap-carousel";
 import OtherProfilePicture from "../Profile/OtherProfilePicture";
+
 const {width, height} = Dimensions.get('window');
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 import ShareIcon from "../../assets/share.webp"
@@ -12,7 +13,7 @@ import CloseButton from "../../assets/close.webp";
 import {Button, Switch} from "@rneui/themed";
 import axios from "axios";
 
-const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, setActivePostID}) => {
+const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, setActivePostID, loading}) => {
 
     const {username, userID, groupID, token} = route.params;
     const [option, setOption] = useState(false);
@@ -43,7 +44,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
 
     const renderPageView = () => {
         return (
-            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
                 {posts.map((_, index) => (
                     <Text
                         key={index}
@@ -109,15 +110,32 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
             <View style={{
                 height: "100%",
             }}>
-                <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', marginBottom: 5}}>
-                    <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 10}}>
+                <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-around',
+                    marginBottom: 5
+                }}>
+                    <View style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'flex-start',
+                        gap: 10
+                    }}>
                         <OtherProfilePicture size={50} imageUrl={item.owner.profilePicture}/>
                         <View style={{flexDirection: 'column'}}>
                             <Text>{item.owner.username}</Text>
                             <Text>{new Date(item.time).getHours() + ":" + new Date(item.time).getMinutes()}</Text>
                         </View>
                     </View>
-                    <View style={{flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 10}}>
+                    <View style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        gap: 10
+                    }}>
                         <TouchableOpacity onPress={() => openComments(index)}>
                             <Image
                                 source={CommentIcon}
@@ -155,13 +173,13 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                         }
                     </View>
                 </View>
-            <Image
-                source={{uri: item.picture}}
-                style={{
-                    width: width * 0.9 - 10,
-                    height: (1.2) * (width * 0.9 - 10),
-                }}
-            />
+                <Image
+                    source={{uri: item.picture}}
+                    style={{
+                        width: width * 0.9 - 10,
+                        height: (1.2) * (width * 0.9 - 10),
+                    }}
+                />
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -228,7 +246,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                                 />
                             </View>
                             {(isCooldownActive && disable) && (
-                                <Text style={{ textAlign: 'center', marginTop: 10 }}>
+                                <Text style={{textAlign: 'center', marginTop: 10}}>
                                     Please wait {cooldownTimer} seconds.
                                 </Text>
                             )}
@@ -236,7 +254,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                     </View>
 
                 </Modal>
-        </View>
+            </View>
         )
     }
 
@@ -257,22 +275,32 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                 //borderWidth: 5,
                 justifyContent: 'center',
                 alignItems: 'center',
+
             }}>
-                <Text>No posts</Text>
+                {loading ?
+                    <Text style={{
+                        color: 'grey',
+                        fontWeight: 'bold',
+                        fontSize: 25,
+                    }}>Loading...</Text> :
+                    <Text style={{
+                        color: 'grey',
+                        fontWeight: 'bold',
+                        fontSize: 25,
+                    }}>No posts</Text>}
             </View>
         )
-    }
-    else {
+    } else {
         return (
             <View style={{
                 height: "100%",
-                 //borderWidth: 5,
+                //borderWidth: 5,
             }}>
                 <Carousel
                     layout="default"
                     ref={ref}
                     data={posts}
-                    sliderWidth={width * 0.9- 10}
+                    sliderWidth={width * 0.9 - 10}
                     itemWidth={width * 0.9 - 10}
                     renderItem={renderItem}
                     onSnapToItem={(index) => {
