@@ -169,8 +169,13 @@ module.exports.createGroup = async(req, res) => {
 
 module.exports.listUsers = async(req, res) => {
     try {
-        const groupID = req.params.groupID;
+        const {groupID, userID} = req.params;
         const group = await Group.findById(groupID).populate('userList');
+
+        const isUserInGroup = group.userList.some(user => user._id.toString() === userID);
+        if (!isUserInGroup) {
+            return res.status(404).json({errorMessage: 'User don\'t belong to this group.'});
+        }
 
         if (group) {
             return res.status(200).json({list: group.userList, adminUser: group.adminUserID})
@@ -323,7 +328,7 @@ async function leave(userID, groupID){
                 const post = await Post.findById(prompt.posts[j]).populate('comments');
                 // don't bother going through comments if there are no comments
                 if (post.comments.length === 0) {
-                    break;
+                    continue;
                 }
                 for (let k = 0; k < post.comments.length; k++) {
                     const comment = await Comment.findById(post.comments[k]);

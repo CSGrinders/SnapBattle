@@ -101,9 +101,16 @@ function GroupMembers({route, navigation}) {
                 setAdminUser(res.data.adminUser);
             })
             .catch((err) => {
-                setErrorMessageServer("Something went wrong...");
-                setErrorServer(true);
-                console.log("CreateGroup page: " + err);
+                console.log("Members Home page: " + err);
+                if (err.response) {
+                    const {data} = err.response;
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             })
     }
 

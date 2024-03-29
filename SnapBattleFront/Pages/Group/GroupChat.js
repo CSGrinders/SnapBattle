@@ -51,14 +51,17 @@ function GroupChat({route, navigation}) {
                 })
                 .catch((err) => {
                     console.log("Group Home page: " + err);
-                    const {data} = err.response;
                     if (err.response) {
+                        const {data} = err.response;
                         setErrorMessageServer(data.errorMessage);
                         setErrorServer(true);
                         leaveRoom(userID, groupID);
                         setTimeout(() => {
                             navigation.navigate("Main", {userID: userID})
                         }, 1500)
+                    } else {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
                     }
                 })
 
@@ -299,8 +302,9 @@ function GroupChat({route, navigation}) {
                     }}
 
                     renderMessage={props => {
+                        const isMessageFromCurrentUser = props.currentMessage.user._id === userID;
                         return (
-                            <ChatMessageBox {...props} setReplyOnSwipeOpen={setReplyMessage}
+                            <ChatMessageBox {...props} setReplyOnSwipeOpen={isMessageFromCurrentUser ? null : setReplyMessage}
                                             updateRowRef={updateRowRef}/>
                         )
                     }}
