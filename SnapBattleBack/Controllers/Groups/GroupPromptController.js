@@ -52,24 +52,28 @@ module.exports.getPrompt = async (req, res) => {
     const votingMin = parseInt(group.timeToVote.substring(3, 5))
     const weeklyVotingDay = group.weeklyVotingDay
 
-    const now = new Date()
-    now.setSeconds(0)
+    const now = new Date();
+    //now.setSeconds(0)
 
     const promptReleaseTime = new Date(now)
     promptReleaseTime.setHours(promptReleaseHour)
     promptReleaseTime.setMinutes(promptReleaseMin)
+    promptReleaseTime.setSeconds(0)
 
     const promptSubmitTime = new Date(now)
     promptSubmitTime.setHours(promptSubmitHour)
     promptSubmitTime.setMinutes(promptSubmitMin)
+    promptSubmitTime.setSeconds(0)
 
     const dailyVotingTime = new Date(promptSubmitTime)
     dailyVotingTime.setHours(dailyVotingTime.getHours() + votingHour)
     dailyVotingTime.setMinutes(dailyVotingTime.getMinutes() + votingMin)
+    dailyVotingTime.setSeconds(0)
 
     const weeklyVotingTime = new Date(dailyVotingTime)
     weeklyVotingTime.setHours(weeklyVotingTime.getHours() + votingHour)
     weeklyVotingTime.setMinutes(weeklyVotingTime.getMinutes() + votingMin)
+    weeklyVotingTime.setSeconds(0)
 
     let todayPrompt = null
 
@@ -91,6 +95,7 @@ module.exports.getPrompt = async (req, res) => {
         const promptTime = new Date(now)
         promptTime.setHours(promptReleaseHour)
         promptTime.setMinutes(promptReleaseMin)
+        promptTime.setSeconds(0)
         return res.status(200).json({
             promptObj: yesterdayPrompt,
             submissionAllowed: false,
@@ -182,6 +187,7 @@ module.exports.getPrompt = async (req, res) => {
         nextPromptRelease.setDate(nextPromptRelease.getDate() + 1)
         nextPromptRelease.setHours(promptReleaseHour)
         nextPromptRelease.setMinutes(promptReleaseMin)
+        nextPromptRelease.setSeconds(0)
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
