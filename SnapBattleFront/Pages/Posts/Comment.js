@@ -9,7 +9,7 @@ import {
     KeyboardAvoidingView,
     TouchableOpacity, Keyboard, TextInput, ScrollView
 } from 'react-native'
-import React, {useState, useEffect, useCallback, memo} from 'react'
+import React, {useState, useEffect, useCallback, memo, useContext} from 'react'
 import BackButton from '../../Components/Button/BackButton';
 import axios, {post} from 'axios';
 import {Input} from '@rneui/themed';
@@ -18,6 +18,9 @@ import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import CommentItem from "../../Components/DailyPrompt/CommentItem";
 import {useFocusEffect} from "@react-navigation/native";
+import {SocketContext} from "../../Storage/Socket";
+import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -35,6 +38,14 @@ const Comment = ({size, route, navigation}) => {
     const [editComment, setEditComment] = useState(false)
     const [editTyped, setEditTyped] = useState('');
     const [editCommentID, setEditCommentID] = useState();
+
+    const [errorMessageServer, setErrorMessageServer] = useState('');
+    const [errorServer, setErrorServer] = useState(false);
+    const {leaveRoom} = useContext(SocketContext);
+
+    const [confirmMessage, setConfirmMessage] = useState('Are you sure you would like to delete this comment?');
+    const [confirmStatus, setConfirmStatus] = useState(false);
+    const [deleteCommentID, setDeleteCommentID] = useState('');
 
 
     useFocusEffect(
@@ -55,7 +66,15 @@ const Comment = ({size, route, navigation}) => {
                 setLoading(false);
             })
             .catch((err) => {
-                console.log(err)
+                const {data} = err.response;
+                if (err.response) {
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             })
     }
 
@@ -72,7 +91,15 @@ const Comment = ({size, route, navigation}) => {
                 }
             })
             .catch((err) => {
-                console.log(err)
+                const {data} = err.response;
+                if (err.response) {
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             })
     }
 
@@ -94,6 +121,19 @@ const Comment = ({size, route, navigation}) => {
             })
             .catch((err) => {
                 console.log(err)
+                const {status, data} = err.response;
+                if (err.response) { //Error
+                    if (status !== 500) {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    } else {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                } else {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
             })
     }
 
@@ -150,11 +190,15 @@ const Comment = ({size, route, navigation}) => {
             .catch((err) => {
                 console.log(err)
                 // something went wrong popup TODO
+                const {status, data} = err.response;
+                if (err.response) { //Error
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                } else {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
             })
-    }
-
-    const handleLikeComment = async () => {
-        console.log("like");
     }
 
     const ReplyItem = ({item, userID}) => {
@@ -256,7 +300,9 @@ const Comment = ({size, route, navigation}) => {
                                 }
                                 {item.userID._id === userID &&
                                     <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                        handleDeleteComment(item._id)
+                                        setConfirmStatus(true);
+                                        setDeleteCommentID(item._id);
+                                        // handleDeleteComment(item._id) //TODO
                                     }}>
                                         <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
                                             delete
@@ -274,11 +320,11 @@ const Comment = ({size, route, navigation}) => {
                     }}>
                         <View style={{flexDirection: 'column', alignItems: 'center'}}>
                             {item.likes.includes(userID) ?
-                                (<TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleUnlikeComment}>
+                                (<TouchableOpacity style={{paddingTop: 5}} onPress={handleUnlikeComment}>
                                     <Image source={HeartIcon} style={{width: 15, height: 15, tintColor: 'red'}}></Image>
                                 </TouchableOpacity>)
                                 :
-                                (<TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                                (<TouchableOpacity style={{paddingTop: 5}} onPress={handleLikeComment}>
                                     <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
                                 </TouchableOpacity>)}
                             <Text>{item.likes.length}</Text>
@@ -413,7 +459,9 @@ const Comment = ({size, route, navigation}) => {
                                 {item.userID._id === userID &&
                                 (item.body !== "This message is deleted by the user" || item.replyBy.length <= 0) &&
                                     <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                        handleDeleteComment(item._id)
+                                        setConfirmStatus(true);
+                                        setDeleteCommentID(item._id);
+                                        // handleDeleteComment(item._id) //TODO
                                     }}>
                                         <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
                                             delete
@@ -572,56 +620,59 @@ const Comment = ({size, route, navigation}) => {
                     <Text style={{fontSize: 32, fontFamily: 'OpenSansBold'}}>Comments</Text>
                 </View>
             </View>
-                <View style={{flex: 1}}>
-                    {
-                        commentsEnabled ? (
-                            comments.length === 0 ? (
-                                <View style={{
-                                    flex: 1,
-                                    justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}>
-                                    {
-                                        loading ? (
-                                            <Text style={{
-                                                color: 'grey',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                Loading comments...
-                                            </Text>
-                                        ) : (
-                                            <Text style={{
-                                                color: 'grey',
-                                                fontWeight: 'bold'
-                                            }}>
-                                                No comments
-                                            </Text>
-                                        )
-                                    }
-                                </View>
-                            ) : (
-                                <FlatList
-                                    data={comments}
-                                    renderItem={({ item }) => <CommentItem item={item} userID={userID} />}
-                                    keyExtractor={(comment) => comment._id.toString()}
-                                />
-                            )
-                        ) : (
+            <View style={{flex: 1}}>
+                {
+                    commentsEnabled ? (
+                        comments.length === 0 ? (
                             <View style={{
                                 flex: 1,
                                 justifyContent: 'center',
                                 alignItems: 'center'
                             }}>
-                                <Text style={{
-                                    color: 'grey',
-                                    fontWeight: 'bold'
-                                }}>
-                                    Comments Disabled
-                                </Text>
+                                {
+                                    loading ? (
+                                        <Text style={{
+                                            color: 'grey',
+                                            fontWeight: 'bold',
+                                            fontSize: 25,
+                                        }}>
+                                            Loading comments...
+                                        </Text>
+                                    ) : (
+                                        <Text style={{
+                                            color: 'grey',
+                                            fontWeight: 'bold',
+                                            fontSize: 25,
+                                        }}>
+                                            No comments
+                                        </Text>
+                                    )
+                                }
                             </View>
+                        ) : (
+                            <FlatList
+                                data={comments}
+                                renderItem={({ item }) => <CommentItem item={item} userID={userID} />}
+                                keyExtractor={(comment) => comment._id.toString()}
+                            />
                         )
-                    }
-                </View>
+                    ) : (
+                        <View style={{
+                            flex: 1,
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Text style={{
+                                color: 'grey',
+                                fontWeight: 'bold',
+                                fontSize: 25,
+                            }}>
+                                Comments Disabled
+                            </Text>
+                        </View>
+                    )
+                }
+            </View>
             <KeyboardAvoidingView
                 style={{ }}
                 behavior={"padding"}
@@ -632,6 +683,13 @@ const Comment = ({size, route, navigation}) => {
                     : <></>
                 }
             </KeyboardAvoidingView>
+            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
+            <ConfirmPrompt Message={confirmMessage} state={confirmStatus} setState={setConfirmStatus}
+                           command={() => {
+                               setConfirmStatus(false);
+                               handleDeleteComment(deleteCommentID);
+                           }}>
+            </ConfirmPrompt>
         </SafeAreaView>
     )
 }

@@ -15,7 +15,7 @@ import Logo from "../../assets/logo.webp";
 import Chat from "../../assets/chat.webp";
 import Camera from "../../assets/camera.webp";
 import Group from "../../assets/group.webp";
-import Vote from "../../assets/thumbs-up.jpg"
+import Vote from "../../assets/thumbs-up.webp"
 import {Image} from "expo-image";
 import LeaderBoard from '../../assets/Leaderboard.webp';
 import DailyPrompt from "../../Components/DailyPrompt/DailyPrompt";
@@ -35,7 +35,7 @@ function GroupHome({route, navigation}) {
     const {username, userID, groupID, token} = route.params
     const {width, height} = Dimensions.get('window');
     const [prompt, setPrompt] = useState("")
-
+    const [loading, setLoading] = useState(true);
 
     /*
         PERIOD 0 = waiting period (have not reached submission period yet)
@@ -120,6 +120,7 @@ function GroupHome({route, navigation}) {
                 else {
                     setPrompt(promptObj.prompt)
                     setPosts(promptObj.posts)
+                    setLoading(false);
                     if (promptObj.posts.length > 0) {
                         setActivePostID(promptObj.posts[0]._id)
                     }
@@ -220,7 +221,7 @@ function GroupHome({route, navigation}) {
                     height: height * 0.55
                 }}>
                     <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
-                                   setActivePostID={setActivePostID}/>
+                                   setActivePostID={setActivePostID} loading={loading}/>
                 </View>
             </ScrollView>
             <View style={{

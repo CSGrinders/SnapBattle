@@ -24,8 +24,14 @@ const Group = require("../../Models/Group");
 
 module.exports.viewComments = async(req, res) => {
     try {
-        const {postID} = req.params;
+        const {userID, groupID, postID} = req.params;
 
+        const groupChat = await Group.findById(groupID).populate('userList', '_id');
+
+        const isUserInGroup = groupChat.userList.some(user => user._id.toString() === userID);
+        if (!isUserInGroup) {
+            return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+        }
 
         const post = await Post.findById(postID).populate({path: 'comments',
             populate: [{ path: 'userID', select: '_id name profilePicture username', model: 'User'},
@@ -38,7 +44,6 @@ module.exports.viewComments = async(req, res) => {
 
         if (post) {
             const comments = post.comments;
-            console.log("comments: ", comments)
             res.status(200).json({comments: comments});
         } else {
             res.status(404).json({errorMessage: "Post not found"});
@@ -51,7 +56,6 @@ module.exports.viewComments = async(req, res) => {
 
 module.exports.viewReplies = async(req, res) => {
     try {
-        console.log("viewReplies:", req.params);
         const {commentID} = req.params;
 
         const comment = await Comment.findById(commentID);
@@ -70,7 +74,6 @@ module.exports.viewReplies = async(req, res) => {
             }
         }
 
-        console.log(replyComments);
 
         return res.status(200).json({replyComments: replyComments});
     } catch (error) {
@@ -177,8 +180,8 @@ module.exports.deleteComment = async(req, res) => {
     }
 
     if (post.comments.includes(commentID)) {
-        await comment.populate([{path: 'replyBy'}, {path: 'userID'}]);
-        console.log("delteed reply by: ", comment.userID);
+        await comment.populate([{path: 'replyBy'},{path: 'replyTo'}, {path: 'userID'}]);
+        const parentComment = comment.replyTo;
         if (comment.replyBy.length > 0) {
             console.log("replies not empty");
             comment.body = "This message is deleted by the user";
@@ -189,11 +192,24 @@ module.exports.deleteComment = async(req, res) => {
             // });
             // shat
             await comment.save();
-            console.log(comment.userID);
         } else {
             post.comments.pull(commentID);
             await post.save();
             await Comment.findByIdAndDelete(commentID);
+        }
+
+        if (parentComment) {
+            console.log("parentComponent: 1", parentComment.replyBy);
+            if (parentComment && parentComment.replyBy.length > 0) {
+                parentComment.replyBy.pull(comment._id);
+                await parentComment.save();
+                console.log("parentComponent: 2", parentComment.replyBy);
+                if (parentComment.replyBy.length <= 0 && parentComment.body === "This message is deleted by the user") {
+                    post.comments.pull(parentComment._id);
+                    await post.save();
+                    await Comment.findByIdAndDelete(parentComment._id);
+                }
+            }
         }
     }
 
@@ -205,7 +221,6 @@ module.exports.deleteComment = async(req, res) => {
     });
 
     const comments = post_temp.comments;
-    console.log(comments);
     res.status(200).json({comments: comments});
 }
 
@@ -216,7 +231,6 @@ module.exports.editComment = async(req, res) => {
         const content = req.body.content;
         const postID = req.params.postID;
 
-        console.log(userID, commentID, content)
     
         const user = await User.findById(userID);
         const comment = await Comment.findById(commentID);
@@ -230,7 +244,6 @@ module.exports.editComment = async(req, res) => {
         }
 
         if (comment.userID.toString() !== userID) {
-            console.log(comment.userID, userID)
             return res.status(404).json({errorMessage: "Comment owner does not match user"});
         }
 
@@ -259,19 +272,16 @@ module.exports.toggleComments = async(req, res) => {
         const userID = req.body.userID;
         const commentsAllowed = req.body.commentsAllowed
 
-        console.log(postID, userID, commentsAllowed)
 
         const user = await User.findById(userID);
         const post = await Post.findById(postID);
 
         if (!user) {
-            console.log("1")
-            return res.status(404).json({errorMessage: "User not found"});
+            return res.status(404).json({errorMessage: "User not found."});
         }
 
         if (!post) {
-            console.log("2")
-            return res.status(404).json({errorMessage: "Post not found"})
+            return res.status(404).json({errorMessage: "Post not found."})
         }
 
         if (post.owner.toString() !== user._id.toString()) {
@@ -289,21 +299,30 @@ module.exports.toggleComments = async(req, res) => {
 
 module.exports.commentsEnabled = async(req, res) => {
     try {
-        const {postID} = req.params
+        const {postID, userID, groupID} = req.params
+
+
+
+        const groupChat = await Group.findById(groupID).populate('userList', '_id');
+
+        const isUserInGroup = groupChat.userList.some(user => user._id.toString() === userID);
+        if (!isUserInGroup) {
+            return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+        }
+
         const post = await Post.findById(postID);
         if (post) {
             res.status(200).json({commentsAllowed: post.commentsAllowed})
         } else {
-            console.log("Post not found")
-            res.status(404).json({errorMessage: "Post not found"})
+            console.log("Post not found.")
+            res.status(404).json({errorMessage: "Post not found."})
         }
     } catch (error) {
         console.log("Comment enabled: server error")
-        res.status(500).json({errorMessage: "Server error"})
+        res.status(500).json({errorMessage: "Something is wrong..."})
     }
 }
 module.exports.postLike = async(req, res) => {
-    console.log("getLikes");
     const {postID, commentID, userID} = req.params;
 
     const post = await Post.findById(postID);
@@ -336,13 +355,11 @@ module.exports.postLike = async(req, res) => {
 
     return res.status(200).json({commentUpdated: true, comments: comments});
 
-    console.log(comment);
     res.status(200).json({likes: comment.likes});
 }
 
 
 module.exports.deleteLike = async(req, res) => {
-    console.log("delete Likes");
     const {postID, commentID, userID} = req.params;
 
     const post = await Post.findById(postID);
@@ -350,11 +367,11 @@ module.exports.deleteLike = async(req, res) => {
     const user = await User.findById(userID);
 
     if (!post) {
-        return res.status(404).json({errorMessage: "Post not found"});
+        return res.status(404).json({errorMessage: "Post not found."});
     }
 
     if (!comment) {
-        return res.status(404).json({errorMessage: "Comment not found"});
+        return res.status(404).json({errorMessage: "Comment not found."});
     }
 
     // delete likes
@@ -371,7 +388,4 @@ module.exports.deleteLike = async(req, res) => {
     const comments = post_temp.comments;
 
     return res.status(200).json({commentUpdated: true, comments: comments});
-
-    console.log(comment);
-    res.status(200).json({likes: comment.likes});
 }

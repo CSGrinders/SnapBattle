@@ -36,11 +36,10 @@ const Prompt = require("../../Models/Prompt");
  */
 
 module.exports.searchUser = async(req, res) => {
-
     try {
         const {userID, searchUsername} = req.params;
-        const user = await User.findById(userID);
-        const searchUser = await User.findOne({username: searchUsername}).populate('requests')
+        const user = await User.findById(userID).populate('blockedUsers', '_id');
+        const searchUser = await User.findOne({username: searchUsername}).populate('requests').populate('blockedUsers', '_id')
         let pfpURL = '';
         try {
             const searchUserID = searchUser._id;
@@ -53,8 +52,16 @@ module.exports.searchUser = async(req, res) => {
         if (searchUser) {
             //user searched for themselves
             if (searchUser._id.toString() === userID) {
-                return res.status(404).json({errorMessage: "You cannot search for yourself"})
+                return res.status(404).json({errorMessage: "You cannot search for yourself."})
             }
+
+            const isUserBlockA = searchUser.blockedUsers.some(user => user._id.toString() === user._id.toString());
+            const isUserBlockB = user.blockedUsers.some(user => user._id.toString() === searchUser._id.toString());
+            if (isUserBlockA && !isUserBlockB) {
+                return res.status(404).json({errorMessage: "User could not be found."})
+            }
+
+
             // check if searched user is blocked
             for (let i = 0; i < user.blockedUsers.length; i++) {
                 console.log("blocked user id: " + user.blockedUsers[i]._id.toString());
@@ -192,6 +199,8 @@ module.exports.sendFriendRequest = async(req, res) => {
     }
 }
 
+
+
 /**
  * Add small desc.
  * route
@@ -208,13 +217,11 @@ module.exports.unblock = async(req, res) => {
         const user = await User.findById(userID)
         const unblockUser = await User.findOne({username: unblockUsername})
         if (user && unblockUser) {
-            console.log("before: " + user.blockedUsers.length)
             user.blockedUsers = user.blockedUsers.filter((id) => id.toString() !== unblockUser._id.toString())
-            console.log("after: " + user.blockedUsers.length)
             await user.save();
-            res.status(200).json({message: "User unblocked."});
+            res.status(200).json({message: "User has been unblocked."});
         } else {
-            res.status(404).json({errorMessage: "User could not be found"})
+            res.status(404).json({errorMessage: "User could not be found."})
         }
     } catch (error) {
         console.log("unblock module: " + error);
@@ -245,6 +252,36 @@ module.exports.getFriendsAndRequests = async (req, res) => {
             }))
 
             res.status(200).json({friends, requests});
+        }
+        else {
+            res.status(404).json({errorMessage: "User could not be found."});
+        }
+
+    } catch (error) {
+        console.log("getFriends module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+
+
+/**
+ * Add small desc.
+ *
+ * @param {object} req - Express request object.
+ * @param {object} res - Express response object.
+ */
+
+module.exports.getBlockedUsers = async (req, res) => {
+    try {
+        const {userID} = req.params;
+        const user = await User.findById(userID, 'blockedUsers').populate('blockedUsers', 'username')
+        if (user) {
+            let users = user.blockedUsers;
+            users = users.map((user) => ({
+                username: user.username,
+            }))
+            res.status(200).json({users});
         }
         else {
             res.status(404).json({errorMessage: "User could not be found."});
@@ -454,6 +491,107 @@ module.exports.removeFriend = async (req, res, next) => {
         return res.status(200).json({message: "Friend successfully removed"})
     }
     catch {
-        return res.status(500).json({errorMessage: "Internal server error"})
+        return res.status(500).json({errorMessage: "Something went wrong..."})
+    }
+}
+
+
+
+
+module.exports.blockUser = async(req, res, next) => {
+    try {
+        const {userID} = req.params;
+        const {blockUsername} = req.body;
+
+        //sending request from user A to user B
+        const userA = await User.findById(userID).populate("blockedUsers")
+        const userB = await User.findOne({username: blockUsername});
+
+        if (userA && userB) {
+
+            //Check if the user is already blocked
+            const user = userA.blockedUsers.some(user => user._id.toString() === userB._id.toString());
+            if (user) {
+                return res.status(401).json({errorMessage: "This user is already blocked.", viewType: 2});
+            }
+            else {
+                userA.blockedUsers.push(userB._id.toString());
+                await userA.save();
+                next();
+            }
+        }
+        else {
+            res.status(404).json({errorMessage: "User could not be found.", goBack: true});
+        }
+
+    } catch (error) {
+        console.log("BlockUser module: " + error);
+        res.status(500).json({errorMessage: "Something went wrong..."});
+    }
+}
+
+module.exports.removeFriendBlock = async (req, res, next) => {
+    try {
+        //user A
+        const {userID} = req.params
+        let userA = await User.findById(userID).populate('friends').populate('requests', '_id username')
+        let AFriends = userA.friends
+
+        //user B
+        const {blockUsername} = req.body
+        let userB = await User.findOne({username: blockUsername}).populate('friends').populate('requests', '_id username');
+        let BFriends = userB.friends
+
+        //ensure that user A and user B are friends
+        let isFriends = false
+        for (let i = 0; i < AFriends.length; i++) {
+            if (AFriends[i].username === blockUsername) {
+                isFriends = true
+                break
+            }
+        }
+        if (!isFriends) {
+            //Check for request if exist
+            userA.requests = userA.requests.filter(user => user._id.toString() !== userB._id.toString());
+            await userA.save();
+            userB.requests = userB.requests.filter(user => user._id.toString() !== userID);
+            await userB.save();
+            userB.requests = userB.requests.map((request) => ({
+                username: request.username,
+            }));
+            sendFriendRequest(userB._id.toString(), userB.requests);
+            next();
+        } else {
+
+
+            //remove user B from user A's friend list
+            for (let i = 0; i < AFriends.length; i++) {
+                if (AFriends[i].username === blockUsername) {
+                    AFriends.splice(i, 1)
+                    break
+                }
+            }
+            await userA.save()
+
+            //remove user A from user B's friend list
+            for (let i = 0; i < BFriends.length; i++) {
+                if (BFriends[i]._id.toString() === userID) {
+                    BFriends.splice(i, 1)
+                    break
+                }
+            }
+            await userB.save();
+            await userB.populate('friends');
+            let friends = userB.friends;
+            friends = friends.map((friend) => ({
+                username: friend.username,
+            }))
+            sendFriendUpdate(userB._id.toString(), friends);
+            next();
+        }
+    }
+    catch {
+        console.log("FriendRemoveBlock module: 500 error");
+        return res.status(500).json({errorMessage: "Something went wrong..."})
     }
 }
