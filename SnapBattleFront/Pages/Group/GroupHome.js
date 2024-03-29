@@ -20,7 +20,7 @@ import {Image} from "expo-image";
 import LeaderBoard from '../../assets/Leaderboard.webp';
 import DailyPrompt from "../../Components/DailyPrompt/DailyPrompt";
 import PostComponent from "../../Components/DailyPrompt/PostComponent";
-import React, {useCallback, useContext, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useState} from "react";
 import axios from "axios";
 import {useFocusEffect, useIsFocused} from "@react-navigation/native";
 import {useCountdown} from "../../Components/DailyPrompt/useCountdown";
@@ -82,7 +82,10 @@ function GroupHome({route, navigation}) {
     const [refreshPage, applyRefresh] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [lastRefresh, setLastRefresh] = useState(0);
+    const [refreshingP, setRefreshingP] = useState(false);
+    const [lastRefreshP, setLastRefreshP] = useState(0);
     const refreshCooldown = 10000;
+    const refreshCooldown2 = 1500;
 
     const onRefresh = useCallback(() => {
         const now = Date.now();
@@ -102,8 +105,20 @@ function GroupHome({route, navigation}) {
 
     useFocusEffect(
         useCallback(() => {
+            const now = Date.now();
+            if (now - lastRefreshP < refreshCooldown2) {
+                console.log('Refresh cooldown is active. ');
+                return;
+            }
+
+            setRefreshingP(true);
+            console.log("TEST2")
             getPrompts()
-        }, [refresh, userID])
+                .finally(() => {
+                    setRefreshingP(false);
+                    setLastRefreshP(Date.now());
+                });
+        }, [lastRefreshP, refresh])
     )
 
 
@@ -114,6 +129,7 @@ function GroupHome({route, navigation}) {
         )
             .then((res) => {
                 const {promptObj, submissionAllowed, period, timeEnd} = res.data
+                console.log(res.data);
                 if (promptObj === null) {
                     setPrompt("Prompt has not been released yet")
                 }
