@@ -112,7 +112,6 @@ function GroupHome({route, navigation}) {
             }
 
             setRefreshingP(true);
-            console.log("TEST2")
             getPrompts()
                 .finally(() => {
                     setRefreshingP(false);
@@ -129,7 +128,6 @@ function GroupHome({route, navigation}) {
         )
             .then((res) => {
                 const {promptObj, submissionAllowed, period, timeEnd} = res.data
-                console.log(res.data);
                 if (promptObj === null) {
                     setPrompt("Prompt has not been released yet")
                 }
