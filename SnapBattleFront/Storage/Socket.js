@@ -19,7 +19,15 @@ export const SocketProvider = ({children}) => {
     const navigation = useNavigation();
 
     useEffect(() => {
-        const socketInstance = io(EXPO_PUBLIC_API_URL);
+        const socketOptions = {
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            autoConnect: true,
+        };
+
+        const socketInstance = io(EXPO_PUBLIC_API_URL, socketOptions);
         setSocket(socketInstance);
 
         socketInstance.on("groupHome", (updateDetails) => {
