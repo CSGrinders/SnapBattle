@@ -180,9 +180,11 @@ module.exports.deleteComment = async(req, res) => {
     }
 
     if (post.comments.includes(commentID)) {
-        await comment.populate([{path: 'replyBy'}, {path: 'userID'}]);
+        await comment.populate([{path: 'replyBy'},{path: 'replyTo'}, {path: 'userID'}]);
+        const parentComment = comment.replyTo;
         if (comment.replyBy.length > 0) {
-            comment.body = "deleted";
+            console.log("replies not empty");
+            comment.body = "This message is deleted by the user";
             // comment.userID = new User({
             //     username: 'deletedUser',
             //     email: 'delete',
@@ -194,6 +196,20 @@ module.exports.deleteComment = async(req, res) => {
             post.comments.pull(commentID);
             await post.save();
             await Comment.findByIdAndDelete(commentID);
+        }
+
+        if (parentComment) {
+            console.log("parentComponent: 1", parentComment.replyBy);
+            if (parentComment && parentComment.replyBy.length > 0) {
+                parentComment.replyBy.pull(comment._id);
+                await parentComment.save();
+                console.log("parentComponent: 2", parentComment.replyBy);
+                if (parentComment.replyBy.length <= 0 && parentComment.body === "This message is deleted by the user") {
+                    post.comments.pull(parentComment._id);
+                    await post.save();
+                    await Comment.findByIdAndDelete(parentComment._id);
+                }
+            }
         }
     }
 

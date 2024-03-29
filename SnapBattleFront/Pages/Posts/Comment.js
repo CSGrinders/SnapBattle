@@ -20,6 +20,7 @@ import CommentItem from "../../Components/DailyPrompt/CommentItem";
 import {useFocusEffect} from "@react-navigation/native";
 import {SocketContext} from "../../Storage/Socket";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
+import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
 
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
@@ -41,6 +42,10 @@ const Comment = ({size, route, navigation}) => {
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
     const {leaveRoom} = useContext(SocketContext);
+
+    const [confirmMessage, setConfirmMessage] = useState('Are you sure you would like to delete this comment?');
+    const [confirmStatus, setConfirmStatus] = useState(false);
+    const [deleteCommentID, setDeleteCommentID] = useState('');
 
 
     useFocusEffect(
@@ -116,6 +121,19 @@ const Comment = ({size, route, navigation}) => {
             })
             .catch((err) => {
                 console.log(err)
+                const {status, data} = err.response;
+                if (err.response) { //Error
+                    if (status !== 500) {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    } else {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                    }
+                } else {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
             })
     }
 
@@ -172,11 +190,15 @@ const Comment = ({size, route, navigation}) => {
             .catch((err) => {
                 console.log(err)
                 // something went wrong popup TODO
+                const {status, data} = err.response;
+                if (err.response) { //Error
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                } else {
+                    setErrorMessageServer("Something went wrong...");
+                    setErrorServer(true);
+                }
             })
-    }
-
-    const handleLikeComment = async () => {
-        console.log("like");
     }
 
     const ReplyItem = ({item, userID}) => {
@@ -278,7 +300,9 @@ const Comment = ({size, route, navigation}) => {
                                 }
                                 {item.userID._id === userID &&
                                     <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                        handleDeleteComment(item._id)
+                                        setConfirmStatus(true);
+                                        setDeleteCommentID(item._id);
+                                        // handleDeleteComment(item._id) //TODO
                                     }}>
                                         <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
                                             delete
@@ -296,11 +320,11 @@ const Comment = ({size, route, navigation}) => {
                     }}>
                         <View style={{flexDirection: 'column', alignItems: 'center'}}>
                             {item.likes.includes(userID) ?
-                                (<TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleUnlikeComment}>
+                                (<TouchableOpacity style={{paddingTop: 5}} onPress={handleUnlikeComment}>
                                     <Image source={HeartIcon} style={{width: 15, height: 15, tintColor: 'red'}}></Image>
                                 </TouchableOpacity>)
                                 :
-                                (<TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={handleLikeComment}>
+                                (<TouchableOpacity style={{paddingTop: 5}} onPress={handleLikeComment}>
                                     <Image source={HeartIcon} style={{width: 15, height: 15}}></Image>
                                 </TouchableOpacity>)}
                             <Text>{item.likes.length}</Text>
@@ -406,14 +430,17 @@ const Comment = ({size, route, navigation}) => {
                                 {item.body}
                             </Text>
                             <View style={{flexDirection: 'row', gap: 10}}>
-                                <TouchableOpacity style={{paddingTop: 5}} onPress={() => {
-                                    handleReplyTo(item)
-                                }}>
-                                    <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
-                                        reply
-                                    </Text>
-                                </TouchableOpacity>
-                                {item.userID._id === userID &&
+                                {item.body !== "This message is deleted by the user" &&
+                                    <TouchableOpacity style={{paddingTop: 5}} onPress={() => {
+                                        handleReplyTo(item)
+                                    }}>
+                                        <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
+                                            reply
+                                        </Text>
+                                    </TouchableOpacity>
+                                }
+                                {item.body !== "This message is deleted by the user" &&
+                                    item.userID._id === userID &&
                                     <TouchableOpacity style={{paddingTop: 5}} onPress={() => {
                                         setEditComment(!editComment)
                                         setEditTyped(item.body)
@@ -430,8 +457,11 @@ const Comment = ({size, route, navigation}) => {
                                     </TouchableOpacity>
                                 }
                                 {item.userID._id === userID &&
+                                (item.body !== "This message is deleted by the user" || item.replyBy.length <= 0) &&
                                     <TouchableOpacity style={{marginLeft: 3, paddingTop: 5}} onPress={() => {
-                                        handleDeleteComment(item._id)
+                                        setConfirmStatus(true);
+                                        setDeleteCommentID(item._id);
+                                        // handleDeleteComment(item._id) //TODO
                                     }}>
                                         <Text style={{marginTop: 5, fontSize: 12, fontFamily: 'OpenSansBold'}}>
                                             delete
@@ -654,6 +684,12 @@ const Comment = ({size, route, navigation}) => {
                 }
             </KeyboardAvoidingView>
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
+            <ConfirmPrompt Message={confirmMessage} state={confirmStatus} setState={setConfirmStatus}
+                           command={() => {
+                               setConfirmStatus(false);
+                               handleDeleteComment(deleteCommentID);
+                           }}>
+            </ConfirmPrompt>
         </SafeAreaView>
     )
 }
