@@ -16,6 +16,7 @@ import Chat from "../../assets/chat.webp";
 import Camera from "../../assets/camera.webp";
 import Group from "../../assets/group.webp";
 import Vote from "../../assets/thumbs-up.webp"
+import Calendar from "../../assets/calendar.webp"
 import {Image} from "expo-image";
 import LeaderBoard from '../../assets/Leaderboard.webp';
 import DailyPrompt from "../../Components/DailyPrompt/DailyPrompt";
@@ -29,6 +30,7 @@ import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import {SocketContext} from "../../Storage/Socket";
 import GroupBackButton from "../../Components/Button/GroupBackButton";
 import CloseButton from "../../assets/close.webp";
+import ProfilePicture from "../../Components/Profile/ProfilePicture";
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function GroupHome({route, navigation}) {
@@ -227,17 +229,14 @@ function GroupHome({route, navigation}) {
                         top: 15,
                     }} source={Logo}></Image>
                 </View>
-                <View style={{
-                    width: width * 0.15,
-                    height: height * 0.1,
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }}>
-                    <Image
-                        style={{width: '100%', height: '100%'}}
-                        source={LeaderBoard}
-                        contentFit="contain"
-                    />
+                <View style={{marginRight: 10,}}>
+                    <Pressable
+                        onPress={() => navigation.navigate("Profile",
+                            {
+                                userID: userID
+                            })}>
+                        <ProfilePicture size={50} userID={userID} currentUserID={userID}/>
+                    </Pressable>
                 </View>
             </View>
             <View style={{
@@ -273,8 +272,15 @@ function GroupHome({route, navigation}) {
             }}>
                 <TouchableOpacity onPress={() => navigation.navigate('GroupChat', route.params)}>
                     <Image
-                        style={{width: 60, height: 60}}
+                        style={{width: 35, height: 35}}
                         source={Chat}
+                        contentFit="contain"
+                    />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                    <Image
+                        style={{width: 35, height: 35}}
+                        source={LeaderBoard}
                         contentFit="contain"
                     />
                 </TouchableOpacity>
@@ -283,7 +289,7 @@ function GroupHome({route, navigation}) {
                         style={{opacity: camOpacity}}
                         onPress={clickCamera}>
                         <Image
-                            style={{width: 75, height: 75}}
+                            style={{width: 62, height: 62}}
                             source={Camera}
                             contentFit="contain"
                         />
@@ -305,10 +311,16 @@ function GroupHome({route, navigation}) {
                     :
                     <></>
                 }
-
+                <TouchableOpacity>
+                    <Image
+                        style={{width: 35, height: 35}}
+                        source={Calendar}
+                        contentFit="contain"
+                    />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => navigation.navigate('GroupMembers', route.params)}>
                     <Image
-                        style={{width: 60, height: 60}}
+                        style={{width: 40, height: 40}}
                         source={Group}
                         contentFit="contain"
                     />
