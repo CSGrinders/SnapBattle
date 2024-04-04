@@ -220,7 +220,7 @@ function GroupHome({route, navigation}) {
                     width: width * 0.15,
                     paddingBottom: 20,
                 }}>
-                    <GroupBackButton size={50} navigation={navigation} userID={userID} leaveRoom={leaveRoom} groupID={groupID}/>
+                    <GroupBackButton size={45} navigation={navigation} userID={userID} leaveRoom={leaveRoom} groupID={groupID}/>
                 </View>
                 <View style={{width: width * 0.7, justifyContent: 'center', alignItems: 'center'}}>
                     <Image style={{
@@ -229,14 +229,13 @@ function GroupHome({route, navigation}) {
                         top: 15,
                     }} source={Logo}></Image>
                 </View>
-                <View style={{marginRight: 10,}}>
-                    <Pressable
-                        onPress={() => navigation.navigate("Profile",
-                            {
-                                userID: userID
-                            })}>
+                <View style={{marginRight: 10, marginBottom: 15}}>
+                    <TouchableOpacity onPress={() => navigation.navigate("Profile",
+                        {
+                            userID: userID
+                        })}>
                         <ProfilePicture size={50} userID={userID} currentUserID={userID}/>
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
             </View>
             <View style={{
