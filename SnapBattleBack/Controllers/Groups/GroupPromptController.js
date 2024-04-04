@@ -6,6 +6,41 @@ const {Post} = require("../../Models/Post");
 const {OPENAI_API_KEY} = process.env
 
 
+async function updateDailyWinner(todayPrompt) {
+    const posts = todayPrompt.posts
+    //no posts -> no daily winner
+    if (posts.length === 0) {
+        todayPrompt.dailyWinnerID = null
+        await todayPrompt.save()
+        return
+    }
+
+    //find post with highest number of votes
+    let maxVotes = 0;
+    let winner = null
+    for (let i = 0; i < posts.length; i++) {
+        if (posts[i].dailyVotes.length > maxVotes) {
+            maxVotes = posts[i].dailyVotes.length
+            winner = posts[i]
+        }
+
+        //tie exists -> no winner
+        else if (posts[i].dailyVotes.length === maxVotes) {
+            winner = null
+        }
+    }
+
+    //save the winner (null if no winner exists)
+    if (winner != null) {
+        todayPrompt.dailyWinnerID = winner._id
+    }
+    else {
+        todayPrompt.dailyWinnerID = null
+    }
+
+    await todayPrompt.save()
+}
+
 /*
     PERIOD 0 = waiting period (have not reached submission period yet)
     PERIOD 1 = submission period (users can submit posts)
@@ -174,6 +209,11 @@ module.exports.getPrompt = async (req, res) => {
 
     //PERIOD 3 - if today is a weekly voting day and current time has not reached weekly voting deadline
     else if (now.getDay() === weeklyVotingDay && now.getTime() < weeklyVotingTime.getTime()) {
+
+        //update the daily winner for today's prompt
+        updateDailyWinner(todayPrompt)
+        
+        
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
@@ -184,6 +224,10 @@ module.exports.getPrompt = async (req, res) => {
 
     //PERIOD 4 - waiting for next day
     else {
+
+        //update the daily winner for today's prompt
+        updateDailyWinner(todayPrompt)
+
         const nextPromptRelease = new Date()
         nextPromptRelease.setDate(nextPromptRelease.getDate() + 1)
         nextPromptRelease.setHours(promptReleaseHour)

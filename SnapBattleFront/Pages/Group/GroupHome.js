@@ -80,7 +80,6 @@ function GroupHome({route, navigation}) {
     const [errorServer, setErrorServer] = useState(false);
 
     //gets the prompt object and underlying post and comment data
-    const [refreshPage, applyRefresh] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [lastRefresh, setLastRefresh] = useState(0);
     const refreshCooldown = 10000;
@@ -278,7 +277,7 @@ function GroupHome({route, navigation}) {
                     :
                     <></>
                 }
-                {period === 2 || period === 3 ?
+                {(period === 2 || period === 3)  && posts[activeIndex] !== undefined ?
                     (<TouchableOpacity
                         onPress={clickVote}
                         style={{alignItems: 'center'}}>
