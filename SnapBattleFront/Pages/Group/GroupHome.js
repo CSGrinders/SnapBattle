@@ -35,6 +35,7 @@ function GroupHome({route, navigation}) {
     const {username, userID, groupID, token} = route.params
     const {width, height} = Dimensions.get('window');
     const [prompt, setPrompt] = useState("")
+    const [promptID, setPromptID] = useState("")
     const [loading, setLoading] = useState(true);
 
     /*
@@ -113,15 +114,16 @@ function GroupHome({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
         )
             .then((res) => {
-                const {promptObj, submissionAllowed, period, timeEnd} = res.data
+                const {promptObj, promptID, submissionAllowed, period, timeEnd} = res.data
                 if (promptObj === null) {
                     setPrompt("Prompt has not been released yet")
                 }
                 else {
                     setPrompt(promptObj.prompt)
+                    setPromptID(promptObj._id)
                     setPosts(promptObj.posts)
                     setLoading(false);
-                    if (promptObj.posts.length > 0) {
+                    if (promptObj.posts.length > 0 && activePostID === "") {
                         setActivePostID(promptObj.posts[0]._id)
                     }
                 }
@@ -161,6 +163,32 @@ function GroupHome({route, navigation}) {
 
     function clickVote() {
         console.log("voting for post #" + activeIndex + ", with post ID of " + activePostID)
+        console.log("prompt id is " + promptID)
+
+        //no posts to vote for
+        if (activePostID === "") {
+            return
+        }
+
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/vote-daily`,
+            {
+                promptID: promptID,
+                postID: activePostID
+            }
+        ).then(res => {
+            const {differentPost} = res.data
+            if (!differentPost) {
+                console.log("user tried to vote for the same post")
+                setErrorMessageServer("You cannot vote for the same post twice");
+                setErrorServer(true);
+            }
+            else {
+                //reload page with new vote counts
+                console.log("reloading page with new vote counts")
+                getPrompts()
+            }
+        })
     }
 
     return (
@@ -252,12 +280,14 @@ function GroupHome({route, navigation}) {
                 }
                 {period === 2 || period === 3 ?
                     (<TouchableOpacity
-                        onPress={clickVote}>
+                        onPress={clickVote}
+                        style={{alignItems: 'center'}}>
                         <Image
-                            style={{width: 75, height: 75}}
+                            style={{width: 75, height: 60}}
                             source={Vote}
                             contentFit="contain"
                         />
+                        <Text>{posts[activeIndex].dailyVotes.length} votes</Text>
                     </TouchableOpacity>)
                     :
                     <></>

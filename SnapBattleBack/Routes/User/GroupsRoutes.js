@@ -30,9 +30,9 @@ const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup,
     checkAdmin, transferAdmin, kickUser, leaveAllGroups,
 } = require("../../Controllers/Groups/GroupActionsController");
 const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVotingLength } = require("../../Controllers/Groups/GroupSettingsController");
-const { createPost } = require("../../Controllers/Groups/GroupPostController")
+const { createPost} = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
-const {getPrompt} = require("../../Controllers/Groups/GroupPromptController");
+const {getPrompt, voteDaily} = require("../../Controllers/Groups/GroupPromptController");
 const { viewComments, toggleComments, viewReplies, commentsEnabled, deleteLike, postLike, postComment, deleteComment, editComment} = require("../../Controllers/Posts/CommentController");
 
 
@@ -92,5 +92,7 @@ router.post('/:groupID/post-like/:postID/:commentID', postLike)
 router.delete('/:groupID/delete-like/:postID/:commentID', deleteLike)
 
 router.post('/:groupID/toggle-comments/:postID', toggleComments)
+
+router.post("/:groupID/vote-daily", voteDaily)
 
 module.exports = router;

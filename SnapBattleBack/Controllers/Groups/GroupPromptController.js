@@ -2,6 +2,7 @@ const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 const Prompt = require('../../Models/Prompt')
 const {Configuration, OpenAI} = require('openai')
+const {Post} = require("../../Models/Post");
 const {OPENAI_API_KEY} = process.env
 
 
@@ -10,7 +11,7 @@ const {OPENAI_API_KEY} = process.env
     PERIOD 1 = submission period (users can submit posts)
     PERIOD 2 = daily voting period (users can do their daily vote)
     PERIOD 3 = weekly voting period
-    PERIOD 4 = results period
+    PERIOD 4 = waiting period
  */
 module.exports.getPrompt = async (req, res) => {
     const {userID, groupID} = req.params
@@ -195,4 +196,41 @@ module.exports.getPrompt = async (req, res) => {
             timeEnd: nextPromptRelease
         })
     }
+}
+
+
+module.exports.voteDaily = async(req, res) => {
+    const {userID, groupID} = req.params
+    const {promptID, postID} = req.body
+    //console.log("\nSTART")
+    //console.log("User: ", userID)
+    //console.log("Post:" , postID)
+
+    //look through all other posts for the prompt and see if the user has already voted for a post
+    const prompt = await Prompt.findById(promptID).populate('posts')
+    const posts = prompt.posts
+    for (let i = 0; i < posts.length; i++) {
+        console.log(posts[i]._id)
+        console.log(posts[i].dailyVotes)
+        const userIndex = posts[i].dailyVotes.indexOf(userID)
+
+        //user is trying to vote for the same post
+        if (userIndex !== -1 && posts[i]._id.toString() === postID) {
+            //console.log("user is trying to vote for same post twice")
+            return res.status(200).json({differentPost: false})
+        }
+
+        //remove daily vote from any other post that the user has already voted for
+        if (userIndex !== -1) {
+            //console.log("removing user's previous daily vote")
+            posts[i].dailyVotes.splice(userIndex, 1)
+            await posts[i].save()
+        }
+    }
+
+    //adding vote to the post that the user clicked on
+    const votePost = await Post.findById(postID)
+    votePost.dailyVotes.push(userID)
+    await votePost.save()
+    return res.status(200).json({differentPost: true})
 }
