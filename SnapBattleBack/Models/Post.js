@@ -49,9 +49,10 @@ const Post = new mongoose.Schema({
         type: Date,
         default: new Date(),
     },
-    dailyVotes: {
-        type: Number
-    },
+    dailyVotes: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'User'
+    }],
     weeklyVotes: {
         type: Number
     }

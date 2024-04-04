@@ -2,15 +2,51 @@ const Group = require('../../Models/Group');
 const {User} = require("../../Models/User");
 const Prompt = require('../../Models/Prompt')
 const {Configuration, OpenAI} = require('openai')
+const {Post} = require("../../Models/Post");
 const {OPENAI_API_KEY} = process.env
 
+
+async function updateDailyWinner(todayPrompt) {
+    const posts = todayPrompt.posts
+    //no posts -> no daily winner
+    if (posts.length === 0) {
+        todayPrompt.dailyWinnerID = null
+        await todayPrompt.save()
+        return
+    }
+
+    //find post with highest number of votes
+    let maxVotes = 0;
+    let winner = null
+    for (let i = 0; i < posts.length; i++) {
+        if (posts[i].dailyVotes.length > maxVotes) {
+            maxVotes = posts[i].dailyVotes.length
+            winner = posts[i]
+        }
+
+        //tie exists -> no winner
+        else if (posts[i].dailyVotes.length === maxVotes) {
+            winner = null
+        }
+    }
+
+    //save the winner (null if no winner exists)
+    if (winner != null) {
+        todayPrompt.dailyWinnerID = winner._id
+    }
+    else {
+        todayPrompt.dailyWinnerID = null
+    }
+
+    await todayPrompt.save()
+}
 
 /*
     PERIOD 0 = waiting period (have not reached submission period yet)
     PERIOD 1 = submission period (users can submit posts)
     PERIOD 2 = daily voting period (users can do their daily vote)
     PERIOD 3 = weekly voting period
-    PERIOD 4 = results period
+    PERIOD 4 = waiting period
  */
 module.exports.getPrompt = async (req, res) => {
     const {userID, groupID} = req.params
@@ -173,6 +209,11 @@ module.exports.getPrompt = async (req, res) => {
 
     //PERIOD 3 - if today is a weekly voting day and current time has not reached weekly voting deadline
     else if (now.getDay() === weeklyVotingDay && now.getTime() < weeklyVotingTime.getTime()) {
+
+        //update the daily winner for today's prompt
+        updateDailyWinner(todayPrompt)
+        
+        
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
@@ -183,6 +224,10 @@ module.exports.getPrompt = async (req, res) => {
 
     //PERIOD 4 - waiting for next day
     else {
+
+        //update the daily winner for today's prompt
+        updateDailyWinner(todayPrompt)
+
         const nextPromptRelease = new Date()
         nextPromptRelease.setDate(nextPromptRelease.getDate() + 1)
         nextPromptRelease.setHours(promptReleaseHour)
@@ -195,4 +240,41 @@ module.exports.getPrompt = async (req, res) => {
             timeEnd: nextPromptRelease
         })
     }
+}
+
+
+module.exports.voteDaily = async(req, res) => {
+    const {userID, groupID} = req.params
+    const {promptID, postID} = req.body
+    //console.log("\nSTART")
+    //console.log("User: ", userID)
+    //console.log("Post:" , postID)
+
+    //look through all other posts for the prompt and see if the user has already voted for a post
+    const prompt = await Prompt.findById(promptID).populate('posts')
+    const posts = prompt.posts
+    for (let i = 0; i < posts.length; i++) {
+        console.log(posts[i]._id)
+        console.log(posts[i].dailyVotes)
+        const userIndex = posts[i].dailyVotes.indexOf(userID)
+
+        //user is trying to vote for the same post
+        if (userIndex !== -1 && posts[i]._id.toString() === postID) {
+            //console.log("user is trying to vote for same post twice")
+            return res.status(200).json({differentPost: false})
+        }
+
+        //remove daily vote from any other post that the user has already voted for
+        if (userIndex !== -1) {
+            //console.log("removing user's previous daily vote")
+            posts[i].dailyVotes.splice(userIndex, 1)
+            await posts[i].save()
+        }
+    }
+
+    //adding vote to the post that the user clicked on
+    const votePost = await Post.findById(postID)
+    votePost.dailyVotes.push(userID)
+    await votePost.save()
+    return res.status(200).json({differentPost: true})
 }
