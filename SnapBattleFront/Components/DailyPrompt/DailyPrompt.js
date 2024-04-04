@@ -31,7 +31,7 @@ const DailyPrompt = ({prompt, days, hours, minutes, seconds, period}) => {
             width: width * 0.9,
             height: height * 0.15,
             borderRadius: 25,
-            borderWidth: 5,
+            borderWidth: 2,
             justifyContent: 'center',
             alignItems: 'center',
         }}>
@@ -43,7 +43,6 @@ const DailyPrompt = ({prompt, days, hours, minutes, seconds, period}) => {
                 {periodText}
             </Text>
             <Text style={{
-                fontWeight: 'bold',
                 fontSize: 20,
                 textAlign: 'center'
             }}>
