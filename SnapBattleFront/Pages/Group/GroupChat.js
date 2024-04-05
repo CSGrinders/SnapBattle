@@ -18,6 +18,7 @@ const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_DEFAULT_PROFILE_PICTURE_URL} = process.e
 
 function GroupChat({route, navigation}) {
     const [keyboardVisible, setKeyboardVisible] = useState(false);
+    const [test, setTest] = useState(null);
     const [messages, setMessages] = useState([]);
     const {userID, username, groupID, token} = route.params;
     const [replyMessage, setReplyMessage] = useState(null);
@@ -151,8 +152,8 @@ function GroupChat({route, navigation}) {
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                     <Image style={{
-                        width: 120,
-                        height: 120,
+                        width: 105,
+                        height: 105,
                         top: 5,
                     }} source={require('../../assets/logo.webp')}></Image>
                 </View>
@@ -304,7 +305,7 @@ function GroupChat({route, navigation}) {
                     renderMessage={props => {
                         const isMessageFromCurrentUser = props.currentMessage.user._id === userID;
                         return (
-                            <ChatMessageBox {...props} setReplyOnSwipeOpen={isMessageFromCurrentUser ? null : setReplyMessage}
+                            <ChatMessageBox {...props} setReplyOnSwipeOpen={isMessageFromCurrentUser ? setTest : setReplyMessage}
                                             updateRowRef={updateRowRef}/>
                         )
                     }}
