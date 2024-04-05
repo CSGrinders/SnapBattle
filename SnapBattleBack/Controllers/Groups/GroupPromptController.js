@@ -173,6 +173,12 @@ module.exports.getPrompt = async (req, res) => {
         await group.save()
     }
 
+    /*
+        SET TO FALSE IF YOU WANT WEEKLY VOTING TO HAPPEN NORMALLY (EVERY SEVEN DAYS)
+        SET TO TRUE IF YOU WANT WEEKLY VOTING TO HAPPEN TODAY (OVERRIDE)
+     */
+    const weeklyVotingOverride = true
+
     //PERIOD 1 - if current time has not yet reached prompt submission time
     if (now.getTime() < promptSubmitTime.getTime()) {
 
@@ -208,14 +214,44 @@ module.exports.getPrompt = async (req, res) => {
     }
 
     //PERIOD 3 - if today is a weekly voting day and current time has not reached weekly voting deadline
-    else if (now.getDay() === weeklyVotingDay && now.getTime() < weeklyVotingTime.getTime()) {
+    else if ((weeklyVotingOverride || now.getDay() === weeklyVotingDay) && now.getTime() < weeklyVotingTime.getTime()) {
 
-        //update the daily winner for today's prompt
-        updateDailyWinner(todayPrompt)
-        
-        
+        //update the daily winner for today's prompt if not yet updated
+        if (todayPrompt.dailyWinnerID === undefined) {
+            await updateDailyWinner(todayPrompt)
+        }
+
+        //need to gather all the winners from the last 7 days -> dailyWinnerPosts
+        const dailyWinnerPosts = []
+
+        const weekAgo = new Date(now)
+        weekAgo.setDate(now.getDate() - 6)
+        weekAgo.setHours(0)
+        weekAgo.setMinutes(0)
+        weekAgo.setSeconds(0)
+
+        for (let i = 0; i < prompts.length; i++) {
+            if (prompts[i].timeEnd.getTime() >= weekAgo.getTime() && prompts[i].timeEnd.getTime() <= now.getTime()) {
+                if (prompts[i].dailyWinnerID === undefined || prompts[i].dailyWinnerID === null) {
+                    continue
+                }
+
+                const dailyWinner = await Post.findById(prompts[i].dailyWinnerID).populate('prompt owner')
+
+                //attach the prompt as a field of the post
+                console.log(dailyWinner.prompt)
+                dailyWinnerPosts.push(dailyWinner)
+
+                /* - proof that having multiple posts will change the prompt on the frontend during weekly voting
+                const copy = JSON.parse(JSON.stringify(dailyWinner))
+                copy.prompt.prompt = "test prompt ??"
+                dailyWinnerPosts.push(copy)
+                 */
+            }
+        }
+
         return res.status(200).json({
-            promptObj: todayPrompt,
+            dailyWinnerPosts: dailyWinnerPosts,
             submissionAllowed: false,
             period: 3,
             timeEnd: weeklyVotingTime
@@ -225,8 +261,11 @@ module.exports.getPrompt = async (req, res) => {
     //PERIOD 4 - waiting for next day
     else {
 
-        //update the daily winner for today's prompt
-        updateDailyWinner(todayPrompt)
+        //update the daily winner for today's prompt if not yet updated
+        if (todayPrompt.dailyWinnerID === undefined) {
+            await updateDailyWinner(todayPrompt)
+        }
+        //TODO: update the weekly winner if today is a weekly voting day
 
         const nextPromptRelease = new Date()
         nextPromptRelease.setDate(nextPromptRelease.getDate() + 1)
@@ -275,6 +314,36 @@ module.exports.voteDaily = async(req, res) => {
     //adding vote to the post that the user clicked on
     const votePost = await Post.findById(postID)
     votePost.dailyVotes.push(userID)
+    await votePost.save()
+    return res.status(200).json({differentPost: true})
+}
+
+module.exports.voteWeekly = async(req, res) => {
+    const {userID} = req.params
+    const {posts, votePostID} = req.body
+
+    for (let i = 0; i < posts.length; i++) {
+        console.log(posts[i]._id)
+        console.log(posts[i].dailyVotes)
+        const userIndex = posts[i].weeklyVotes.indexOf(userID)
+
+        //user is trying to vote for the same post
+        if (userIndex !== -1 && posts[i]._id.toString() === votePostID) {
+            //console.log("user is trying to vote for same post twice")
+            return res.status(200).json({differentPost: false})
+        }
+
+        //remove weekly vote from any other post that the user has already voted for
+        if (userIndex !== -1) {
+            //console.log("removing user's previous daily vote")
+            posts[i].weeklyVotes.splice(userIndex, 1)
+            await posts[i].save()
+        }
+    }
+
+    //adding vote to the post that the user clicked on
+    const votePost = await Post.findById(postID)
+    votePost.weeklyVotes.push(userID)
     await votePost.save()
     return res.status(200).json({differentPost: true})
 }

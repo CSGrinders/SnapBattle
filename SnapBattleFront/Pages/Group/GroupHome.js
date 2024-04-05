@@ -71,7 +71,6 @@ function GroupHome({route, navigation}) {
 
     //opacity of camera
     const [camOpacity, setCamOpacity] = useState(0.5)
-    const isFocused = useIsFocused();
 
     //variables for the info pop-up
     const [infoMessage, setInfoMessage] = useState("")
@@ -125,23 +124,16 @@ function GroupHome({route, navigation}) {
 
 
     function getPrompts() {
+        console.log("getting prompt call")
         return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
         )
             .then((res) => {
-                const {promptObj, promptID, submissionAllowed, period, timeEnd} = res.data
-                if (promptObj === null) {
-                    setPrompt("Prompt has not been released yet")
-                }
-                else {
-                    setPrompt(promptObj.prompt)
-                    setPromptID(promptObj._id)
-                    setPosts(promptObj.posts)
-                    setLoading(false);
-                    if (promptObj.posts.length > 0 && activePostID === "") {
-                        setActivePostID(promptObj.posts[0]._id)
-                    }
-                }
+
+                //if in weekly voting period, promptObj is not used but dailyWinningPosts is used
+                //otherwise, promptObj is used but dailyWinningPosts is not used
+                const {promptObj, dailyWinnerPosts, submissionAllowed, period, timeEnd} = res.data
+
                 setPeriod(period)
                 setTimeEnd(timeEnd)
                 if (submissionAllowed) {
@@ -149,6 +141,42 @@ function GroupHome({route, navigation}) {
                 }
                 else {
                     setCamOpacity(0.5)
+                }
+
+
+                //do this anytime you are not in weekly voting
+                if (period !== 3) {
+                    if (promptObj === null) {
+                        setPrompt("Prompt has not been released yet")
+                    }
+                    else {
+                        setPrompt(promptObj.prompt)
+                        setPromptID(promptObj._id)
+                        setPosts(promptObj.posts)
+                        setLoading(false);
+                        if (promptObj.posts.length > 0 && activePostID === "") {
+                            setActivePostID(promptObj.posts[0]._id)
+                        }
+                    }
+                }
+
+                //weekly voting procedure (or waiting period after weekly voting day?)
+                else if (period === 3) {
+                    console.log(dailyWinnerPosts)
+                    setPosts(dailyWinnerPosts)
+
+                    //no daily winner posts
+                    if (dailyWinnerPosts.length === 0) {
+                        setPrompt("No daily winners in the past 7 days :(")
+                        setPromptID("")
+                    }
+                    else {
+                        console.log(dailyWinnerPosts[0])
+                        console.log(dailyWinnerPosts[0].prompt.prompt)
+                        console.log(dailyWinnerPosts[0].prompt._id)
+                        setPrompt(dailyWinnerPosts[0].prompt.prompt)
+                        setPromptID(dailyWinnerPosts[0].prompt._id)
+                    }
                 }
             })
             .catch((err) => {
@@ -176,8 +204,39 @@ function GroupHome({route, navigation}) {
         }
     }
 
-    function clickVote() {
-        console.log("voting for post #" + activeIndex + ", with post ID of " + activePostID)
+    function clickVoteDaily() {
+        console.log("daily voting for post #" + activeIndex + ", with post ID of " + activePostID)
+        console.log("prompt id is " + promptID)
+
+        //no posts to vote for
+        if (activePostID === "") {
+            return
+        }
+
+        //BACKEND handles voting for same post and also voting for one post and then changing vote to another post
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/vote-daily`,
+            {
+                promptID: promptID,
+                postID: activePostID
+            }
+        ).then(res => {
+            const {differentPost} = res.data
+            if (!differentPost) {
+                console.log("user tried to vote for the same post")
+                setErrorMessageServer("You cannot vote for the same post twice");
+                setErrorServer(true);
+            }
+            else {
+                //reload page with new vote counts
+                console.log("reloading page with new vote counts")
+                getPrompts()
+            }
+        })
+    }
+
+    function clickVoteWeekly() {
+        console.log("weekly voting for post #" + activeIndex + ", with post ID of " + activePostID)
         console.log("prompt id is " + promptID)
 
         //no posts to vote for
@@ -186,10 +245,10 @@ function GroupHome({route, navigation}) {
         }
 
         axios.post(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/vote-daily`,
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/vote-weekly`,
             {
-                promptID: promptID,
-                postID: activePostID
+                posts: posts,
+                votePostID: activePostID
             }
         ).then(res => {
             const {differentPost} = res.data
@@ -260,7 +319,7 @@ function GroupHome({route, navigation}) {
                     height: height * 0.55
                 }}>
                     <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
-                                   setActivePostID={setActivePostID} loading={loading}/>
+                                   setActivePostID={setActivePostID} setPrompt={setPrompt} setPromptID={setPromptID} period={period} loading={loading}/>
                 </View>
             </ScrollView>
             <View style={{
@@ -296,9 +355,9 @@ function GroupHome({route, navigation}) {
                     :
                     <></>
                 }
-                {(period === 2 || period === 3)  && posts[activeIndex] !== undefined ?
+                {period === 2 && posts[activeIndex] !== undefined ?
                     (<TouchableOpacity
-                        onPress={clickVote}
+                        onPress={clickVoteDaily}
                         style={{alignItems: 'center'}}>
                         <Image
                             style={{width: 75, height: 60}}
@@ -306,6 +365,20 @@ function GroupHome({route, navigation}) {
                             contentFit="contain"
                         />
                         <Text>{posts[activeIndex].dailyVotes.length} votes</Text>
+                    </TouchableOpacity>)
+                    :
+                    <></>
+                }
+                {period === 3 && posts[activeIndex] !== undefined ?
+                    (<TouchableOpacity
+                        onPress={clickVoteWeekly}
+                        style={{alignItems: 'center'}}>
+                        <Image
+                            style={{width: 75, height: 60}}
+                            source={Vote}
+                            contentFit="contain"
+                        />
+                        <Text>{posts[activeIndex].weeklyVotes.length} votes</Text>
                     </TouchableOpacity>)
                     :
                     <></>

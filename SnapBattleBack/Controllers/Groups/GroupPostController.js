@@ -74,7 +74,7 @@ module.exports.createPost = async(req, res) => {
                 else {
                     //create new MongoDB document
                     let newPost = new Post({
-                        pID: prompts[i]._id,
+                        prompt: prompts[i]._id.toString(),
                         picture: downloadURL,
                         owner: userID,
                         submissionNumber: nextSubmissionNum,
