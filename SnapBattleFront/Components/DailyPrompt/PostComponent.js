@@ -109,18 +109,22 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
         return (
             <View style={{
                 height: "100%",
+                borderRadius: 25
             }}>
                 <View style={{
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-around',
-                    marginBottom: 5
                 }}>
                     <View style={{
                         flex: 1,
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'flex-start',
+                        marginTop: 5,
+                        marginBottom: 5,
+                        marginLeft: 5,
+                        marginRight: 5,
                         gap: 10
                     }}>
                         <OtherProfilePicture size={50} imageUrl={item.owner.profilePicture}/>
@@ -128,49 +132,50 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                             <Text>{item.owner.username}</Text>
                             <Text>{new Date(item.time).getHours() + ":" + new Date(item.time).getMinutes()}</Text>
                         </View>
-                    </View>
-                    <View style={{
-                        flex: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        gap: 10
-                    }}>
-                        <TouchableOpacity onPress={() => openComments(index)}>
-                            <Image
-                                source={CommentIcon}
-                                style={{
-                                    width: 30,
-                                    height: 30
-                                }}
-                            />
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => onShare(item.picture)}>
-                            <Image
-                                source={ShareIcon}
-                                style={{
-                                    width: 30,
-                                    height: 30
-                                }}
-                            />
-                        </TouchableOpacity>
-                        {
-                            item.owner._id === userID ?
-                                <TouchableOpacity onPress={() => {
-                                    setOption(true)
-                                    setPostID(item._id);
-                                    setIndex(index)
-                                    setCommentStatus(item.commentsAllowed);
-                                }}>
-                                    <Image
-                                        source={OptionsIcon}
-                                        style={{
-                                            width: 30,
-                                            height: 30
-                                        }}
-                                    />
-                                </TouchableOpacity> : <></>
-                        }
+                        <View style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            gap: 5
+                        }}>
+                            <TouchableOpacity onPress={() => openComments(index)}>
+                                <Image
+                                    source={CommentIcon}
+                                    style={{
+                                        width: 30,
+                                        height: 30,
+                                        marginRight: 5
+                                    }}
+                                />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => onShare(item.picture)}>
+                                <Image
+                                    source={ShareIcon}
+                                    style={{
+                                        width: 30,
+                                        height: 30
+                                    }}
+                                />
+                            </TouchableOpacity>
+                            {
+                                item.owner._id === userID ?
+                                    <TouchableOpacity onPress={() => {
+                                        setOption(true)
+                                        setPostID(item._id);
+                                        setIndex(index)
+                                        setCommentStatus(item.commentsAllowed);
+                                    }}>
+                                        <Image
+                                            source={OptionsIcon}
+                                            style={{
+                                                width: 30,
+                                                height: 30
+                                            }}
+                                        />
+                                    </TouchableOpacity> : <></>
+                            }
+                        </View>
                     </View>
                 </View>
                 <Image

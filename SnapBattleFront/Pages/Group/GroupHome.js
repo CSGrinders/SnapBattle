@@ -224,8 +224,8 @@ function GroupHome({route, navigation}) {
                 </View>
                 <View style={{width: width * 0.7, justifyContent: 'center', alignItems: 'center'}}>
                     <Image style={{
-                        width: 120,
-                        height: 120,
+                        width: 105,
+                        height: 105,
                         top: 15,
                     }} source={Logo}></Image>
                 </View>
