@@ -310,7 +310,7 @@ function GroupHome({route, navigation}) {
                     :
                     <></>
                 }
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Memories', route.params)}>
                     <Image
                         style={{width: 35, height: 35}}
                         source={Calendar}
