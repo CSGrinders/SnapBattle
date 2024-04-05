@@ -279,7 +279,7 @@ function GroupHome({route, navigation}) {
                     width: width * 0.15,
                     paddingBottom: 20,
                 }}>
-                    <GroupBackButton size={45} navigation={navigation} userID={userID} leaveRoom={leaveRoom} groupID={groupID}/>
+                    <GroupBackButton size={50} navigation={navigation} userID={userID} leaveRoom={leaveRoom} groupID={groupID}/>
                 </View>
                 <View style={{width: width * 0.7, justifyContent: 'center', alignItems: 'center'}}>
                     <Image style={{
