@@ -177,7 +177,7 @@ module.exports.getPrompt = async (req, res) => {
         SET TO FALSE IF YOU WANT WEEKLY VOTING TO HAPPEN NORMALLY (EVERY SEVEN DAYS)
         SET TO TRUE IF YOU WANT WEEKLY VOTING TO HAPPEN TODAY (OVERRIDE)
      */
-    const weeklyVotingOverride = true
+    const weeklyVotingOverride = false
 
     //PERIOD 1 - if current time has not yet reached prompt submission time
     if (now.getTime() < promptSubmitTime.getTime()) {
