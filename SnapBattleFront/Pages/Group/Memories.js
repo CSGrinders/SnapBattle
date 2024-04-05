@@ -1,18 +1,13 @@
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions, KeyboardAvoidingView,
-    Modal,
+    Dimensions,
+    KeyboardAvoidingView,
     Platform,
-    Pressable,
-    ScrollView,
     Text,
     View,
-    RefreshControl,
 } from "react-native";
-import {Image} from "expo-image";
-import {Button, Input} from "@rneui/themed";
+import { Button } from '@rneui/themed';
 import {useCallback, useContext, useState} from "react";
+import {Calendar, LocaleConfig} from 'react-native-calendars';
 import CloseButton from "../../assets/close.webp"
 import axios from "axios";
 
@@ -42,41 +37,29 @@ function Memories({route, navigation}) {
     const [invStatusMsg, setInvStatusMsg] = useState("");
     const [invStatusColor, setInvStatusColor] = useState("green");
 
+    // type of viewing
+    const [dailySelected, setDailySelected] = useState(true);
+
+    const [selected, setSelected] = useState('');
+
     //Server error messages
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
-
-    // confirm prompt
-    const [confirmMessage, setConfirmMessage] = useState('Are you sure you would like to kick this user?');
-    const [confirmStatus, setConfirmStatus] = useState(false);
 
     // info prompt
     const [successMessage, setSuccessMessage] = useState('');
     const [successState, setSuccessState] = useState(false)
 
-    //state for group members
-    const [groupMembers, setGroupMembers] = useState([-1]);
-    const [adminUser, setAdminUser] = useState("");
-
-    // kick user
-    const [kickUser, setKickUser] = useState("")
-
-    const {socket, leaveRoom} = useContext(SocketContext);
-
-    const [refreshPage, applyRefresh] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
-    const [lastRefresh, setLastRefresh] = useState(0);
-    const refreshCooldown = 10000;
-
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-            enabled={false} style={{flex: 1, alignItems: "center"}}>
+        <View style={{
+            alignItems: 'center'
+        }}>
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
                 marginTop: 70,
-                marginBottom: 10
+                marginBottom: 5
             }}>
                 <View style={{
                     paddingLeft: 15,
@@ -88,16 +71,67 @@ function Memories({route, navigation}) {
                     <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Memories</Text>
                 </View>
             </View>
+            <View style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'flex-start',
+                marginBottom: 10,
+                gap: 10
+            }}>
+                <Button
+                    title="Daily"
+                    type={dailySelected ? "solid" : "outline"}
+                    color="black"
+                    buttonStyle={{
+                        width: 80,
+                        height: 45,
+                        borderRadius: 35,
+                    }}
+                    containerStyle={{
+                        marginTop: 5,
+                        marginLeft: 10,
+                        marginBottom: 5,
+                        width: 80,
+                        height: 45,
+                    }}
+                    titleStyle={{ fontSize: 15, fontWeight: 'bold', fontFamily: 'OpenSans' }}
+                    onPress={() => setDailySelected(true)}
+                />
+                <Button
+                    title="Weekly"
+                    type={dailySelected ? "outline" : "solid"}
+                    color="black"
+                    buttonStyle={{
+                        width: 80,
+                        height: 45,
+                        borderRadius: 35,
+                    }}
+                    containerStyle={{
+                        marginTop: 5,
+                        marginRight: 10,
+                        marginBottom: 5,
+                        width: 80,
+                        height: 45,
+                    }}
+                    titleStyle={{ fontSize: 15, fontWeight: 'bold', fontFamily: 'OpenSans' }}
+                    onPress={() => setDailySelected(false)}
+                />
+            </View>
+            <Calendar
+                style={{
+                    width: width * 0.9,
+                }}
+                onDayPress={day => {
+                    setSelected(day.dateString);
+                }}
+                markedDates={{
+                    [selected]: {selected: true, disableTouchEvent: true, selectedDotColor: 'orange'}
+                }}
+            />
 
             <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
             <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
-            <ConfirmPrompt Message={confirmMessage} state={confirmStatus} setState={setConfirmStatus}
-                           command={() => {
-                               setConfirmStatus(false);
-                               kickFunc();
-                           }}>
-            </ConfirmPrompt>
-        </KeyboardAvoidingView>
+        </View>
     )
 }
 
