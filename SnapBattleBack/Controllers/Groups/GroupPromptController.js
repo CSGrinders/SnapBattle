@@ -3,6 +3,7 @@ const {User} = require("../../Models/User");
 const Prompt = require('../../Models/Prompt')
 const {Configuration, OpenAI} = require('openai')
 const {Post} = require("../../Models/Post");
+const mongoose = require("mongoose");
 const {OPENAI_API_KEY} = process.env
 
 
@@ -346,4 +347,60 @@ module.exports.voteWeekly = async(req, res) => {
     votePost.weeklyVotes.push(userID)
     await votePost.save()
     return res.status(200).json({differentPost: true})
+}
+
+module.exports.getDailyWinner = async(req, res) => {
+    const {userID, groupID} = req.params
+
+    //nested populate
+    const group = await Group.findById(groupID)
+        .populate([{
+                path: 'prompts',
+                populate: {
+                    path: 'posts',
+                    populate: {
+                        path: 'owner',
+                        select: '_id name username profilePicture',
+                    }
+                }
+            },
+                {
+                    path: 'userList.user',
+                    populate: '_id'
+                }
+            ]
+        )
+    if (!group) {
+        return res.status(404).json({errorMessage: 'Group not found.'})
+    }
+
+    const prompts = group.prompts
+
+    const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
+    if (!isUserInGroup) {
+        return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+    }
+
+    if (prompts.length == 0) {
+        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    }
+
+    let lastPrompt;
+    for (let i = 0; i < prompts.length; i++) {
+        lastPrompt = prompts[i];
+        if (lastPrompt.dailyWinnerID !== undefined ) {
+            break;
+        }
+    }
+    if (lastPrompt.dailyWinnerID === undefined ) {
+        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    }
+
+    await lastPrompt.populate({path: 'dailyWinnerID', populate: [{path: 'owner'}]});
+    console.log("in prompt controller, dailyWinnerPost", lastPrompt.dailyWinnerID);
+
+    return res.status(200).json({
+        promptObj: lastPrompt,
+        dailyWinnerPostObj: lastPrompt.dailyWinnerID,
+    })
 }
