@@ -39,14 +39,14 @@ module.exports.editGroupName = async(req, res) => {
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
             }
-            const users = group.userList;
+            const userIds = group.userList.map(list => list.user);
             group.name = groupName;
             await group.save();
 
-            for (let i = 0; i < users.length; i++) {
+            for (let i = 0; i < userIds.length; i++) {
                 let result = await User.aggregate([
                     {
-                        $match: {_id: users[i]} // Make sure users[i] is correctly formatted as ObjectId
+                        $match: {_id: userIds[i]} // Make sure users[i] is correctly formatted as ObjectId
                     },
                     {
                         $lookup: {
@@ -79,7 +79,7 @@ module.exports.editGroupName = async(req, res) => {
                             name: group.name,
                         });
                     });
-                    sendGroups(users[i].toString(), { groups: groupsInfo })
+                    sendGroups(userIds[i].toString(), { groups: groupsInfo })
                 }
             }
 

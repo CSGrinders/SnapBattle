@@ -27,8 +27,15 @@ const Group = new mongoose.Schema({
         type: String,
     },
     userList: [{
-        type: mongoose.Types.ObjectId,
-        ref: 'User'
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        points: {
+            type: Number,
+            default: 0
+        }
     }],
     adminName: {
         type: String,

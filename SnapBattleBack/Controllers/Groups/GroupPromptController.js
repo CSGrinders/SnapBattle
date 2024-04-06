@@ -64,7 +64,7 @@ module.exports.getPrompt = async (req, res) => {
                 }
             },
                 {
-                    path: 'userList',
+                    path: 'userList.user',
                     populate: '_id'
                 }
             ]
@@ -74,7 +74,7 @@ module.exports.getPrompt = async (req, res) => {
     }
     const prompts = group.prompts
 
-    const isUserInGroup = group.userList.some(user => user._id.toString() === userID);
+    const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
     if (!isUserInGroup) {
         return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
     }
