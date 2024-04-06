@@ -321,7 +321,7 @@ async function leave(userID, groupID){
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
             const prompt = await Prompt.findById(group.prompts[i]).populate('posts').populate('dailyWinnerID', '_id')
-            if (prompt.dailyWinnerID._id === userID) {
+            if (prompt.dailyWinnerID && prompt.dailyWinnerID._id === userID) {
                 prompt.dailyWinnerID = null;
                 await prompt.save();
             }
