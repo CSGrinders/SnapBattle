@@ -72,10 +72,9 @@ module.exports.inviteToGroup = async(req, res)=> {
         }
 
         //ensure that the friend is not already in the group
-        for (let i = 0; i < group.userList.length; i++) {
-            if (group.userList[i]._id.toString() === inviteFriend._id.toString()) {
-                return res.status(404).json({errorMessage: "This friend is already in the group"})
-            }
+        const isAlreadyInGroup = group.userList.some(list => list.user.toString() === inviteFriend._id.toString());
+        if (isAlreadyInGroup) {
+            return res.status(400).json({errorMessage: "This friend is already in the group"});
         }
 
         //add group to the friend's group invites

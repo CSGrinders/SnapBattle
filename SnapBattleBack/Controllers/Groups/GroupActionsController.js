@@ -31,7 +31,7 @@ const storage = require("../../Firebase/Firebase");
 const {kickUpdateStatus} = require("../../ServerSocketControllers/GroupHomeSocket");
 const {sendGroups} = require("../../ServerSocketControllers/GroupMainSocket");
 const {signOut} = require("../Auth/AuthController");
-
+const {deleteImageFirebaseUrl} = require("../../Firebase/FirebaseOperations");
 /**
  * desc
  * /user/:userID/groups/
@@ -111,8 +111,10 @@ module.exports.createGroup = async(req, res) => {
                 return res.status(402).json({errorMessage: "Not enough time to do weekly and daily votes!"});
             }
 
-            const userList = [];
-            userList.push(user._id);
+            const userList = [{
+                user: user._id,
+                points: 0
+            }];
     
             const prompts = [];
 
@@ -170,15 +172,27 @@ module.exports.createGroup = async(req, res) => {
 module.exports.listUsers = async(req, res) => {
     try {
         const {groupID, userID} = req.params;
-        const group = await Group.findById(groupID).populate('userList');
+        const group = await Group.findById(groupID).populate({
+            path: 'userList.user',
+            select: '_id username profilePicture name'
+        }).populate({
+            path: 'adminUserID',
+            select: '_id'
+        });
 
-        const isUserInGroup = group.userList.some(user => user._id.toString() === userID);
+        const isUserInGroup = group.userList.some(user => user.user._id.toString() === userID);
         if (!isUserInGroup) {
             return res.status(404).json({errorMessage: 'User don\'t belong to this group.'});
         }
 
         if (group) {
-            return res.status(200).json({list: group.userList, adminUser: group.adminUserID})
+            const userList = group.userList.map(list => ({
+                _id: list.user._id,
+                name: list.user.name,
+                username: list.user.username,
+                profilePicture: list.user.profilePicture,
+            }));
+            return res.status(200).json({list: userList, adminUser: group.adminUserID._id})
         } else {
             return res.status(404).json({errorMessage: "Group not found."})
         }
@@ -190,13 +204,13 @@ module.exports.listUsers = async(req, res) => {
 
 module.exports.acceptGroupInvite = async(req, res, next) => {
     try {
-        const {userID, groupID} = req.params
-        const user = await User.findById(userID)
-        const group = await Group.findById(groupID)
+        const {userID, groupID} = req.params;
+        const user = await User.findById(userID);
+        const group = await Group.findById(groupID);
 
         //add user to group
         if (group.userList.length < group.maxUsers) {
-            group.userList.push(userID)
+            group.userList.push({ user: userID, points: 0 });
             await group.save();
         }
         else {
@@ -205,14 +219,9 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
         }
 
         //add group to user's groups and remove group from user's group invites
-        user.groups.push(groupID)
-        for (let i = 0; i < user.invites.length; i++) {
-            if (user.invites[i]._id.toString() === groupID) {
-                user.invites.splice(i, 1)
-                break
-            }
-        }
-        await user.save()
+        user.groups.push(groupID);
+        user.invites = user.invites.filter(invite => invite._id.toString() !== groupID);
+        await user.save();
         //get user's new groups and group invites and send back to client
         next();
 
@@ -228,13 +237,8 @@ module.exports.rejectGroupInvite = async(req, res, next) => {
         const user = await User.findById(userID)
 
         //remove group from user's group invites
-        for (let i = 0; i < user.invites.length; i++) {
-            if (user.invites[i]._id.toString() === groupID) {
-                user.invites.splice(i, 1)
-                break
-            }
-        }
-        await user.save()
+        user.invites = user.invites.filter(invite => invite._id.toString() !== groupID);
+        await user.save();
 
         next()
 
@@ -272,13 +276,7 @@ module.exports.leaveGroup = async(req, res, next) => {
         }
 
         // Check if group is in user's group
-        let found = false
-        for (let i = 0; i < user.groups.length; i++) {
-            if (user.groups[i]._id.toString() === groupID) {
-                found = true
-            }
-        }
-        if (!found) {
+        if (!user.groups.some(groupId => groupId.toString() === groupID)) {
             //console.log(user.groups)
             console.log("leaveGroup module: group not in user's groups");
             return res.status(404).json({errorMessage: "You don't belong to this group."});
@@ -292,7 +290,7 @@ module.exports.leaveGroup = async(req, res, next) => {
         // for some reason doesn't update on time;
         if (group.userList.length <= 1) {
             await Group.findByIdAndDelete(group._id);
-            console.log("group deleted")
+            console.log("Group deleted")
         }
 
         next();
@@ -322,10 +320,20 @@ async function leave(userID, groupID){
 
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
-            const prompt = await Prompt.findById(group.prompts[i]).populate('posts')
+            const prompt = await Prompt.findById(group.prompts[i]).populate('posts').populate('dailyWinnerID', '_id')
+            if (prompt.dailyWinnerID._id === userID) {
+                prompt.dailyWinnerID = null;
+                await prompt.save();
+            }
             for (let j = 0; j < prompt.posts.length; j++) {
                 // delete comments of that user
-                const post = await Post.findById(prompt.posts[j]).populate('comments');
+                const post = await Post.findById(prompt.posts[j]).populate('_id comments picture').populate('owner', '_id');
+                console.log(post)
+                if (post.owner._id.toString().trim() === userID.trim()) {
+                    await deleteImageFirebaseUrl(post.picture);
+                    await Post.findByIdAndDelete(post._id);
+                    continue;
+                }
                 // don't bother going through comments if there are no comments
                 if (post.comments.length === 0) {
                     continue;
@@ -358,7 +366,7 @@ async function leave(userID, groupID){
         }
 
         // Remove user from group's user list
-        group.userList = await group.userList.filter((id) => id.toString() !== user._id.toString());
+        group.userList = await group.userList.filter((id) => id.user._id.toString() !== user._id.toString());
         await group.save();
         return true;
     } catch (e) {
@@ -572,13 +580,15 @@ module.exports.transferAdmin = async (req, res) => {
                 return res.status(400).json({errorMessage: "You cannot select yourself!"})
             }
             // set new admin if admin is a valid user of group
-            for (let i = 0; i < group.userList.length; i++) {
-                if (newAdminUser._id.toString() === group.userList[i]._id.toString()) {
-                    group.adminUserID = newAdminUser._id;
-                    group.adminName = newAdminUser.username;
-                    await group.save();
-                    return res.status(200).json({adminChange: true});
-                }
+            const isUserInGroup = group.userList.some(list => list.user.toString() === newAdminUser._id.toString());
+
+            if (isUserInGroup) {
+                group.adminUserID = newAdminUser._id;
+                group.adminName = newAdminUser.username; // Assuming adminName still needs to be updated
+                await group.save();
+                return res.status(200).json({ adminChange: true });
+            } else {
+                return res.status(404).json({ errorMessage: "User does not exist in this group" });
             }
             return res.status(404).json({errorMessage: "User does not exist in this group"})
         } else {
@@ -598,10 +608,10 @@ module.exports.transferAdmin = async (req, res) => {
 module.exports.kickUser = async (req, res) => {
     try {
         const {userID, groupID} = req.params;
-        const group = await Group.findById(groupID).populate("userList", '_id');
+        const group = await Group.findById(groupID).populate("userList.user", '_id');
         const {kickUsername} = req.body;
         const kickUser = await User.findOne({username: kickUsername});
-        const isUserInGroup = group.userList.some(user => user._id.toString() === userID);
+        const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
         if (!isUserInGroup) {
             return res.status(404).json({errorMessage: 'User don\'t belong to this group.'});
         }
@@ -657,7 +667,7 @@ module.exports.leaveAllGroups = async(req, res) => {
                 path: 'groups',
                 populate: [
                     {
-                        path: 'userList',
+                        path: 'userList.user',
                         select: '_id username'
                     },
                     {
@@ -680,13 +690,13 @@ module.exports.leaveAllGroups = async(req, res) => {
             }
 
             // if user that you are blocking is found in group
-            const isUserBlock = group.userList.some(userL => userL._id.toString() === blockUser._id.toString());
+            const isUserBlock = group.userList.some(userL => userL.user._id.toString() === blockUser._id.toString());
 
             if (isUserBlock) {
                 // if you are leaving a group you are admin in
                 if (group.adminUserID._id.toString() === user._id.toString()) {
                     // set to any random person in the group
-                    group.adminUserID = group.userList.find(userL => userL._id.toString() !== user._id.toString());
+                    group.adminUserID = group.userList.find(userL => userL.user._id.toString() !== user._id.toString());
                     group.adminName = group.adminUserID.username;
                     await group.save();
                 }

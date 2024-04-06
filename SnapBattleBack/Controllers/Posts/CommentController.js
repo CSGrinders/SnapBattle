@@ -26,9 +26,9 @@ module.exports.viewComments = async(req, res) => {
     try {
         const {userID, groupID, postID} = req.params;
 
-        const groupChat = await Group.findById(groupID).populate('userList', '_id');
+        const groupChat = await Group.findById(groupID).populate('userList.user', '_id');
 
-        const isUserInGroup = groupChat.userList.some(user => user._id.toString() === userID);
+        const isUserInGroup = groupChat.userList.some(list => list.user._id.toString() === userID);
         if (!isUserInGroup) {
             return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
         }
@@ -303,9 +303,9 @@ module.exports.commentsEnabled = async(req, res) => {
 
 
 
-        const groupChat = await Group.findById(groupID).populate('userList', '_id');
+        const groupChat = await Group.findById(groupID).populate('userList.user', '_id');
 
-        const isUserInGroup = groupChat.userList.some(user => user._id.toString() === userID);
+        const isUserInGroup = groupChat.userList.some(list => list.user._id.toString() === userID);
         if (!isUserInGroup) {
             return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
         }

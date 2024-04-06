@@ -9,7 +9,7 @@
  */
 
 const {initializeApp} = require("firebase/app");
-const {getStorage, uploadBytes, ref} = require("firebase/storage");
+const {getStorage, uploadBytes, ref, deleteObject} = require("firebase/storage");
 require("dotenv").config();
 const {
     EXPO_PUBLIC_KEY,
@@ -31,4 +31,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 const storage = getStorage(app);
-module.exports = storage;
+
+
+module.exports = storage ;

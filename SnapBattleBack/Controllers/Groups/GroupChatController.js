@@ -19,9 +19,9 @@ module.exports.getChat = async(req, res)=> {
         const groupChat = await Group.findById(groupID).populate('messages')
             .populate({
                 path: 'messages',
-        }).populate('userList', '_id');
+        }).populate('userList.user', '_id');
 
-        const isUserInGroup = groupChat.userList.some(user => user._id.toString() === userID);
+        const isUserInGroup = groupChat.userList.some(list => list.user._id.toString() === userID);
         if (!isUserInGroup) {
             return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
         }
