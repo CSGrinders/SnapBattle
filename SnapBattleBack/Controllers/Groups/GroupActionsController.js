@@ -194,7 +194,7 @@ module.exports.listUsers = async(req, res) => {
             }));
             return res.status(200).json({list: userList, adminUser: group.adminUserID._id})
         } else {
-            return res.status(404).json({errorMessage: "Group not found."})
+            return res.status(404).json({errorMessage: "Group could not be found."})
         }
     } catch (error) {
         console.log("listUsers module: " + error);
@@ -207,6 +207,10 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
         const {userID, groupID} = req.params;
         const user = await User.findById(userID);
         const group = await Group.findById(groupID);
+
+        if (!group) {
+            return res.status(404).json({errorMessage: "Group could not be found."});
+        }
 
         //add user to group
         if (group.userList.length < group.maxUsers) {
@@ -272,7 +276,7 @@ module.exports.leaveGroup = async(req, res, next) => {
         // Check if group exists
         if (!group) {
             console.log("leaveGroup module: Group not found");
-            return res.status(404).json({errorMessage: "Group not found"});
+            return res.status(404).json({errorMessage: "Group could not be found."});
         }
 
         // Check if group is in user's group
@@ -475,7 +479,7 @@ module.exports.deleteGroup = async(req, res) => {
             res.status(200).json({groupDeleted: true});
         } else {
             console.log("deleteGroup module: Group not found");
-            res.status(404).json({errorMessage: "Group not found"});
+            res.status(404).json({errorMessage: "Group could not be found."});
         }
     } catch (error) {
         console.log("deleteGroup module: " + error);
@@ -562,7 +566,7 @@ module.exports.checkAdmin = async(req, res) => {
                 return res.status(200).json({admin: false})
             }
         } else {
-            return res.status(404).json({errorMessage: "Group not found"})
+            return res.status(404).json({errorMessage: "Group could not be found."})
         }
     } catch (e) {
         return res.status(500).json({errorMessage: "Something went wrong..."})
@@ -581,6 +585,9 @@ module.exports.transferAdmin = async (req, res) => {
         const newAdminUsername = req.body.newAdminUsername;
         const newAdminUser = await User.findOne({username: newAdminUsername})
         const group = await Group.findById(groupID);
+        if (!group) {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
+        }
         if (newAdminUser) {
             // check that user did not input themselves
             if (newAdminUser._id === userID) {
@@ -616,6 +623,9 @@ module.exports.kickUser = async (req, res) => {
     try {
         const {userID, groupID} = req.params;
         const group = await Group.findById(groupID).populate("userList.user", '_id');
+        if (!group) {
+            return res.status(404).json({errorMessage: "Group could not be found."});
+        }
         console.log(group)
         const {kickUsername} = req.body;
         const kickUser = await User.findOne({username: kickUsername});
@@ -623,7 +633,7 @@ module.exports.kickUser = async (req, res) => {
         if (!isUserInGroup) {
             return res.status(404).json({errorMessage: 'User don\'t belong to this group.'});
         }
-        if (group && kickUser) {
+        if (kickUser) {
             // check if user is admin user
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
@@ -645,7 +655,7 @@ module.exports.kickUser = async (req, res) => {
             }
             return res.status(404).json({errorMessage: "User is not a part of this group."});
         } else {
-            return res.status(404).json({errorMessage: "User is not a part of this group."});
+            return res.status(404).json({errorMessage: 'User is not a part of this group.'});
         }
     } catch (error) {
         console.log("kickUser module: " + error);

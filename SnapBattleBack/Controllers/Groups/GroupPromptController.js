@@ -71,7 +71,7 @@ module.exports.getPrompt = async (req, res) => {
             ]
         )
     if (!group) {
-        return res.status(404).json({errorMessage: 'Group not found.'})
+        return res.status(404).json({errorMessage: 'Group could not be found.'})
     }
     const prompts = group.prompts
 
@@ -371,7 +371,7 @@ module.exports.getDailyWinner = async(req, res) => {
             ]
         )
     if (!group) {
-        return res.status(404).json({errorMessage: 'Group not found.'})
+        return res.status(404).json({errorMessage: 'Group could not be found.'})
     }
 
     const prompts = group.prompts
