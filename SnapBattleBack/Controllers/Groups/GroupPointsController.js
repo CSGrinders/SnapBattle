@@ -15,7 +15,7 @@ module.exports.getListUsersPoints = async(req, res)=> {
         const group = await Group.findById(groupID)
             .populate('userList.user')
         if (!group) {
-            return res.status(404).json({errorMessage: 'Group not found.'})
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
 
         const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
@@ -53,7 +53,7 @@ module.exports.addPoints = async(req, res)=> {
         const group = await Group.findById(groupID)
             .populate('userList', 'user.username points')
         if (!group) {
-            return res.status(404).json({errorMessage: 'Group not found.'})
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
 
         const userIndex = group.userList.findIndex(list => list.user._id.toString() === userID);

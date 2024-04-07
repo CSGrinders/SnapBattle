@@ -28,7 +28,7 @@ module.exports.getChat = async(req, res)=> {
 
 
         if (!groupChat) { //Group not found
-            return res.status(500).json({errorMessage: "Something went wrong..."});
+            return res.status(404).json({errorMessage: "Group could not be found."});
         }
         const messages = groupChat.messages;
         if (!messages || messages.length === 0) {

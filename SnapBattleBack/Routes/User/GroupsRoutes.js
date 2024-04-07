@@ -34,7 +34,7 @@ const { createPost} = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
 const {getPrompt, voteDaily, voteWeekly, getDailyWinner} = require("../../Controllers/Groups/GroupPromptController");
 const { viewComments, toggleComments, viewReplies, commentsEnabled, deleteLike, postLike, postComment, deleteComment, editComment} = require("../../Controllers/Posts/CommentController");
-const {getListUsersPoints, addPoints} = require("../../Controllers/Groups/GroupPointsSystem");
+const {getListUsersPoints, addPoints} = require("../../Controllers/Groups/GroupPointsController");
 
 
 router.get('/', getGroups);
