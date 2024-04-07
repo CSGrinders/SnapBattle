@@ -25,6 +25,11 @@ module.exports.createPost = async(req, res) => {
 
         //save the downloadable url to MongoDB in corresponding prompt
         const group = await Group.findById(groupID).populate({path: 'prompts', populate: {path: 'posts'}})
+
+        if (!group) {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
+        }
+
         const prompts = group.prompts
         for (let i = 0; i < prompts.length; i++) {
 

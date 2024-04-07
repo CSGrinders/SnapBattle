@@ -86,7 +86,7 @@ module.exports.editGroupName = async(req, res) => {
             return res.status(200).json({nameChanged: true});
         }
         else {
-            return res.status(404).json({errorMessage: "Group not found."});
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editGroupName module: " + error);
@@ -123,6 +123,8 @@ module.exports.editGroupSize = async(req, res) => {
             group.maxUsers = groupSize;
             await group.save();
             return res.status(200).json({sizeChanged: true});
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editGroupSize module: " + error);
@@ -174,6 +176,8 @@ module.exports.editPromptTime = async(req, res) => {
             group.timeStart = promptTime;
             await group.save();
             return res.status(200).json({promptTimeChanged: true});
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editPromptTime module: " + error);
@@ -224,6 +228,8 @@ module.exports.editSubmissionTime = async(req, res) => {
             group.timeEnd = submissionTime;
             await group.save();
             return res.status(200).json({submissionTimeChanged: true});
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editSubmissionTime module: " + error);
@@ -267,7 +273,8 @@ module.exports.editVotingLength = async (req, res) => {
             group.votingLength = votingLength
             await group.save()
             return res.status(200).json({votingLengthChanged: true})
-
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editVotingLength module: " + error);

@@ -194,7 +194,7 @@ module.exports.listUsers = async(req, res) => {
             }));
             return res.status(200).json({list: userList, adminUser: group.adminUserID._id})
         } else {
-            return res.status(404).json({errorMessage: "Group not found."})
+            return res.status(404).json({errorMessage: "Group could not be found."})
         }
     } catch (error) {
         console.log("listUsers module: " + error);
@@ -207,6 +207,10 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
         const {userID, groupID} = req.params;
         const user = await User.findById(userID);
         const group = await Group.findById(groupID);
+
+        if (!group) {
+            return res.status(404).json({errorMessage: "Group could not be found."});
+        }
 
         //add user to group
         if (group.userList.length < group.maxUsers) {
@@ -272,7 +276,7 @@ module.exports.leaveGroup = async(req, res, next) => {
         // Check if group exists
         if (!group) {
             console.log("leaveGroup module: Group not found");
-            return res.status(404).json({errorMessage: "Group not found"});
+            return res.status(404).json({errorMessage: "Group could not be found."});
         }
 
         // Check if group is in user's group
@@ -289,6 +293,9 @@ module.exports.leaveGroup = async(req, res, next) => {
 
         // for some reason doesn't update on time;
         if (group.userList.length <= 1) {
+            for (const prompt of group.prompts) {
+                await Prompt.findByIdAndDelete(prompt._id.toString());
+            }
             await Group.findByIdAndDelete(group._id);
             console.log("Group deleted")
         }
@@ -321,23 +328,14 @@ async function leave(userID, groupID){
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
             const prompt = await Prompt.findById(group.prompts[i]).populate('posts').populate('dailyWinnerID', '_id')
-            if (prompt.dailyWinnerID._id === userID) {
+            if (prompt.dailyWinnerID && prompt.dailyWinnerID._id === userID) {
                 prompt.dailyWinnerID = null;
                 await prompt.save();
             }
             for (let j = 0; j < prompt.posts.length; j++) {
                 // delete comments of that user
                 const post = await Post.findById(prompt.posts[j]).populate('_id comments picture').populate('owner', '_id');
-                console.log(post)
-                if (post.owner._id.toString().trim() === userID.trim()) {
-                    await deleteImageFirebaseUrl(post.picture);
-                    await Post.findByIdAndDelete(post._id);
-                    continue;
-                }
                 // don't bother going through comments if there are no comments
-                if (post.comments.length === 0) {
-                    continue;
-                }
                 for (let k = 0; k < post.comments.length; k++) {
                     const comment = await Comment.findById(post.comments[k]);
                     // comment could be "null" if it was a reply and alr got booted
@@ -347,8 +345,14 @@ async function leave(userID, groupID){
                         }
                     }
                 }
+                if (post.owner._id.toString().trim() === userID) {
+                    await deleteImageFirebaseUrl(post.picture);
+                    await Post.findByIdAndDelete(post._id);
+                    continue;
+                }
                 post.comments = post.comments.filter((comment) => comment.userID.toString() !== userID.toString())
                 await post.save();
+
             }
             prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
             await prompt.save();
@@ -392,7 +396,7 @@ async function deleteComment(commentID) {
         await parent.save();
     }
     // delete comment
-    await Comment.findByIdAndDelete(comment._id);
+    await Comment.findByIdAndDelete(comment._id.toString());
 }
 
 /**
@@ -409,23 +413,26 @@ module.exports.deleteGroup = async(req, res) => {
         const userID = req.params.userID
 
         // Find group
-        const group = await Group.findById(groupID).populate('userList');
-
+        const group = await Group.findById(groupID).populate('userList.user', '_id groups name').populate('prompts', '_id');
         if (group) {
-            const users = group.userList;
             const groupId = group._id.toString();
-
             if (group.adminUserID.toString() !== userID) {
                 return res.status(404).json({errorMessage: "You are not an admin user"})
             }
-            await Group.deleteOne(group);
+
             // Iterate through users in groups and delete group from user
-            for (let i = 0; i < users.length; i++) {
-                users[i].groups = users[i].groups.filter((groupID) => groupID !== groupId);
-                await users[i].save();
+            for (const user of group.userList) {
+                let leaveSuccess = await leave(user.user._id.toString(), group._id.toString());
+                if (!leaveSuccess) {
+                    console.log("deleteGroup module: 500 error");
+                    res.status(500).json({errorMessage: "Something went wrong..."});
+                }
+
+                user.user.groups = user.user.groups.filter((groupID) => groupID.toString() !== groupId);
+                await user.user.save();
                 let result = await User.aggregate([
                     {
-                        $match: {_id: users[i]._id}
+                        $match: {_id: user.user._id}
                     },
                     {
                         $lookup: {
@@ -460,15 +467,19 @@ module.exports.deleteGroup = async(req, res) => {
                             adminName: group.adminName,
                         });
                     });
-                    sendGroups(users[i]._id.toString(), { groups: groupsInfo })
+                    sendGroups(user.user._id.toString(), { groups: groupsInfo })
                 } else {
-                    sendGroups(users[i]._id.toString(), {groups: null});
+                    sendGroups(user.user._id.toString(), {groups: null});
                 }
             }
+            for (const prompt of group.prompts) {
+                await Prompt.findByIdAndDelete(prompt._id.toString());
+            }
+            await Group.findByIdAndDelete(group._id);
             res.status(200).json({groupDeleted: true});
         } else {
             console.log("deleteGroup module: Group not found");
-            res.status(404).json({errorMessage: "Group not found"});
+            res.status(404).json({errorMessage: "Group could not be found."});
         }
     } catch (error) {
         console.log("deleteGroup module: " + error);
@@ -555,7 +566,7 @@ module.exports.checkAdmin = async(req, res) => {
                 return res.status(200).json({admin: false})
             }
         } else {
-            return res.status(404).json({errorMessage: "Group not found"})
+            return res.status(404).json({errorMessage: "Group could not be found."})
         }
     } catch (e) {
         return res.status(500).json({errorMessage: "Something went wrong..."})
@@ -574,6 +585,9 @@ module.exports.transferAdmin = async (req, res) => {
         const newAdminUsername = req.body.newAdminUsername;
         const newAdminUser = await User.findOne({username: newAdminUsername})
         const group = await Group.findById(groupID);
+        if (!group) {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
+        }
         if (newAdminUser) {
             // check that user did not input themselves
             if (newAdminUser._id === userID) {
@@ -609,13 +623,17 @@ module.exports.kickUser = async (req, res) => {
     try {
         const {userID, groupID} = req.params;
         const group = await Group.findById(groupID).populate("userList.user", '_id');
+        if (!group) {
+            return res.status(404).json({errorMessage: "Group could not be found."});
+        }
+        console.log(group)
         const {kickUsername} = req.body;
         const kickUser = await User.findOne({username: kickUsername});
         const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
         if (!isUserInGroup) {
             return res.status(404).json({errorMessage: 'User don\'t belong to this group.'});
         }
-        if (group && kickUser) {
+        if (kickUser) {
             // check if user is admin user
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
@@ -637,7 +655,7 @@ module.exports.kickUser = async (req, res) => {
             }
             return res.status(404).json({errorMessage: "User is not a part of this group."});
         } else {
-            return res.status(404).json({errorMessage: "User is not a part of this group."});
+            return res.status(404).json({errorMessage: 'User is not a part of this group.'});
         }
     } catch (error) {
         console.log("kickUser module: " + error);
