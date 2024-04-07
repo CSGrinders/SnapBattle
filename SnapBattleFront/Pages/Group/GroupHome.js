@@ -376,7 +376,7 @@ function GroupHome({route, navigation}) {
                         contentFit="contain"
                     />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('Leaderboard', route.params)}>
                     <Image
                         style={{width: 35, height: 35}}
                         source={LeaderBoard}
