@@ -51,6 +51,10 @@ const Group = new mongoose.Schema({
     weeklyVotingDay: {
         type: Number
     },
+    weeklyWinners: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'Post'
+    }],
     prompts: [{
         type: mongoose.Types.ObjectId,
         ref: 'Prompt'

@@ -41,6 +41,67 @@ async function updateDailyWinner(todayPrompt) {
     await todayPrompt.save()
 }
 
+async function updateWeeklyWinner(group, now, weekAgo, prompts) {
+    let maxVotes = 0
+    let winner = null
+    for (let i = 0; i < prompts.length; i++) {
+        if (prompts[i].timeEnd.getTime() >= weekAgo.getTime() && prompts[i].timeEnd.getTime() <= now.getTime()) {
+            if (prompts[i].dailyWinnerID === undefined || prompts[i].dailyWinnerID === null) {
+                continue
+            }
+
+            if (prompts[i].dailyWinnerID.weeklyVotes.length > maxVotes) {
+                maxVotes = prompts[i].dailyWinnerID.weeklyVotes
+                winner = prompts[i].dailyWinnerID
+            }
+
+            //tie exists -> no winner
+            else if (prompts[i].dailyWinnerID.weeklyVotes.length === maxVotes) {
+                winner = null
+            }
+        }
+    }
+
+    //save the winner (do nothing if no winner exists)
+    if (winner != null) {
+        group.weeklyWinners.push(winner._id)
+        await group.save()
+
+        winner.isWeeklyWinner = true
+        await winner.save()
+    }
+}
+
+async function makeDummyDailyWinner(todayPrompt, dailyWinner, group) {
+    let newPrompt = new Prompt({
+        prompt: "dummy prompt",
+        timeStart: todayPrompt.timeStart,
+        timeEnd: todayPrompt.timeEnd,
+        dailyWinnerID: null
+    })
+    await newPrompt.save()
+
+    group.prompts.push(newPrompt)
+    await group.save()
+
+    let newPost = new Post({
+        prompt: newPrompt._id,
+        picture: "https://cdn-media-2.freecodecamp.org/w1280/5f9c9819740569d1a4ca1826.jpg",
+        owner: dailyWinner.owner,
+        submissionNumber: 3,
+        time: dailyWinner.time,
+        dailyVotes: [],
+        weeklyVotes: []
+    })
+    await newPost.save()
+
+    await Post.populate(newPost,{path: "prompt"})
+
+    newPrompt.dailyWinnerID = newPost._id
+    await newPrompt.save()
+
+    return newPost
+}
 /*
     PERIOD 0 = waiting period (have not reached submission period yet)
     PERIOD 1 = submission period (users can submit posts)
@@ -55,20 +116,27 @@ module.exports.getPrompt = async (req, res) => {
     const group = await Group.findById(groupID)
         .populate([{
                 path: 'prompts',
-                populate: {
+                populate: [{
                     path: 'posts',
-                    populate: {
+                    populate:
+                    {
                         path: 'owner',
                         select: '_id name username profilePicture',
                     }
-                }
-            },
+                },
                 {
-                    path: 'userList.user',
-                    populate: '_id'
-                }
-            ]
-        )
+                    path: 'dailyWinnerID',
+                    select: 'weeklyVotes isWeeklyWinner',
+                }]
+            },
+            {
+                path: 'userList.user',
+                populate: '_id'
+            },
+            {
+                path: 'weeklyWinners'
+            },
+        ])
     if (!group) {
         return res.status(404).json({errorMessage: 'Group not found.'})
     }
@@ -110,6 +178,12 @@ module.exports.getPrompt = async (req, res) => {
     weeklyVotingTime.setHours(weeklyVotingTime.getHours() + votingHour)
     weeklyVotingTime.setMinutes(weeklyVotingTime.getMinutes() + votingMin)
     weeklyVotingTime.setSeconds(0)
+
+    const weekAgo = new Date(now)
+    weekAgo.setDate(now.getDate() - 6)
+    weekAgo.setHours(0)
+    weekAgo.setMinutes(0)
+    weekAgo.setSeconds(0)
 
     let todayPrompt = null
 
@@ -223,12 +297,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //need to gather all the winners from the last 7 days -> dailyWinnerPosts
         const dailyWinnerPosts = []
-
-        const weekAgo = new Date(now)
-        weekAgo.setDate(now.getDate() - 6)
-        weekAgo.setHours(0)
-        weekAgo.setMinutes(0)
-        weekAgo.setSeconds(0)
+        let dailyWinner
 
         for (let i = 0; i < prompts.length; i++) {
             if (prompts[i].timeEnd.getTime() >= weekAgo.getTime() && prompts[i].timeEnd.getTime() <= now.getTime()) {
@@ -236,19 +305,25 @@ module.exports.getPrompt = async (req, res) => {
                     continue
                 }
 
-                const dailyWinner = await Post.findById(prompts[i].dailyWinnerID).populate('prompt owner')
+                dailyWinner = await Post.findById(prompts[i].dailyWinnerID).populate('prompt owner')
 
                 //attach the prompt as a field of the post
-                console.log(dailyWinner.prompt)
                 dailyWinnerPosts.push(dailyWinner)
-
-                /* - proof that having multiple posts will change the prompt on the frontend during weekly voting
-                const copy = JSON.parse(JSON.stringify(dailyWinner))
-                copy.prompt.prompt = "test prompt ??"
-                dailyWinnerPosts.push(copy)
-                 */
             }
         }
+
+
+        /*
+            UN-COMMENT THE BELOW CODE TO ADD A DUMMY POST TO THE DAILY WINNERS SO THAT
+            WEEKLY VOTING FEATURES WHEN THERE IS MORE THAN 1 POST CAN BE SHOWN
+        */
+        /*
+        if (dailyWinnerPosts.length === 1) {
+            const dummy = await makeDummyDailyWinner(todayPrompt, dailyWinner, group)
+            dailyWinnerPosts.push(dummy)
+        }
+         */
+
 
         return res.status(200).json({
             dailyWinnerPosts: dailyWinnerPosts,
@@ -265,7 +340,22 @@ module.exports.getPrompt = async (req, res) => {
         if (todayPrompt.dailyWinnerID === undefined) {
             await updateDailyWinner(todayPrompt)
         }
-        //TODO: update the weekly winner if today is a weekly voting day
+        //update the weekly winner for the week if today is a weekly voting day, and it has not yet been updated
+        if (weeklyVotingOverride || now.getDay() === weeklyVotingDay) {
+            let updatedWeekly = false
+
+            const weeklyWinners = group.weeklyWinners
+            for (let i = 0; i < weeklyWinners.length; i++) {
+                if (weeklyWinners[i].time.getMonth() === now.time.getMonth() && weeklyWinners[i].time.getDate() === now.getDate()) {
+                    //already updated the weekly winner
+                    updatedWeekly = true
+                }
+            }
+
+            if (!updatedWeekly) {
+                await updateWeeklyWinner(group, now, weekAgo, prompts)
+            }
+        }
 
         const nextPromptRelease = new Date()
         nextPromptRelease.setDate(nextPromptRelease.getDate() + 1)
@@ -285,16 +375,11 @@ module.exports.getPrompt = async (req, res) => {
 module.exports.voteDaily = async(req, res) => {
     const {userID, groupID} = req.params
     const {promptID, postID} = req.body
-    //console.log("\nSTART")
-    //console.log("User: ", userID)
-    //console.log("Post:" , postID)
 
     //look through all other posts for the prompt and see if the user has already voted for a post
     const prompt = await Prompt.findById(promptID).populate('posts')
     const posts = prompt.posts
     for (let i = 0; i < posts.length; i++) {
-        console.log(posts[i]._id)
-        console.log(posts[i].dailyVotes)
         const userIndex = posts[i].dailyVotes.indexOf(userID)
 
         //user is trying to vote for the same post
@@ -323,8 +408,6 @@ module.exports.voteWeekly = async(req, res) => {
     const {posts, votePostID} = req.body
 
     for (let i = 0; i < posts.length; i++) {
-        console.log(posts[i]._id)
-        console.log(posts[i].dailyVotes)
         const userIndex = posts[i].weeklyVotes.indexOf(userID)
 
         //user is trying to vote for the same post
@@ -336,14 +419,16 @@ module.exports.voteWeekly = async(req, res) => {
         //remove weekly vote from any other post that the user has already voted for
         if (userIndex !== -1) {
             //console.log("removing user's previous daily vote")
-            posts[i].weeklyVotes.splice(userIndex, 1)
-            await posts[i].save()
+            const p = await Post.findById(posts[i]._id)
+            p.weeklyVotes.splice(userIndex, 1)
+            await p.save()
         }
     }
 
     //adding vote to the post that the user clicked on
-    const votePost = await Post.findById(postID)
+    const votePost = await Post.findById(votePostID)
     votePost.weeklyVotes.push(userID)
     await votePost.save()
+    console.log(votePost)
     return res.status(200).json({differentPost: true})
 }

@@ -219,7 +219,6 @@ function GroupHome({route, navigation}) {
 
                 //weekly voting procedure (or waiting period after weekly voting day?)
                 else if (period === 3) {
-                    console.log(dailyWinnerPosts)
                     setPosts(dailyWinnerPosts)
 
                     //no daily winner posts
@@ -228,11 +227,8 @@ function GroupHome({route, navigation}) {
                         setPromptID("")
                     }
                     else {
-                        console.log(dailyWinnerPosts[0])
-                        console.log(dailyWinnerPosts[0].prompt.prompt)
-                        console.log(dailyWinnerPosts[0].prompt._id)
-                        setPrompt(dailyWinnerPosts[0].prompt.prompt)
-                        setPromptID(dailyWinnerPosts[0].prompt._id)
+                        setPrompt(dailyWinnerPosts[activeIndex].prompt.prompt)
+                        setPromptID(dailyWinnerPosts[activeIndex].prompt._id)
                     }
                 }
             })
