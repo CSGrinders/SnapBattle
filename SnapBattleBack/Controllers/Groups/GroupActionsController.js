@@ -289,6 +289,9 @@ module.exports.leaveGroup = async(req, res, next) => {
 
         // for some reason doesn't update on time;
         if (group.userList.length <= 1) {
+            for (const prompt of group.prompts) {
+                await Prompt.findByIdAndDelete(prompt._id.toString());
+            }
             await Group.findByIdAndDelete(group._id);
             console.log("Group deleted")
         }
