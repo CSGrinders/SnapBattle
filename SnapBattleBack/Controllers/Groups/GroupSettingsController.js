@@ -39,14 +39,14 @@ module.exports.editGroupName = async(req, res) => {
             if (group.adminUserID.toString() !== userID) {
                 return res.status(401).json({errorMessage: "You are not an administrator!"});
             }
-            const users = group.userList;
+            const userIds = group.userList.map(list => list.user);
             group.name = groupName;
             await group.save();
 
-            for (let i = 0; i < users.length; i++) {
+            for (let i = 0; i < userIds.length; i++) {
                 let result = await User.aggregate([
                     {
-                        $match: {_id: users[i]} // Make sure users[i] is correctly formatted as ObjectId
+                        $match: {_id: userIds[i]} // Make sure users[i] is correctly formatted as ObjectId
                     },
                     {
                         $lookup: {
@@ -79,14 +79,14 @@ module.exports.editGroupName = async(req, res) => {
                             name: group.name,
                         });
                     });
-                    sendGroups(users[i].toString(), { groups: groupsInfo })
+                    sendGroups(userIds[i].toString(), { groups: groupsInfo })
                 }
             }
 
             return res.status(200).json({nameChanged: true});
         }
         else {
-            return res.status(404).json({errorMessage: "Group not found."});
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editGroupName module: " + error);
@@ -123,6 +123,8 @@ module.exports.editGroupSize = async(req, res) => {
             group.maxUsers = groupSize;
             await group.save();
             return res.status(200).json({sizeChanged: true});
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editGroupSize module: " + error);
@@ -174,6 +176,8 @@ module.exports.editPromptTime = async(req, res) => {
             group.timeStart = promptTime;
             await group.save();
             return res.status(200).json({promptTimeChanged: true});
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editPromptTime module: " + error);
@@ -224,6 +228,8 @@ module.exports.editSubmissionTime = async(req, res) => {
             group.timeEnd = submissionTime;
             await group.save();
             return res.status(200).json({submissionTimeChanged: true});
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editSubmissionTime module: " + error);
@@ -267,7 +273,8 @@ module.exports.editVotingLength = async (req, res) => {
             group.votingLength = votingLength
             await group.save()
             return res.status(200).json({votingLengthChanged: true})
-
+        } else {
+            return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
     } catch (error) {
         console.log("editVotingLength module: " + error);

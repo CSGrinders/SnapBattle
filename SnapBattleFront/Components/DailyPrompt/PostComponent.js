@@ -13,7 +13,7 @@ import CloseButton from "../../assets/close.webp";
 import {Button, Switch} from "@rneui/themed";
 import axios from "axios";
 
-const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, setActivePostID, loading}) => {
+const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, setActivePostID, loading, period, setPrompt, setPromptID}) => {
 
     const {username, userID, groupID, token} = route.params;
     const [option, setOption] = useState(false);
@@ -311,6 +311,12 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                     onSnapToItem={(index) => {
                         setActiveIndex(index)
                         setActivePostID(posts[index]._id)
+
+                        //weekly voting -> need to change prompt
+                        if (period === 3) {
+                            setPrompt(posts[index].prompt.prompt)
+                            setPromptID(posts[index].prompt._id)
+                        }
                     }}
                     vertical={false}
                 />
