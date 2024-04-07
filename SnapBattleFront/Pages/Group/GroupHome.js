@@ -75,7 +75,6 @@ function GroupHome({route, navigation}) {
     //variables for the info pop-up
     const [infoMessage, setInfoMessage] = useState("")
     const [infoState, setInfoState] = useState(false)
-    //const socket = useContext(SocketContext);
     const {leaveRoom } = useContext(SocketContext);
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
@@ -83,10 +82,7 @@ function GroupHome({route, navigation}) {
     //gets the prompt object and underlying post and comment data
     const [refreshing, setRefreshing] = useState(false);
     const [lastRefresh, setLastRefresh] = useState(0);
-    const [refreshingP, setRefreshingP] = useState(false);
-    const [lastRefreshP, setLastRefreshP] = useState(0);
     const refreshCooldown = 10000;
-    const refreshCooldown2 = 1500;
 
     const onRefresh = useCallback(() => {
         const now = Date.now();
@@ -105,20 +101,11 @@ function GroupHome({route, navigation}) {
 
     useFocusEffect(
         useCallback(() => {
-            const now = Date.now();
-            if (now - lastRefreshP < refreshCooldown2) {
-                console.log('Refresh cooldown is active. ');
-                return;
-            } else {
-                setRefreshingP(false);
-            }
-
-            setRefreshingP(true);
             getPrompts()
                 .finally(() => {
-                    setLastRefreshP(Date.now());
+                    console.log("GetPrompt " + Date.now());
                 });
-        }, [lastRefreshP, refresh])
+        }, [refresh])
     )
 
 /*
