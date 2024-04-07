@@ -13,7 +13,7 @@
 const mongoose = require("mongoose");
 
 const Post = new mongoose.Schema({
-    pID: {
+    prompt: {
         type: mongoose.Types.ObjectId,
         ref: 'Prompt'
     },
@@ -53,9 +53,10 @@ const Post = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'User'
     }],
-    weeklyVotes: {
-        type: Number
-    }
+    weeklyVotes: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'User'
+    }]
 })
 
 const Comment = new mongoose.Schema({

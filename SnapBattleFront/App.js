@@ -24,6 +24,7 @@ import GroupChat from "./Pages/Group/GroupChat";
 import Comment from './Pages/Posts/Comment';
 import BlockUsers from "./Pages/Friends/BlockUsers";
 import Memories from "./Pages/Group/Memories";
+import Leaderboard from './Pages/Group/Leaderboard';
 
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
                         <Stack.Screen name="Comments" component={Comment}/>
                         <Stack.Screen name="BlockUserList" component={BlockUsers}/>
                         <Stack.Screen name="Memories" component={Memories}/>
+                        <Stack.Screen name="Leaderboard" component={Leaderboard}/>
                     </Stack.Navigator>
                 </SocketProvider>
             </NavigationContainer>
