@@ -109,12 +109,13 @@ function GroupHome({route, navigation}) {
             if (now - lastRefreshP < refreshCooldown2) {
                 console.log('Refresh cooldown is active. ');
                 return;
+            } else {
+                setRefreshingP(false);
             }
 
             setRefreshingP(true);
             getPrompts()
                 .finally(() => {
-                    setRefreshingP(false);
                     setLastRefreshP(Date.now());
                 });
         }, [lastRefreshP, refresh])
