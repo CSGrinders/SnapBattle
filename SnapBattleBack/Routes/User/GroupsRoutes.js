@@ -32,7 +32,7 @@ const { getGroups, createGroup, listUsers, leaveGroup, deleteGroup,
 const { editGroupName, editGroupSize, editPromptTime, editSubmissionTime, editVotingLength } = require("../../Controllers/Groups/GroupSettingsController");
 const { createPost} = require("../../Controllers/Groups/GroupPostController")
 const {getChat} = require("../../Controllers/Groups/GroupChatController");
-const {getPrompt, voteDaily, voteWeekly, getDailyWinner} = require("../../Controllers/Groups/GroupPromptController");
+const {getPrompt, voteDaily, voteWeekly, getDailyWinner, getLastWeekWinner} = require("../../Controllers/Groups/GroupPromptController");
 const { viewComments, toggleComments, viewReplies, commentsEnabled, deleteLike, postLike, postComment, deleteComment, editComment} = require("../../Controllers/Posts/CommentController");
 const {getListUsersPoints, addPoints} = require("../../Controllers/Groups/GroupPointsController");
 
@@ -102,4 +102,5 @@ router.post("/:groupID/vote-weekly", voteWeekly)
 
 router.get("/:groupID/get-daily-winner", getDailyWinner);
 
+router.get("/:groupID/get-weekly-winner", getLastWeekWinner);
 module.exports = router;

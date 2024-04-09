@@ -489,3 +489,50 @@ module.exports.getDailyWinner = async(req, res) => {
         dailyWinnerPostObj: lastPrompt.dailyWinnerID,
     })
 }
+
+module.exports.getLastWeekWinner = async(req, res) => {
+    const {userID, groupID} = req.params
+
+    //nested populate
+    const group = await Group.findById(groupID)
+        .populate([{
+                path: 'prompts',
+                populate: {
+                    path: 'posts',
+                    populate: {
+                        path: 'owner',
+                        select: '_id name username profilePicture',
+                    }
+                }
+            },
+                {
+                    path: 'userList.user',
+                    populate: '_id'
+                }
+            ]
+        )
+    if (!group) {
+        return res.status(404).json({errorMessage: 'Group could not be found.'})
+    }
+
+    await group.populate({path: 'weeklyWinners'});
+    const weeklyWinnerPosts = group.weeklyWinners;
+
+    const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
+    if (!isUserInGroup) {
+        return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+    }
+
+    if (weeklyWinnerPosts.length == 0) {
+        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    }
+
+    const lastPost = weeklyWinnerPosts[weeklyWinnerPosts.length - 1];
+
+    await lastPost.populate([{path: 'prompt'}, {path: 'owner'}, {path: 'picture'}])
+    console.log("in prompt controller, weekly winner post", lastPost);
+
+    return res.status(200).json({
+        weeklyWinnerPost: lastPost,
+    })
+}
