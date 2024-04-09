@@ -35,7 +35,7 @@ function Leaderboard({route, navigation}) {
     const {width, height} = Dimensions.get('window');
 
     //const socket = useContext(SocketContext);
-    const {leaveRoom } = useContext(SocketContext);
+    const {leaveRoom} = useContext(SocketContext);
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
 
@@ -75,7 +75,6 @@ function Leaderboard({route, navigation}) {
                 console.log(res.data);
                 if (list) {
                     //send message?
-                    console.log(list);
                     setGroupMembers(list)
                 }
             })
@@ -97,11 +96,11 @@ function Leaderboard({route, navigation}) {
     const [refreshing, setRefreshing] = useState(false);
     const [lastRefresh, setLastRefresh] = useState(0);
     const refreshCooldown = 10000;
-    
+
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}
-            enabled={false} style={{flex: 1, alignItems: "center"}}>
+                              enabled={false} style={{flex: 1, alignItems: "center"}}>
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -120,64 +119,64 @@ function Leaderboard({route, navigation}) {
                 </View>
             </View>
             <View style={{
-    flex: 1,
-    alignItems: 'center',
-    marginTop: 20,
-            }}>
-      <View style={{
-            width: width * .9,
-            borderRadius: 8,
-            padding: 20,
-            backgroundColor: '#fff',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 3,
-            height: height * .75,
-      }}>
-        <ScrollView
-                                    refreshControl={
-                                        <RefreshControl
-                                            refreshing={refreshing}
-                                            onRefresh={onRefresh}
-                                        />
-                                     } >
-        <Text style={{
-                marginBottom: 10,
-                fontSize: 20,
-                color: '#333',
-                fontWeight: 'bold'
-        }}>Rankings</Text>
-        <View style={{
-            paddingVertical: 5,
-        }}>
-          {rankings.map((player, index) => (
-            <View id={index} style={[{
-                paddingVertical: 10,
-                paddingHorizontal: 15,
-                borderRadius: 5,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 2,
-                flexDirection: 'row',
-                display: 'flex',
+                flex: 1,
                 alignItems: 'center',
-                gap: 15,
-                margin: 5
-            }, index === 0 ? {backgroundColor: '#ffc107'} : index === 1 ? {backgroundColor: '#aaa9ad'} : index === 2 ? {backgroundColor: '#cd7f32'} : {backgroundColor: '#f5f5f5'}]}>
-                <OtherProfilePicture size={40} imageUrl={player.profilePicture}/>
-                <Text style={{
-                    fontWeight: 'bold',
-                }} key={index}>{`${index + 1}. ${player.username} - ${player.points}`}</Text>
+                marginTop: 20,
+            }}>
+                <View style={{
+                    width: width * .9,
+                    borderRadius: 8,
+                    padding: 20,
+                    backgroundColor: '#fff',
+                    shadowColor: '#000',
+                    shadowOffset: {width: 0, height: 2},
+                    shadowOpacity: 0.2,
+                    shadowRadius: 4,
+                    elevation: 3,
+                    height: height * .75,
+                }}>
+                    <Text style={{
+                        marginBottom: 10,
+                        fontSize: 20,
+                        color: '#333',
+                        fontWeight: 'bold'
+                    }}>Rankings</Text>
+                    <ScrollView
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                            />
+                        }>
+                        <View style={{
+                            paddingVertical: 5,
+                        }}>
+                            {rankings.map((player, index) => (
+                                <View id={index} style={[{
+                                    paddingVertical: 10,
+                                    paddingHorizontal: 15,
+                                    borderRadius: 5,
+                                    shadowColor: '#000',
+                                    shadowOffset: {width: 0, height: 1},
+                                    shadowOpacity: 0.1,
+                                    shadowRadius: 2,
+                                    elevation: 2,
+                                    flexDirection: 'row',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 15,
+                                    margin: 5
+                                }, index === 0 ? {backgroundColor: '#ffc107'} : index === 1 ? {backgroundColor: '#aaa9ad'} : index === 2 ? {backgroundColor: '#cd7f32'} : {backgroundColor: '#f5f5f5'}]}>
+                                    <OtherProfilePicture size={40} imageUrl={player.profilePicture}/>
+                                    <Text style={{
+                                        fontWeight: 'bold',
+                                    }} key={index}>{`${index + 1}. ${player.username} - ${player.points}`}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </ScrollView>
+                </View>
             </View>
-          ))}
-        </View>
-        </ScrollView>
-      </View>
-    </View>
         </KeyboardAvoidingView>
     )
 }
