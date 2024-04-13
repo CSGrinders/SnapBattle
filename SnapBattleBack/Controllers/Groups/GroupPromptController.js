@@ -6,6 +6,11 @@ const {Post} = require("../../Models/Post");
 const mongoose = require("mongoose");
 const {OPENAI_API_KEY} = process.env
 
+const Mutex = require('async-mutex').Mutex;
+
+//mutex for handling race conditions w/ prompt
+const mutex = new Mutex()
+
 
 async function updateDailyWinner(todayPrompt) {
     const posts = todayPrompt.posts
@@ -34,6 +39,7 @@ async function updateDailyWinner(todayPrompt) {
     //save the winner (null if no winner exists)
     if (winner != null) {
         todayPrompt.dailyWinnerID = winner._id
+        console.log(winner)
     }
     else {
         todayPrompt.dailyWinnerID = null
@@ -112,6 +118,9 @@ async function makeDummyDailyWinner(todayPrompt, dailyWinner, group) {
  */
 module.exports.getPrompt = async (req, res) => {
     const {userID, groupID} = req.params
+    const release = await mutex.acquire()
+
+
 
     //nested populate
     const group = await Group.findById(groupID)
@@ -139,12 +148,14 @@ module.exports.getPrompt = async (req, res) => {
             },
         ])
     if (!group) {
+        release()
         return res.status(404).json({errorMessage: 'Group could not be found.'})
     }
     const prompts = group.prompts
 
     const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
     if (!isUserInGroup) {
+        release()
         return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
     }
 
@@ -207,6 +218,7 @@ module.exports.getPrompt = async (req, res) => {
         promptTime.setHours(promptReleaseHour)
         promptTime.setMinutes(promptReleaseMin)
         promptTime.setSeconds(0)
+        release()
         return res.status(200).json({
             promptObj: yesterdayPrompt,
             submissionAllowed: false,
@@ -247,6 +259,7 @@ module.exports.getPrompt = async (req, res) => {
         group.prompts.push(todayPrompt)
         await group.save()
     }
+    console.log("here?")
 
     /*
         SET TO FALSE IF YOU WANT WEEKLY VOTING TO HAPPEN NORMALLY (EVERY SEVEN DAYS)
@@ -261,6 +274,7 @@ module.exports.getPrompt = async (req, res) => {
         const posts = todayPrompt.posts
         for (let i = 0; i < posts.length; i++) {
             if (posts[i].owner._id.toString() === userID && posts[i].submissionNumber >= 3) {
+                release()
                 return res.status(200).json({
                     promptObj: todayPrompt,
                     submissionAllowed: false,
@@ -270,6 +284,7 @@ module.exports.getPrompt = async (req, res) => {
             }
         }
 
+        release()
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: true,
@@ -280,6 +295,7 @@ module.exports.getPrompt = async (req, res) => {
 
     //PERIOD 2 - if current time has not yet reached daily voting deadline
     else if (now.getTime() < dailyVotingTime.getTime()) {
+        release()
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
@@ -326,6 +342,7 @@ module.exports.getPrompt = async (req, res) => {
          */
 
 
+        release()
         return res.status(200).json({
             dailyWinnerPosts: dailyWinnerPosts,
             submissionAllowed: false,
@@ -363,6 +380,7 @@ module.exports.getPrompt = async (req, res) => {
         nextPromptRelease.setHours(promptReleaseHour)
         nextPromptRelease.setMinutes(promptReleaseMin)
         nextPromptRelease.setSeconds(0)
+        release()
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
