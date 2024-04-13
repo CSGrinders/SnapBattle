@@ -562,7 +562,24 @@ module.exports.getLastWeekWinner = async(req, res) => {
     await lastPost.populate([{path: 'prompt'}, {path: 'owner'}, {path: 'picture'}])
     console.log("in prompt controller, weekly winner post", lastPost);
 
+    const date = lastPost.time
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+
     return res.status(200).json({
         weeklyWinnerPost: lastPost,
+        dayString: year + "-" + month + "-" + day,
     })
+}
+
+module.exports.getDailyWinner = async(req, res) => {
+    const {userID, groupID, dayString} = req.params
+    console.log("getting daily winner for " + dayString)
+    return res.status(200)
+}
+module.exports.getWeeklyWinner = async(req, res) => {
+    const {userID, groupID, dayString} = req.params
+    console.log("getting weekly winner for" + dayString)
+    return res.status(200)
 }

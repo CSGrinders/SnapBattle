@@ -41,7 +41,7 @@ function Memories({route, navigation}) {
     const [weeklyWinnerPost, setWeeklyWinnerPost] = useState(null);
     const [weeklyWinnerPrompt, setWeeklyWinnerPrompt] = useState(null);
 
-    async function getLastDailyWinner() {
+    function getLastDailyWinner() {
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-daily-winner`
         )
@@ -62,19 +62,46 @@ function Memories({route, navigation}) {
         setTimeout(() => {scrollViewRef.current?.scrollToEnd({animated: true})}, 100)
     }, [dailyWinnerPrompt, weeklyWinnerPrompt])
 
-    async function getLastWeeklyWinner(){
+    function getLastWeeklyWinner(){
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-weekly-winner`
         )
             .then((res) => {
-                const {weeklyWinnerPost} = res.data
+                const {weeklyWinnerPost, dayString} = res.data
                 setWeeklyWinnerPost(weeklyWinnerPost);
                 setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
+                setSelected(dayString)
             })
             .catch((e) => {
                 console.log(e.response.data);
                 setErrorMessageServer(e.response.data.errorMessage)
                 setErrorServer(true)
+            })
+    }
+
+    function getDailyWinner(dayString) {
+        console.log("getting daily winner for " + dayString);
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-daily-winner/${dayString}`
+        )
+            .then((res) => {
+                console.log(res)
+            })
+            .catch((e) => {
+                console.log(e.response.data)
+            })
+    }
+
+    function getWeeklyWinner(dayString) {
+        console.log("getting weekly winner for " + dayString);
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-weekly-winner/${dayString}`
+        )
+            .then((res) => {
+                console.log(res)
+            })
+            .catch((e) => {
+                console.log(e.response.data)
             })
     }
 
@@ -191,6 +218,12 @@ function Memories({route, navigation}) {
                     }}
                     onDayPress={day => {
                         setSelected(day.dateString);
+                        if (dailySelected) {
+                            getDailyWinner(day.dateString)
+                        }
+                        else {
+                            getWeeklyWinner(day.dateString)
+                        }
                     }}
                     markedDates={{
                         [selected]: {selected: true, disableTouchEvent: true, selectedDotColor: 'orange'}
@@ -273,6 +306,7 @@ function Memories({route, navigation}) {
                                         justifyContent: 'flex-end',
                                         gap: 5
                                     }}>
+                                        <Text>? Votes</Text>
                                         <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
                                             <Image
                                                 source={ShareIcon}
@@ -333,7 +367,8 @@ function Memories({route, navigation}) {
                                     justifyContent: 'flex-end',
                                     gap: 5
                                 }}>
-                                    <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
+                                    <Text>? Votes</Text>
+                                    <TouchableOpacity onPress={() => onShare(weeklyWinnerPost.picture)}>
                                         <Image
                                             source={ShareIcon}
                                             style={{
