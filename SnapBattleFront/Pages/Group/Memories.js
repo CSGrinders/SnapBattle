@@ -4,8 +4,9 @@ import {
 import {Calendar} from 'react-native-calendars';
 import {Image} from "expo-image";
 import {Button} from "@rneui/themed";
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import axios from "axios";
+import {useRef} from 'react'
 
 
 const {EXPO_PUBLIC_API_URL} = process.env
@@ -16,6 +17,8 @@ import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import ShareIcon from "../../assets/share.webp";
 
 function Memories({route, navigation}) {
+
+    const scrollViewRef = useRef()
 
     const {userID, groupID} = route.params;
     const {width, height} = Dimensions.get('window');
@@ -33,47 +36,46 @@ function Memories({route, navigation}) {
     const [successMessage, setSuccessMessage] = useState('');
     const [successState, setSuccessState] = useState(false)
 
-    const [prompt, setPrompt] = useState(null);
+    const [dailyWinnerPrompt, setDailyWinnerPrompt] = useState(null);
     const [dailyWinnerPost, setDailyWinnerPost] = useState(null);
     const [weeklyWinnerPost, setWeeklyWinnerPost] = useState(null);
     const [weeklyWinnerPrompt, setWeeklyWinnerPrompt] = useState(null);
 
-    useEffect(() => {
-        console.log("memory useEffect");
-        getDailyWinner();
-        getWeeklyWinner();
-    },[]);
-
-    const getDailyWinner = async () => {
+    async function getLastDailyWinner() {
         axios.get(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-daily-winner`
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-daily-winner`
         )
             .then((res) => {
-                const {promptObj, dailyWinnerPostObj} = res.data
-                setPrompt(promptObj);
+                const {promptObj, dailyWinnerPostObj, dayString} = res.data
+                setDailyWinnerPrompt(promptObj);
                 setDailyWinnerPost(dailyWinnerPostObj);
-                console.log("getDaily Winner: ", dailyWinnerPostObj);
+                setSelected(dayString);
             })
             .catch((e) => {
-                console.log(e);
+                console.log(e.response.data)
+                setErrorMessageServer(e.response.data.errorMessage)
+                setErrorServer(true)
             })
-        console.log("waht")
     }
 
-    const getWeeklyWinner = async () => {
+    useEffect(() => {
+        setTimeout(() => {scrollViewRef.current?.scrollToEnd({animated: true})}, 100)
+    }, [dailyWinnerPrompt, weeklyWinnerPrompt])
+
+    async function getLastWeeklyWinner(){
         axios.get(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-weekly-winner`
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-weekly-winner`
         )
             .then((res) => {
                 const {weeklyWinnerPost} = res.data
                 setWeeklyWinnerPost(weeklyWinnerPost);
                 setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
-                console.log("getWeekly Winner: ", weeklyWinnerPost);
             })
             .catch((e) => {
-                console.log(e);
+                console.log(e.response.data);
+                setErrorMessageServer(e.response.data.errorMessage)
+                setErrorServer(true)
             })
-        console.log("waht")
     }
 
     const onShare = async (itemPictureURL) => {
@@ -161,7 +163,18 @@ function Memories({route, navigation}) {
                     onPress={() => setDailySelected(false)}
                 />
             </View>
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+            <View style={{marginBottom: 10}}>
+                {dailySelected ? (
+                    <Button onPress={() => getLastDailyWinner()}>
+                        View last daily winner
+                    </Button>
+                ) : (
+                    <Button onPress={() => getLastWeeklyWinner()}>
+                        View last weekly winner
+                    </Button>
+                )}
+            </View>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollViewRef} style={{marginBottom: 10}}>
                 <Calendar
                     style={{
                         width: width * 0.9,
@@ -184,189 +197,167 @@ function Memories({route, navigation}) {
                     }}
                 />
 
-                <View style={{
-                    width: width * 0.9,
-                    height: height * 0.15,
-                    borderRadius: 25,
-                    borderWidth: 2,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginTop: 20,
-                }}>
-                    {dailySelected ? (
-                        <>
-                            <Text style={{
-                                fontWeight: 'bold',
-                                fontSize: 20,
-                                textAlign: 'center'
-                            }}>
-                                Last Day Winner Post
-                            </Text>
-                            {prompt !== null && (
-                                <Text style={{
-                                    fontSize: 20,
-                                    textAlign: 'center'
-                                }}>
-                                    {prompt.prompt}
-                                </Text>
-                            )}
-                            {dailyWinnerPost !== null && (
-                                <Text style={{
-                                    fontWeight: 'bold',
-                                    fontSize: 20,
-                                    textAlign: 'center'
-                                }}>
-                                    Lst Day Winner: {dailyWinnerPost.owner.username}
-                                </Text>
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            <Text style={{
-                                fontWeight: 'bold',
-                                fontSize: 20,
-                                textAlign: 'center'
-                            }}>
-                                Last Week Winner Post
-                            </Text>
-                            {weeklyWinnerPrompt !== null && (
-                            <Text style={{
-                                fontSize: 20,
-                                textAlign: 'center'
-                            }}>
-                                {weeklyWinnerPrompt.prompt}
-                            </Text>
-                            )}
-                            {weeklyWinnerPost !== null && (
-                            <Text style={{
-                                fontWeight: 'bold',
-                                fontSize: 20,
-                                textAlign: 'center'
-                            }}>
-                                Lst Day Winner: {weeklyWinnerPost.owner.username}
-                            </Text>
-                            )}
-                        </>
-                    )}
-                </View>
+                {dailySelected && dailyWinnerPrompt !== null ? (
+                    <View style={{
+                        width: width * 0.9,
+                        borderRadius: 25,
+                        borderWidth: 2,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginTop: 20,
+                        paddingVertical: 20
+                    }}>
+                        <Text style={{
+                            fontSize: 20,
+                            textAlign: 'center'
+                        }}>
+                            {dailyWinnerPrompt.prompt}
+                        </Text>
+                    </View>
+                    ) : (<></>)
+                }
 
-                <View style={{ flex: 1 }}>
-                    {dailySelected ? (
-                        dailyWinnerPost ? (
+                {!dailySelected && weeklyWinnerPrompt !== null ? (
+                    <View style={{
+                        width: width * 0.9,
+                        borderRadius: 25,
+                        borderWidth: 2,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginTop: 20,
+                        paddingVertical: 20
+                    }}>
+                        <Text style={{
+                            fontSize: 20,
+                            textAlign: 'center'
+                        }}>
+                            {weeklyWinnerPrompt.prompt}
+                        </Text>
+                    </View>
+                    ) : (<></>)
+                }
+
+                {dailySelected && dailyWinnerPost != null ? (
+                    <View style={{flex: 1}}>
+                        <View style={{
+                            height: "100%",
+                            borderRadius: 25,
+                            marginTop: 20,
+                            marginBottom: height * 0.3
+                        }}>
                             <View style={{
-                                height: "100%",
-                                borderRadius: 25,
-                                marginTop: 20,
-                                marginBottom: height * 0.3
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-around',
                             }}>
                                 <View style={{
+                                    flex: 1,
                                     flexDirection: 'row',
                                     alignItems: 'center',
-                                    justifyContent: 'space-around',
+                                    justifyContent: 'flex-start',
+                                    marginTop: 5,
+                                    marginBottom: 5,
+                                    marginLeft: 5,
+                                    marginRight: 5,
+                                    gap: 10
                                 }}>
+                                    <OtherProfilePicture size={50} imageUrl={dailyWinnerPost.owner.profilePicture}/>
+                                    <View style={{flexDirection: 'column'}}>
+                                        <Text>{dailyWinnerPost.owner.username}</Text>
+                                        <Text>{new Date(dailyWinnerPost.time).getHours() + ":" + new Date(dailyWinnerPost.time).getMinutes()}</Text>
+                                    </View>
                                     <View style={{
                                         flex: 1,
                                         flexDirection: 'row',
                                         alignItems: 'center',
-                                        justifyContent: 'flex-start',
-                                        marginTop: 5,
-                                        marginBottom: 5,
-                                        marginLeft: 5,
-                                        marginRight: 5,
-                                        gap: 10
+                                        justifyContent: 'flex-end',
+                                        gap: 5
                                     }}>
-                                        <OtherProfilePicture size={50} imageUrl={dailyWinnerPost.owner.profilePicture}/>
-                                        <View style={{flexDirection: 'column'}}>
-                                            <Text>{dailyWinnerPost.owner.username}</Text>
-                                            <Text>{new Date(dailyWinnerPost.time).getHours() + ":" + new Date(dailyWinnerPost.time).getMinutes()}</Text>
-                                        </View>
-                                        <View style={{
-                                            flex: 1,
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            justifyContent: 'flex-end',
-                                            gap: 5
-                                        }}>
-                                            <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
-                                                <Image
-                                                    source={ShareIcon}
-                                                    style={{
-                                                        width: 30,
-                                                        height: 30
-                                                    }}
-                                                />
-                                            </TouchableOpacity>
-                                        </View>
+                                        <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
+                                            <Image
+                                                source={ShareIcon}
+                                                style={{
+                                                    width: 30,
+                                                    height: 30
+                                                }}
+                                            />
+                                        </TouchableOpacity>
                                     </View>
                                 </View>
-                                <Image
-                                    source={{uri: dailyWinnerPost.picture}}
-                                    style={{
-                                        width: width * 0.9 - 10,
-                                        height: (1.2) * (width * 0.9 - 10),
-                                    }}
-                                />
                             </View>
-                        ) : null
-                    ) : (
-                        weeklyWinnerPost ? (
+                            <Image
+                                source={{uri: dailyWinnerPost.picture}}
+                                style={{
+                                    width: width * 0.9 - 10,
+                                    height: (1.2) * (width * 0.9 - 10),
+                                }}
+                            />
+                        </View>
+                    </View>
+                ) : (<></>)
+                }
+
+            {!dailySelected && weeklyWinnerPost != null ? (
+                <View style={{flex: 1}}>
+                    <View style={{
+                        height: "100%",
+                        borderRadius: 25,
+                        marginTop: 20,
+                        marginBottom: height * 0.3
+                    }}>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-around',
+                        }}>
                             <View style={{
-                                height: "100%",
-                                borderRadius: 25,
-                                marginTop: 20,
-                                marginBottom: height * 0.3
+                                flex: 1,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'flex-start',
+                                marginTop: 5,
+                                marginBottom: 5,
+                                marginLeft: 5,
+                                marginRight: 5,
+                                gap: 10
                             }}>
+                                <OtherProfilePicture size={50} imageUrl={weeklyWinnerPost.owner.profilePicture}/>
+                                <View style={{flexDirection: 'column'}}>
+                                    <Text>{weeklyWinnerPost.owner.username}</Text>
+                                    <Text>{new Date(weeklyWinnerPost.time).getHours() + ":" + new Date(weeklyWinnerPost.time).getMinutes()}</Text>
+                                </View>
                                 <View style={{
+                                    flex: 1,
                                     flexDirection: 'row',
                                     alignItems: 'center',
-                                    justifyContent: 'space-around',
+                                    justifyContent: 'flex-end',
+                                    gap: 5
                                 }}>
-                                    <View style={{
-                                        flex: 1,
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'flex-start',
-                                        marginTop: 5,
-                                        marginBottom: 5,
-                                        marginLeft: 5,
-                                        marginRight: 5,
-                                        gap: 10
-                                    }}>
-                                        <OtherProfilePicture size={50} imageUrl={weeklyWinnerPost.owner.profilePicture}/>
-                                        <View style={{flexDirection: 'column'}}>
-                                            <Text>{weeklyWinnerPost.owner.username}</Text>
-                                            <Text>{new Date(weeklyWinnerPost.time).getHours() + ":" + new Date(weeklyWinnerPost.time).getMinutes()}</Text>
-                                        </View>
-                                        <View style={{
-                                            flex: 1,
-                                            flexDirection: 'row',
-                                            alignItems: 'center',
-                                            justifyContent: 'flex-end',
-                                            gap: 5
-                                        }}>
-                                            <TouchableOpacity onPress={() => onShare(weeklyWinnerPost.picture)}>
-                                                <Image
-                                                    source={ShareIcon}
-                                                    style={{
-                                                        width: 30,
-                                                        height: 30
-                                                    }}
-                                                />
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
+                                    <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
+                                        <Image
+                                            source={ShareIcon}
+                                            style={{
+                                                width: 30,
+                                                height: 30
+                                            }}
+                                        />
+                                    </TouchableOpacity>
                                 </View>
-                                <Image
-                                    source={{uri: weeklyWinnerPost.picture}}
-                                    style={{
-                                        width: width * 0.9 - 10,
-                                        height: (1.2) * (width * 0.9 - 10),
-                                    }}
-                                />
                             </View>
-                        ) : null
-                    )}
+                        </View>
+                        <Image
+                            source={{uri: weeklyWinnerPost.picture}}
+                            style={{
+                                width: width * 0.9 - 10,
+                                height: (1.2) * (width * 0.9 - 10),
+                            }}
+                        />
+                    </View>
                 </View>
+                ) :
+                (<></>)
+            }
+
 
 
                 <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>

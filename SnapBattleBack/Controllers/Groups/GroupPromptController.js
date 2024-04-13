@@ -457,7 +457,7 @@ module.exports.voteWeekly = async(req, res) => {
     return res.status(200).json({differentPost: true})
 }
 
-module.exports.getDailyWinner = async(req, res) => {
+module.exports.getLastDailyWinner = async(req, res) => {
     const {userID, groupID} = req.params
 
     //nested populate
@@ -489,27 +489,34 @@ module.exports.getDailyWinner = async(req, res) => {
         return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
     }
 
-    if (prompts.length == 0) {
-        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    if (prompts.length === 0) {
+        return res.status(401).json({errorMessage: 'No daily winner'});
     }
 
     let lastPrompt;
-    for (let i = 0; i < prompts.length; i++) {
+    for (let i = prompts.length - 1; i >= 0; i--) {
         lastPrompt = prompts[i];
         if (lastPrompt.dailyWinnerID !== undefined ) {
             break;
         }
     }
-    if (lastPrompt.dailyWinnerID === undefined ) {
-        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    if (lastPrompt.dailyWinnerID === undefined || lastPrompt.dailyWinnerID === null ) {
+        return res.status(401).json({errorMessage: 'No daily winner'});
     }
 
     await lastPrompt.populate({path: 'dailyWinnerID', populate: [{path: 'owner'}]});
     console.log("in prompt controller, dailyWinnerPost", lastPrompt.dailyWinnerID);
 
+    //get date string for the prompt
+    const date = lastPrompt.timeEnd
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+
     return res.status(200).json({
         promptObj: lastPrompt,
         dailyWinnerPostObj: lastPrompt.dailyWinnerID,
+        dayString: year + "-" + month + "-" + day,
     })
 }
 
@@ -546,8 +553,8 @@ module.exports.getLastWeekWinner = async(req, res) => {
         return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
     }
 
-    if (weeklyWinnerPosts.length == 0) {
-        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    if (weeklyWinnerPosts.length === 0) {
+        return res.status(401).json({errorMessage: 'No weekly winner'});
     }
 
     const lastPost = weeklyWinnerPosts[weeklyWinnerPosts.length - 1];
