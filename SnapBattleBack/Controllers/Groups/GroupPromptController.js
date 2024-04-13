@@ -12,7 +12,8 @@ const Mutex = require('async-mutex').Mutex;
 const mutex = new Mutex()
 
 
-async function updateDailyWinner(todayPrompt) {
+async function updateDailyWinner(todayPrompt, group, userIndex) {
+    console.log(group)
     const posts = todayPrompt.posts
     //no posts -> no daily winner
     if (posts.length === 0) {
@@ -39,16 +40,19 @@ async function updateDailyWinner(todayPrompt) {
     //save the winner (null if no winner exists)
     if (winner != null) {
         todayPrompt.dailyWinnerID = winner._id
+        group.userList[userIndex].points += 1;
         console.log(winner)
+
     }
     else {
         todayPrompt.dailyWinnerID = null
     }
 
     await todayPrompt.save()
+    await group.save()
 }
 
-async function updateWeeklyWinner(group, now, weekAgo, prompts) {
+async function updateWeeklyWinner(group, now, weekAgo, prompts, userIndex) {
     let maxVotes = 0
     let winner = null
     for (let i = 0; i < prompts.length; i++) {
@@ -72,6 +76,7 @@ async function updateWeeklyWinner(group, now, weekAgo, prompts) {
     //save the winner (do nothing if no winner exists)
     if (winner != null) {
         group.weeklyWinners.push(winner._id)
+        group.userList[userIndex].points += 3;
         await group.save()
 
         winner.isWeeklyWinner = true
@@ -124,7 +129,8 @@ module.exports.getPrompt = async (req, res) => {
 
     //nested populate
     const group = await Group.findById(groupID)
-        .populate([{
+        .populate([
+            {
                 path: 'prompts',
                 populate: [{
                     path: 'posts',
@@ -141,7 +147,7 @@ module.exports.getPrompt = async (req, res) => {
             },
             {
                 path: 'userList.user',
-                populate: '_id'
+                select: '_id username'
             },
             {
                 path: 'weeklyWinners'
@@ -153,10 +159,10 @@ module.exports.getPrompt = async (req, res) => {
     }
     const prompts = group.prompts
 
-    const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
-    if (!isUserInGroup) {
+    const userIndex = group.userList.findIndex(item => item.user._id.toString() === userID);
+    if (userIndex === -1) {
         release()
-        return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+        return res.status(401).json({ errorMessage: 'You don\'t belong to this group.' });
     }
 
     //parsing from group
@@ -259,13 +265,12 @@ module.exports.getPrompt = async (req, res) => {
         group.prompts.push(todayPrompt)
         await group.save()
     }
-    console.log("here?")
 
     /*
         SET TO FALSE IF YOU WANT WEEKLY VOTING TO HAPPEN NORMALLY (EVERY SEVEN DAYS)
         SET TO TRUE IF YOU WANT WEEKLY VOTING TO HAPPEN TODAY (OVERRIDE)
      */
-    const weeklyVotingOverride = false
+    const weeklyVotingOverride = true
 
     //PERIOD 1 - if current time has not yet reached prompt submission time
     if (now.getTime() < promptSubmitTime.getTime()) {
@@ -309,7 +314,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //update the daily winner for today's prompt if not yet updated
         if (todayPrompt.dailyWinnerID === undefined) {
-            await updateDailyWinner(todayPrompt)
+            await updateDailyWinner(todayPrompt, group, userIndex)
         }
 
         //need to gather all the winners from the last 7 days -> dailyWinnerPosts
@@ -356,7 +361,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //update the daily winner for today's prompt if not yet updated
         if (todayPrompt.dailyWinnerID === undefined) {
-            await updateDailyWinner(todayPrompt)
+            await updateDailyWinner(todayPrompt, group, userIndex)
         }
         //update the weekly winner for the week if today is a weekly voting day, and it has not yet been updated
         if (weeklyVotingOverride || now.getDay() === weeklyVotingDay) {
@@ -364,14 +369,14 @@ module.exports.getPrompt = async (req, res) => {
 
             const weeklyWinners = group.weeklyWinners
             for (let i = 0; i < weeklyWinners.length; i++) {
-                if (weeklyWinners[i].time.getMonth() === now.time.getMonth() && weeklyWinners[i].time.getDate() === now.getDate()) {
+                if (weeklyWinners[i].time.getMonth() === now.getMonth() && weeklyWinners[i].time.getDate() === now.getDate()) {
                     //already updated the weekly winner
                     updatedWeekly = true
                 }
             }
 
             if (!updatedWeekly) {
-                await updateWeeklyWinner(group, now, weekAgo, prompts)
+                await updateWeeklyWinner(group, now, weekAgo, prompts, userIndex)
             }
         }
 

@@ -40,7 +40,6 @@ const {getListUsersPoints, addPoints} = require("../../Controllers/Groups/GroupP
 router.get('/', getGroups);
 router.get("/:groupID/getChat", getChat)
 router.get("/:groupID/getListUsersPoints", getListUsersPoints)
-router.post("/:groupID/addPoints/:userToAdd", addPoints)
 
 router.post('/create', createGroup)
 
