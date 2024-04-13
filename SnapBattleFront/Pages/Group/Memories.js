@@ -1,49 +1,24 @@
 import {
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    View,
-    RefreshControl, TouchableOpacity, Share, ScrollView,
+    Dimensions, Text, View, TouchableOpacity, Share, ScrollView,
 } from "react-native";
-import {Calendar, LocaleConfig} from 'react-native-calendars';
+import {Calendar} from 'react-native-calendars';
 import {Image} from "expo-image";
-import {Button, Input, Switch} from "@rneui/themed";
-import React, {useCallback, useContext, useEffect, useState} from "react";
-import CloseButton from "../../assets/close.webp"
+import {Button} from "@rneui/themed";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 
 
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN} = process.env
-import {useFocusEffect} from "@react-navigation/native";
-import uuid from 'react-native-uuid'
+const {EXPO_PUBLIC_API_URL} = process.env
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
-import GroupMemberInfoCard from "../../Components/Group/GroupMemberInfo";
 import BackButton from "../../Components/Button/BackButton";
-import {getUserInfo} from "../../Storage/Storage";
-import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
-import {SocketContext} from "../../Storage/Socket";
-import PostComponent from "../../Components/DailyPrompt/PostComponent";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
-import CommentIcon from "../../assets/comment.webp";
 import ShareIcon from "../../assets/share.webp";
-import OptionsIcon from "../../assets/dotdotdot.webp";
 
 function Memories({route, navigation}) {
 
-    const {username, userID, groupID, token} = route.params;
+    const {userID, groupID} = route.params;
     const {width, height} = Dimensions.get('window');
-
-    //state for whether the invite box is open or not
-    const [invBoxVisible, setInvBoxVisibility] = useState(false);
-
-    //state for the username to be invited to the group
-    const [invUser, setInvUser] = useState("");
-
-    //state for group invite status message
-    const [invStatusMsg, setInvStatusMsg] = useState("");
-    const [invStatusColor, setInvStatusColor] = useState("green");
 
     // type of viewing
     const [dailySelected, setDailySelected] = useState(true);
@@ -57,20 +32,6 @@ function Memories({route, navigation}) {
     // info prompt
     const [successMessage, setSuccessMessage] = useState('');
     const [successState, setSuccessState] = useState(false)
-
-    //state for group members
-    const [groupMembers, setGroupMembers] = useState([-1]);
-    const [adminUser, setAdminUser] = useState("");
-
-    // kick user
-    const [kickUser, setKickUser] = useState("")
-
-    const {socket, leaveRoom} = useContext(SocketContext);
-
-    const [refreshPage, applyRefresh] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
-    const [lastRefresh, setLastRefresh] = useState(0);
-    const refreshCooldown = 10000;
 
     const [prompt, setPrompt] = useState(null);
     const [dailyWinnerPost, setDailyWinnerPost] = useState(null);
@@ -113,10 +74,6 @@ function Memories({route, navigation}) {
                 console.log(e);
             })
         console.log("waht")
-    }
-
-    function openComments() {
-        navigation.navigate('Comments', {username, userID, groupID, token, postID: dailyWinnerPost._id})
     }
 
     const onShare = async (itemPictureURL) => {
@@ -330,16 +287,6 @@ function Memories({route, navigation}) {
                                             justifyContent: 'flex-end',
                                             gap: 5
                                         }}>
-                                            <TouchableOpacity onPress={() => openComments()}>
-                                                <Image
-                                                    source={CommentIcon}
-                                                    style={{
-                                                        width: 30,
-                                                        height: 30,
-                                                        marginRight: 5
-                                                    }}
-                                                />
-                                            </TouchableOpacity>
                                             <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
                                                 <Image
                                                     source={ShareIcon}
@@ -397,16 +344,6 @@ function Memories({route, navigation}) {
                                             justifyContent: 'flex-end',
                                             gap: 5
                                         }}>
-                                            <TouchableOpacity onPress={() => openComments()}>
-                                                <Image
-                                                    source={CommentIcon}
-                                                    style={{
-                                                        width: 30,
-                                                        height: 30,
-                                                        marginRight: 5
-                                                    }}
-                                                />
-                                            </TouchableOpacity>
                                             <TouchableOpacity onPress={() => onShare(weeklyWinnerPost.picture)}>
                                                 <Image
                                                     source={ShareIcon}
