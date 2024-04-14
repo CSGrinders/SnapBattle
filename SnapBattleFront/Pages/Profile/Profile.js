@@ -155,7 +155,7 @@ function Profile({route, navigation}) {
                 justifyContent: 'center',
                 alignItems: 'center',
                 width: width,
-                height: height * 0.5
+                height: height * 0.2
             }}>
                 <Button onPress={() => navigation.navigate("Friends", {userID: userID})}>
                     Friends
