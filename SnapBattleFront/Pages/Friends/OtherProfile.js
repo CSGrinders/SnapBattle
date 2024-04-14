@@ -279,7 +279,7 @@ function OtherProfile({route, navigation}) {
                 justifyContent: 'center',
                 alignItems: 'center',
                 width: width,
-                height: height * 0.5,
+                height: height * 0.2,
                 gap: 10
             }}>
                 {view === 0 ?

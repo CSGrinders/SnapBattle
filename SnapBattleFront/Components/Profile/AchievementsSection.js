@@ -5,6 +5,7 @@ import { Image } from 'expo-image'
 
 const AchievementsSection = () => {
     const displayedAchievements = [{name: "1"}, {name: "2"}, {name: "3"}, {name: "4"}, {name: "2"}, {name: "3"}, {name: "4"}]
+    const preview = displayedAchievements.splice(0,4)
     const {width, height} = Dimensions.get('window');
 
     const renderItem = ({item}) => (
@@ -41,14 +42,14 @@ const AchievementsSection = () => {
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-        height: 200,
+        height: 125,
         justifyContent: 'center'
     }}>
         <View style={{
             alignItems: 'center'
         }}>
             <FlatList
-            data={displayedAchievements}
+            data={preview}
             renderItem={renderItem}
             keyExtractor={(item) => item.name}
             numColumns={4}
