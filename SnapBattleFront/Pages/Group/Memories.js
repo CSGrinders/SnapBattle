@@ -1,49 +1,27 @@
 import {
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    View,
-    RefreshControl, TouchableOpacity, Share,
+    Dimensions, Text, View, TouchableOpacity, Share, ScrollView,
 } from "react-native";
-import {Calendar, LocaleConfig} from 'react-native-calendars';
+import {Calendar} from 'react-native-calendars';
 import {Image} from "expo-image";
-import {Button, Input, Switch} from "@rneui/themed";
-import React, {useCallback, useContext, useEffect, useState} from "react";
-import CloseButton from "../../assets/close.webp"
+import {Button} from "@rneui/themed";
+import React, {useCallback, useEffect, useState} from "react";
 import axios from "axios";
+import {useRef} from 'react'
 
 
-const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_TOKEN} = process.env
-import {useFocusEffect} from "@react-navigation/native";
-import uuid from 'react-native-uuid'
+const {EXPO_PUBLIC_API_URL} = process.env
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
-import GroupMemberInfoCard from "../../Components/Group/GroupMemberInfo";
 import BackButton from "../../Components/Button/BackButton";
-import {getUserInfo} from "../../Storage/Storage";
-import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
-import {SocketContext} from "../../Storage/Socket";
-import PostComponent from "../../Components/DailyPrompt/PostComponent";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
-import CommentIcon from "../../assets/comment.webp";
 import ShareIcon from "../../assets/share.webp";
-import OptionsIcon from "../../assets/dotdotdot.webp";
 
 function Memories({route, navigation}) {
 
-    const {username, userID, groupID, token} = route.params;
+    const scrollViewRef = useRef()
+
+    const {userID, groupID} = route.params;
     const {width, height} = Dimensions.get('window');
-
-    //state for whether the invite box is open or not
-    const [invBoxVisible, setInvBoxVisibility] = useState(false);
-
-    //state for the username to be invited to the group
-    const [invUser, setInvUser] = useState("");
-
-    //state for group invite status message
-    const [invStatusMsg, setInvStatusMsg] = useState("");
-    const [invStatusColor, setInvStatusColor] = useState("green");
 
     // type of viewing
     const [dailySelected, setDailySelected] = useState(true);
@@ -58,43 +36,73 @@ function Memories({route, navigation}) {
     const [successMessage, setSuccessMessage] = useState('');
     const [successState, setSuccessState] = useState(false)
 
-    //state for group members
-    const [groupMembers, setGroupMembers] = useState([-1]);
-    const [adminUser, setAdminUser] = useState("");
-
-    // kick user
-    const [kickUser, setKickUser] = useState("")
-
-    const {socket, leaveRoom} = useContext(SocketContext);
-
-    const [refreshPage, applyRefresh] = useState(false);
-    const [refreshing, setRefreshing] = useState(false);
-    const [lastRefresh, setLastRefresh] = useState(0);
-    const refreshCooldown = 10000;
-
-    const [prompt, setPrompt] = useState(null);
+    const [dailyWinnerPrompt, setDailyWinnerPrompt] = useState(null);
     const [dailyWinnerPost, setDailyWinnerPost] = useState(null);
+    const [weeklyWinnerPost, setWeeklyWinnerPost] = useState(null);
+    const [weeklyWinnerPrompt, setWeeklyWinnerPrompt] = useState(null);
 
-    useEffect(() => {
-        console.log("memory useEffect");
-        getDailyWinner();
-    },[]);
-
-    const getDailyWinner = async () => {
+    function getLastDailyWinner() {
         axios.get(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-daily-winner`
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-daily-winner`
         )
             .then((res) => {
-                const {promptObj, dailyWinnerPostObj} = res.data
-                setPrompt(promptObj);
+                const {promptObj, dailyWinnerPostObj, dayString} = res.data
+                setDailyWinnerPrompt(promptObj);
                 setDailyWinnerPost(dailyWinnerPostObj);
-                console.log("getDaily Winner: ", dailyWinnerPostObj);
+                setSelected(dayString);
             })
-        console.log("waht")
+            .catch((e) => {
+                console.log(e.response.data)
+                setErrorMessageServer(e.response.data.errorMessage)
+                setErrorServer(true)
+            })
     }
 
-    function openComments() {
-        navigation.navigate('Comments', {username, userID, groupID, token, postID: dailyWinnerPost._id})
+    useEffect(() => {
+        setTimeout(() => {scrollViewRef.current?.scrollToEnd({animated: true})}, 100)
+    }, [dailyWinnerPrompt, weeklyWinnerPrompt])
+
+    function getLastWeeklyWinner(){
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-weekly-winner`
+        )
+            .then((res) => {
+                const {weeklyWinnerPost, dayString} = res.data
+                setWeeklyWinnerPost(weeklyWinnerPost);
+                setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
+                setSelected(dayString)
+            })
+            .catch((e) => {
+                console.log(e.response.data);
+                setErrorMessageServer(e.response.data.errorMessage)
+                setErrorServer(true)
+            })
+    }
+
+    function getDailyWinner(dayString) {
+        console.log("getting daily winner for " + dayString);
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-daily-winner/${dayString}`
+        )
+            .then((res) => {
+                console.log(res)
+            })
+            .catch((e) => {
+                console.log(e.response.data)
+            })
+    }
+
+    function getWeeklyWinner(dayString) {
+        console.log("getting weekly winner for " + dayString);
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-weekly-winner/${dayString}`
+        )
+            .then((res) => {
+                console.log(res)
+            })
+            .catch((e) => {
+                console.log(e.response.data)
+            })
     }
 
     const onShare = async (itemPictureURL) => {
@@ -117,7 +125,7 @@ function Memories({route, navigation}) {
 
     return (
         <View style={{
-            alignItems: 'center'
+            alignItems: 'center',
         }}>
             <View style={{
                 flexDirection: 'row',
@@ -133,7 +141,7 @@ function Memories({route, navigation}) {
                     <BackButton size={40} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 55}}>
-                    <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Memories</Text>
+                    <Text style={{fontSize: 30, /*fontFamily: 'OpenSans'*/}}>Memories</Text>
                 </View>
             </View>
             <View style={{
@@ -159,7 +167,7 @@ function Memories({route, navigation}) {
                         width: 80,
                         height: 45,
                     }}
-                    titleStyle={{ fontSize: 15, fontWeight: 'bold', fontFamily: 'OpenSans' }}
+                    titleStyle={{ fontSize: 15, fontWeight: 'bold', /*fontFamily: 'OpenSansBold'*/ }}
                     onPress={() => setDailySelected(true)}
                 />
                 <Button
@@ -178,136 +186,219 @@ function Memories({route, navigation}) {
                         width: 80,
                         height: 45,
                     }}
-                    titleStyle={{ fontSize: 15, fontWeight: 'bold', fontFamily: 'OpenSans' }}
+                    titleStyle={{ fontSize: 15, fontWeight: 'bold', /*fontFamily: 'OpenSans'*/ }}
                     onPress={() => setDailySelected(false)}
                 />
             </View>
-            <Calendar
-                style={{
-                    width: width * 0.9,
-                }}
-                theme={{
-                    backgroundColor: '#ffffff',
-                    calendarBackground: '#f2f2f2',
-                    textSectionTitleColor: '#b6c1cd',
-                    selectedDayBackgroundColor: '#000000',
-                    selectedDayTextColor: '#ffffff',
-                    todayTextColor: '#f40000',
-                    dayTextColor: '#515151',
-                    textDisabledColor: '#c6c6c6',
-                    arrowColor: '#000000'
-                }}
-                onDayPress={day => {
-                    setSelected(day.dateString);
-                }}
-                markedDates={{
-                    [selected]: {selected: true, disableTouchEvent: true, selectedDotColor: 'orange'}
-                }}
-            />
-
-            <View style={{
-                width: width * 0.9,
-                height: height * 0.15,
-                borderRadius: 25,
-                borderWidth: 2,
-                justifyContent: 'center',
-                alignItems: 'center',
-            }}>
-                <Text style={{
-                    fontWeight: 'bold',
-                    fontSize: 20,
-                    textAlign: 'center'
-                }}>
-                    Last Day Winner Post
-                </Text>
-                {prompt !== null && (
-                    <Text style={{
-                        fontSize: 20,
-                        textAlign: 'center'
-                    }}>
-                        {prompt.prompt}
-                    </Text>
-                )}
-                {dailyWinnerPost !== null && (
-                    <Text style={{
-                        fontWeight: 'bold',
-                        fontSize: 20,
-                        textAlign: 'center'
-                    }}>
-                        Lst Day Winner: {dailyWinnerPost.owner.username}
-                    </Text>
+            <View style={{marginBottom: 10}}>
+                {dailySelected ? (
+                    <Button onPress={() => getLastDailyWinner()}>
+                        View last daily winner
+                    </Button>
+                ) : (
+                    <Button onPress={() => getLastWeeklyWinner()}>
+                        View last weekly winner
+                    </Button>
                 )}
             </View>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollViewRef} style={{marginBottom: 10}}>
+                <Calendar
+                    style={{
+                        width: width * 0.9,
+                    }}
+                    theme={{
+                        backgroundColor: '#ffffff',
+                        calendarBackground: '#f2f2f2',
+                        textSectionTitleColor: '#b6c1cd',
+                        selectedDayBackgroundColor: '#000000',
+                        selectedDayTextColor: '#ffffff',
+                        todayTextColor: '#f40000',
+                        dayTextColor: '#515151',
+                        textDisabledColor: '#c6c6c6',
+                        arrowColor: '#000000'
+                    }}
+                    onDayPress={day => {
+                        setSelected(day.dateString);
+                        if (dailySelected) {
+                            getDailyWinner(day.dateString)
+                        }
+                        else {
+                            getWeeklyWinner(day.dateString)
+                        }
+                    }}
+                    markedDates={{
+                        [selected]: {selected: true, disableTouchEvent: true, selectedDotColor: 'orange'}
+                    }}
+                />
 
-            {dailyWinnerPost !== null && (
-                <View style={{
-                    height: "100%",
-                    borderRadius: 25,
-                    marginTop: 20
-                }}>
+                {dailySelected && dailyWinnerPrompt !== null ? (
                     <View style={{
-                        flexDirection: 'row',
+                        width: width * 0.9,
+                        borderRadius: 25,
+                        borderWidth: 2,
+                        justifyContent: 'center',
                         alignItems: 'center',
-                        justifyContent: 'space-around',
+                        marginTop: 20,
+                        paddingVertical: 20
+                    }}>
+                        <Text style={{
+                            fontSize: 20,
+                            textAlign: 'center'
+                        }}>
+                            {dailyWinnerPrompt.prompt}
+                        </Text>
+                    </View>
+                    ) : (<></>)
+                }
+
+                {!dailySelected && weeklyWinnerPrompt !== null ? (
+                    <View style={{
+                        width: width * 0.9,
+                        borderRadius: 25,
+                        borderWidth: 2,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginTop: 20,
+                        paddingVertical: 20
+                    }}>
+                        <Text style={{
+                            fontSize: 20,
+                            textAlign: 'center'
+                        }}>
+                            {weeklyWinnerPrompt.prompt}
+                        </Text>
+                    </View>
+                    ) : (<></>)
+                }
+
+                {dailySelected && dailyWinnerPost != null ? (
+                    <View style={{flex: 1}}>
+                        <View style={{
+                            height: "100%",
+                            borderRadius: 25,
+                            marginTop: 20,
+                            marginBottom: height * 0.3
+                        }}>
+                            <View style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'space-around',
+                            }}>
+                                <View style={{
+                                    flex: 1,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-start',
+                                    marginTop: 5,
+                                    marginBottom: 5,
+                                    marginLeft: 5,
+                                    marginRight: 5,
+                                    gap: 10
+                                }}>
+                                    <OtherProfilePicture size={50} imageUrl={dailyWinnerPost.owner.profilePicture}/>
+                                    <View style={{flexDirection: 'column'}}>
+                                        <Text>{dailyWinnerPost.owner.username}</Text>
+                                        <Text>{new Date(dailyWinnerPost.time).getHours() + ":" + new Date(dailyWinnerPost.time).getMinutes()}</Text>
+                                    </View>
+                                    <View style={{
+                                        flex: 1,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'flex-end',
+                                        gap: 5
+                                    }}>
+                                        <Text>? Votes</Text>
+                                        <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
+                                            <Image
+                                                source={ShareIcon}
+                                                style={{
+                                                    width: 30,
+                                                    height: 30
+                                                }}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+                            <Image
+                                source={{uri: dailyWinnerPost.picture}}
+                                style={{
+                                    width: width * 0.9 - 10,
+                                    height: (1.2) * (width * 0.9 - 10),
+                                }}
+                            />
+                        </View>
+                    </View>
+                ) : (<></>)
+                }
+
+            {!dailySelected && weeklyWinnerPost != null ? (
+                <View style={{flex: 1}}>
+                    <View style={{
+                        height: "100%",
+                        borderRadius: 25,
+                        marginTop: 20,
+                        marginBottom: height * 0.3
                     }}>
                         <View style={{
-                            flex: 1,
                             flexDirection: 'row',
                             alignItems: 'center',
-                            justifyContent: 'flex-start',
-                            marginTop: 5,
-                            marginBottom: 5,
-                            marginLeft: 5,
-                            marginRight: 5,
-                            gap: 10
+                            justifyContent: 'space-around',
                         }}>
-                            <OtherProfilePicture size={50} imageUrl={dailyWinnerPost.owner.profilePicture}/>
-                            <View style={{flexDirection: 'column'}}>
-                                <Text>{dailyWinnerPost.owner.username}</Text>
-                                <Text>{new Date(dailyWinnerPost.time).getHours() + ":" + new Date(dailyWinnerPost.time).getMinutes()}</Text>
-                            </View>
                             <View style={{
                                 flex: 1,
                                 flexDirection: 'row',
                                 alignItems: 'center',
-                                justifyContent: 'flex-end',
-                                gap: 5
+                                justifyContent: 'flex-start',
+                                marginTop: 5,
+                                marginBottom: 5,
+                                marginLeft: 5,
+                                marginRight: 5,
+                                gap: 10
                             }}>
-                                <TouchableOpacity onPress={() => openComments()}>
-                                    <Image
-                                        source={CommentIcon}
-                                        style={{
-                                            width: 30,
-                                            height: 30,
-                                            marginRight: 5
-                                        }}
-                                    />
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
-                                    <Image
-                                        source={ShareIcon}
-                                        style={{
-                                            width: 30,
-                                            height: 30
-                                        }}
-                                    />
-                                </TouchableOpacity>
+                                <OtherProfilePicture size={50} imageUrl={weeklyWinnerPost.owner.profilePicture}/>
+                                <View style={{flexDirection: 'column'}}>
+                                    <Text>{weeklyWinnerPost.owner.username}</Text>
+                                    <Text>{new Date(weeklyWinnerPost.time).getHours() + ":" + new Date(weeklyWinnerPost.time).getMinutes()}</Text>
+                                </View>
+                                <View style={{
+                                    flex: 1,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-end',
+                                    gap: 5
+                                }}>
+                                    <Text>? Votes</Text>
+                                    <TouchableOpacity onPress={() => onShare(weeklyWinnerPost.picture)}>
+                                        <Image
+                                            source={ShareIcon}
+                                            style={{
+                                                width: 30,
+                                                height: 30
+                                            }}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
                             </View>
                         </View>
+                        <Image
+                            source={{uri: weeklyWinnerPost.picture}}
+                            style={{
+                                width: width * 0.9 - 10,
+                                height: (1.2) * (width * 0.9 - 10),
+                            }}
+                        />
                     </View>
-                    <Image
-                        source={{uri: dailyWinnerPost.picture}}
-                        style={{
-                            width: width * 0.9 - 10,
-                            height: (1.2) * (width * 0.9 - 10),
-                        }}
-                    />
                 </View>
-            )}
+                ) :
+                (<></>)
+            }
 
 
-            <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
-            <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
+
+                <ErrorPrompt Message={errorMessageServer} state={errorServer} setError={setErrorServer}></ErrorPrompt>
+                <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
+            </ScrollView>
         </View>
     )
 }
