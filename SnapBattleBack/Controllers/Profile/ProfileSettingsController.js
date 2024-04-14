@@ -22,6 +22,9 @@ const {ref, deleteObject} = require("firebase/storage");
 const storage = require("../../Firebase/Firebase");
 const {sendFriendUpdate} = require("../../ServerSocketControllers/FriendsSocket");
 const {Post, Comment} = require("../../Models/Post");
+const {leave} = require("../Groups/GroupActionsController");
+const {deleteImageFirebaseUrl} = require("../../Firebase/FirebaseOperations");
+const Prompt = require("../../Models/Prompt");
 
 
 /**
@@ -32,7 +35,7 @@ const {Post, Comment} = require("../../Models/Post");
  * @param {object} res - Express response object.
  */
 
-module.exports.changePassword = async(req, res)=> {
+module.exports.changePassword = async (req, res) => {
     try {
         const {userID} = req.params;
         const {newPassword} = req.body;
@@ -75,10 +78,10 @@ module.exports.changePassword = async(req, res)=> {
  * @param {object} res - Express response object.
  */
 
-module.exports.changeName = async(req, res)=> {
+module.exports.changeName = async (req, res) => {
     try {
-        const { userID } = req.params;
-        const { newName } = req.body;
+        const {userID} = req.params;
+        const {newName} = req.body;
 
         if (newName === '') { //Empty field
             res.status(400).json({errorMessage: "Field empty."});
@@ -116,10 +119,10 @@ module.exports.changeName = async(req, res)=> {
  * @param {object} res - Express response object.
  */
 
-module.exports.changeBio = async(req, res)=> {
+module.exports.changeBio = async (req, res) => {
     try {
-        const { userID } = req.params;
-        const { newBio } = req.body;
+        const {userID} = req.params;
+        const {newBio} = req.body;
 
         if (newBio === '') { //Empty field
             res.status(400).json({errorMessage: "Field empty."});
@@ -129,7 +132,7 @@ module.exports.changeBio = async(req, res)=> {
             return res.status(400).json({errorMessage: "Invalid biography length. Max (30 Chars)."});
         }
 
-        const user = await  User.findById(userID); //Find user
+        const user = await User.findById(userID); //Find user
         if (user) { //User not found
             if (user.biography === newBio) { //Check if it is the same bio
                 return res.status(400).json({errorMessage: "The new biography should be different."});
@@ -156,97 +159,37 @@ module.exports.changeBio = async(req, res)=> {
  * @param {object} res - Express response object.
  */
 
-module.exports.deleteAccount = async(req, res)=> {
+module.exports.deleteAccount = async (req, res) => {
     try {
-        const { userID } = req.params;
-        const user = await User.findById(userID); //Find user
-        if (user) {
-
-            //deleting profile picture
-            const imageRef = ref(storage, `profileImage/${userID}.jpeg`);
-            try {
-                await deleteObject(imageRef);
-            } catch (error) {
-                console.log("this user does not have profile image");
-            }
-
-            //nested-populate to find all user's groups, containing all prompts, posts, and comments
-            await user.populate({
-                path: 'groups',
-                populate: [
-                    {
-                        path: 'prompts',
-                        populate: {
-                            path: 'posts',
-                            populate: 'comments'
-                        }
-                    },
-                    {
-                        path: 'messages',
-                        populate: {
+        const {userID} = req.params;
+        const user = await User.findById(userID).populate({
+            path: 'groups',
+            populate: [
+                {
+                    path: 'adminUserID',
+                },
+                {
+                    path: 'userList',
+                    populate: [
+                        {
                             path: 'user',
-                            select: '_id name avatar'
-                        }
-                    }
-                ]
-            });
+                        }]}
+                ]}); //Find user
+        if (user) {
+            //Delete Friends/Reqs/remove blocks (fix remove blocks later) (Done with friends)
+            //Fix delete WeeklyDaily (Done)
+            //Delete Groups (Using leave)
+            //Delete Delete user information
+            //Delete mongodb
 
-            let groups = user.groups;
-            if (groups) {
-                for (let i = 0; i < groups.length; i++) {
-                    let group = groups[i]
-
-                    // messages replace with delete user
-                    for (let j = 0; j < group.messages.length; j++) {
-                        let message = group.messages[j];
-                        if (message.user._id === userID) {
-                            message.user.name = 'Deleted User';
-                            message.user.avatar = 'https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/default-profile-picture.webp?alt=media&token=9e817ce9-4a9a-40f0-9267-696eb4791f80';
-                        }
-                    }
-
-                    //deleting all posts and comments associated w/ user
-                    for (let j = 0; j < group.prompts.length; j++) {
-                        let prompt = group.prompts[j]
-                        for (let k = 0; k < prompt.posts.length; k++) {
-                            let post = prompt.posts[k];
-
-                            //post is owned by user -> delete both post and all of its comments
-                            if (post.owner.toString() === userID) {
-
-                                //deleting from firebase //TODO: consider what to do if daily or weekly winner
-                                const postRef = ref(storage, post.picture)
-                                await deleteObject(postRef)
-
-                                //deleting from mongoDB
-                                await Comment.deleteMany({postID: post._id.toString()})
-                                await Post.findByIdAndDelete(post._id.toString())
-                            }
-
-                            //TODO: post has comment by user -> alter comment to show that it is from deleted account
-                        }
-                    }
-
-
-                    //removes user from group's user list
-                    group.userList = group.userList.filter(userGroup => userGroup.toString() !== userID);
-                    if (group.adminUserID.toString() === userID && group.userList.length > 0) {
-                        group.adminUserID = group.userList[0];
-                        console.log(`New admin selected for group ${group._id}: ${group.adminUserID}`);
-                    }
-                    if (group.userList.length > 0) {
-                        await group.save();
-                    } else {
-                        //TODO: delete all referenced documents of the group (prompts, posts, comments, etc.)
-                        await Group.findByIdAndDelete(group._id.toString());
-                    }
-                }
+            if (user.profilePicture !== '') {
+                await deleteImageFirebaseUrl(user.profilePicture);
             }
 
 
-
-            //deleting user from other people's frineds
+            //deleting user from other people's friends
             await user.populate('friends');
+
             let friends = user.friends;
             if (friends && friends.length > 0) {
                 for (let i = 0; i < friends.length; i++) {
@@ -263,10 +206,38 @@ module.exports.deleteAccount = async(req, res)=> {
                 }
             }
 
+            let groups = user.groups;
+            if (groups && groups.length > 0) {
+                for (const group of groups) {
+                    //console.log(group);
+                    if (group.adminUserID._id.toString() === user._id.toString()) {
+                        // set to any random person in the group
+                        const newAdmin = group.userList.find(userL => userL.user._id.toString() !== user._id.toString());
+                        group.adminUserID = newAdmin.user;
+                        group.adminName = group.adminUserID.username;
+                        console.log(group);
+                        await group.save();
+                    }
+                    let leaveSuccess = await leave(user._id.toString(), group._id.toString());
+                    if (!leaveSuccess) {
+                        console.log("deleteGroup module: 500 error");
+                        res.status(500).json({errorMessage: "Something went wrong..."});
+                    }
+                    if (group.userList.length <= 1) {
+                        for (const prompt of group.prompts) {
+                            await Prompt.findByIdAndDelete(prompt._id.toString());
+                        }
+                        await Group.findByIdAndDelete(group._id);
+                        console.log("Group deleted")
+                    }
+                }
+            }
+
+
             //deleting user
             await User.findByIdAndDelete(user._id.toString());
-            const session = await Session.findOne({ userID: userID}); //Find session
-            await session.deleteOne(session);
+            const session = await Session.findOne({userID: userID}); //Find session
+            await Session.findByIdAndDelete(session._id.toString());
             res.status(200).json({isDeleted: true});
         } else { //User not found
             res.status(404).json({errorMessage: "Something went wrong..."});
