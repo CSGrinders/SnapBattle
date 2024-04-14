@@ -25,6 +25,7 @@ import Comment from './Pages/Posts/Comment';
 import BlockUsers from "./Pages/Friends/BlockUsers";
 import Memories from "./Pages/Group/Memories";
 import Leaderboard from './Pages/Group/Leaderboard';
+import Achievements from './Pages/Profile/Achievements';
 
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
                         <Stack.Screen name="BlockUserList" component={BlockUsers}/>
                         <Stack.Screen name="Memories" component={Memories}/>
                         <Stack.Screen name="Leaderboard" component={Leaderboard}/>
+                        <Stack.Screen name="Achievements" component={Achievements}/>
                     </Stack.Navigator>
                 </SocketProvider>
             </NavigationContainer>

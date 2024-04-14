@@ -490,7 +490,7 @@ module.exports.getLastDailyWinner = async(req, res) => {
     }
 
     if (prompts.length === 0) {
-        return res.status(401).json({errorMessage: 'No daily winner'});
+        return res.status(401).json({errorMessage: 'No daily winner.'});
     }
 
     let lastPrompt;
@@ -501,7 +501,7 @@ module.exports.getLastDailyWinner = async(req, res) => {
         }
     }
     if (lastPrompt.dailyWinnerID === undefined || lastPrompt.dailyWinnerID === null ) {
-        return res.status(401).json({errorMessage: 'No daily winner'});
+        return res.status(401).json({errorMessage: 'No daily winner.'});
     }
 
     await lastPrompt.populate({path: 'dailyWinnerID', populate: [{path: 'owner'}]});

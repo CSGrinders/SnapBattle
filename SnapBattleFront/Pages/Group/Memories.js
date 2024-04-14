@@ -312,7 +312,7 @@ function Memories({route, navigation}) {
                                         justifyContent: 'flex-end',
                                         gap: 5
                                     }}>
-                                        <Text>? Votes</Text>
+                                        <Text>{dailyWinnerPost.dailyVotes.length} Votes</Text>
                                         <TouchableOpacity onPress={() => onShare(dailyWinnerPost.picture)}>
                                             <Image
                                                 source={ShareIcon}
@@ -373,7 +373,7 @@ function Memories({route, navigation}) {
                                     justifyContent: 'flex-end',
                                     gap: 5
                                 }}>
-                                    <Text>? Votes</Text>
+                                    <Text>{weeklyWinnerPost.dailyVotes.length} Votes</Text>
                                     <TouchableOpacity onPress={() => onShare(weeklyWinnerPost.picture)}>
                                         <Image
                                             source={ShareIcon}

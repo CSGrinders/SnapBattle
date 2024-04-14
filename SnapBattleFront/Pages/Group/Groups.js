@@ -167,8 +167,9 @@ function Groups({route, navigation}) {
             const {status, data} = error.response;
             if (error.response) {
                 if (status !== 500) {
-                    setErrorMessageServer("Something went wrong...");
+                    setErrorMessageServer(errorMessageServer);
                     setErrorServer(true);
+                    setGroupInvites(groupInvites.filter(invite => invite.username !== kickUser));
                 } else {
                     console.log("Main Group page: " + error);
                     setErrorMessageServer("Something went wrong...");
