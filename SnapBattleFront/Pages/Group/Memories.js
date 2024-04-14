@@ -85,10 +85,15 @@ function Memories({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-daily-winner/${dayString}`
         )
             .then((res) => {
-                console.log(res)
+                const {promptObj, dailyWinnerPostObj, dayString} = res.data
+                setDailyWinnerPrompt(promptObj);
+                setDailyWinnerPost(dailyWinnerPostObj);
+                setSelected(dayString);
             })
             .catch((e) => {
                 console.log(e.response.data)
+                setErrorMessageServer(e.response.data.errorMessage)
+                setErrorServer(true)
             })
     }
 
@@ -208,13 +213,14 @@ function Memories({route, navigation}) {
                     }}
                     theme={{
                         backgroundColor: '#ffffff',
-                        calendarBackground: '#000000',
+                        calendarBackground: '#f2f2f2',
                         textSectionTitleColor: '#b6c1cd',
                         selectedDayBackgroundColor: '#000000',
                         selectedDayTextColor: '#ffffff',
-                        todayTextColor: '#00adf5',
-                        dayTextColor: '#2d4150',
-                        textDisabledColor: '#d9e000'
+                        todayTextColor: '#f40000',
+                        dayTextColor: '#515151',
+                        textDisabledColor: '#c6c6c6',
+                        arrowColor: '#000000'
                     }}
                     onDayPress={day => {
                         setSelected(day.dateString);
@@ -226,7 +232,7 @@ function Memories({route, navigation}) {
                         }
                     }}
                     markedDates={{
-                        [selected]: {selected: true, disableTouchEvent: true, selectedDotColor: 'orange'}
+                        [selected]: {selected: true, disableTouchEvent: true}
                     }}
                 />
 

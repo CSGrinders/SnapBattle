@@ -576,8 +576,76 @@ module.exports.getLastWeekWinner = async(req, res) => {
 module.exports.getDailyWinner = async(req, res) => {
     const {userID, groupID, dayString} = req.params
     console.log("getting daily winner for " + dayString)
-    return res.status(200)
+
+    const group = await Group.findById(groupID)
+        .populate([
+            {
+                path: 'prompts',
+                populate:
+                    {
+                        path: 'posts',
+                        populate: {
+                            path: 'owner',
+                            select: '_id name username profilePicture',
+                        },
+                    }
+            },
+                {
+                    path: 'userList.user',
+                    populate: '_id'
+                }
+            ]
+        )
+
+    if (!group) {
+        return res.status(404).json({errorMessage: 'Group could not be found.'})
+    }
+
+    const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
+    if (!isUserInGroup) {
+        return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+    }
+
+    const prompts = group.prompts;
+    if (prompts.length === 0) {
+        return res.status(401).json({errorMessage: 'No daily winner'});
+    }
+
+    let prompt = null;
+    for (let i = prompts.length - 1; i >= 0; i--) {
+        // get date of each prompt
+        const year = prompts[i].timeStart.getFullYear();
+        const month = String(prompts[i].timeStart.getMonth() + 1).padStart(2, '0');
+        const day = String(prompts[i].timeStart.getDate()).padStart(2, '0');
+        let promptDate = `${year}-${month}-${day}`;
+
+        if (promptDate === dayString) {
+            prompt = prompts[i];
+            break;
+        }
+    }
+
+    if (prompt === null || prompt.dailyWinnerID === undefined ||
+        prompt.dailyWinnerID === null ) {
+        return res.status(401).json({errorMessage: 'No daily winner'});
+    }
+
+    await prompt.populate({path: 'dailyWinnerID', populate: [{path: 'owner'}]});
+    console.log("in prompt controller, dailyWinnerPost", prompt.dailyWinnerID);
+
+    //get date string for the prompt
+    const date = prompt.timeEnd
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+
+    return res.status(200).json({
+        promptObj: prompt,
+        dailyWinnerPostObj: prompt.dailyWinnerID,
+        dayString: year + "-" + month + "-" + day,
+    })
 }
+
 module.exports.getWeeklyWinner = async(req, res) => {
     const {userID, groupID, dayString} = req.params
     console.log("getting weekly winner for" + dayString)
