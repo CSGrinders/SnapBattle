@@ -108,66 +108,6 @@ function GroupHome({route, navigation}) {
         }, [refresh])
     )
 
-/*
-    function getUserListPoints() {
-        return axios.get(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/getListUsersPoints`,
-        )
-            .then((res) => {
-                const {list} = res.data;
-                console.log(res.data);
-                if (list) {
-                    //send message?
-                    console.log(list);
-                }
-            })
-            .catch((err) => {
-                console.log("Group Home page: " + err);
-                const {data} = err.response;
-                if (err.response) {
-                    setErrorMessageServer(data.errorMessage);
-                    setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
-                }
-            })
-    }
-
- */
-
-    /*
-    function addPoints(userToAdd, points) {
-        console.log(userToAdd)
-        return axios.post(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/addPoints/${userToAdd}`, {
-                pointsToAdd: points,
-            }
-        )
-            .then((res) => {
-                const {success} = res.data;
-                if (success) {
-                    //send message?
-                    console.log(success);
-                }
-            })
-            .catch((err) => {
-                console.log("Group Home page: " + err);
-                const {data} = err.response;
-                if (err.response) {
-                    setErrorMessageServer(data.errorMessage);
-                    setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
-                }
-            })
-    }
-
-     */
-
     function getPrompts() {
         console.log("getting prompt call")
         return axios.get(

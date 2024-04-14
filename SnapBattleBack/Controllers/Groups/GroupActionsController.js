@@ -32,6 +32,7 @@ const {kickUpdateStatus} = require("../../ServerSocketControllers/GroupHomeSocke
 const {sendGroups} = require("../../ServerSocketControllers/GroupMainSocket");
 const {signOut} = require("../Auth/AuthController");
 const {deleteImageFirebaseUrl} = require("../../Firebase/FirebaseOperations");
+const exp = require("node:constants");
 /**
  * desc
  * /user/:userID/groups/
@@ -209,7 +210,8 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
         const group = await Group.findById(groupID);
 
         if (!group) {
-            return res.status(404).json({errorMessage: "Group could not be found."});
+            next();
+            return;
         }
 
         //add user to group
@@ -311,24 +313,35 @@ module.exports.leaveGroup = async(req, res, next) => {
 async function leave(userID, groupID){
     try {
         const user = await User.findById(userID);
-        const group = await Group.findById(groupID).populate(
+        const group = await Group.findById(groupID).populate([
             {
             path: 'messages',
             populate: {
                 path: 'user',
                 select: '_id name avatar'
             }
-        });
+            },
+            {
+                path: 'weeklyWinners',
+                populate: {
+                    path: 'owner',
+                    select: '_id'
+                }
+            }
+        ]);
 
         if (!group) {
             return false;
         }
 
+        if (group.weeklyWinners && group.weeklyWinners.length > 0) {
+            group.weeklyWinners = group.weeklyWinners.filter((post) => post.owner._id.toString() !== user._id.toString());
+        }
 
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
             const prompt = await Prompt.findById(group.prompts[i]).populate('posts').populate('dailyWinnerID', '_id')
-            if (prompt.dailyWinnerID && prompt.dailyWinnerID._id === userID) {
+            if (prompt.dailyWinnerID && prompt.dailyWinnerID._id.toString() === user._id.toString()) {
                 prompt.dailyWinnerID = null;
                 await prompt.save();
             }
@@ -345,14 +358,12 @@ async function leave(userID, groupID){
                         }
                     }
                 }
-                if (post.owner._id.toString().trim() === userID) {
-                    await deleteImageFirebaseUrl(post.picture);
-                    await Post.findByIdAndDelete(post._id);
-                    continue;
-                }
                 post.comments = post.comments.filter((comment) => comment.userID.toString() !== userID.toString())
                 await post.save();
-
+                if (post.owner._id.toString().trim() === userID) {
+                    await deleteImageFirebaseUrl(post.picture);
+                    await Post.findByIdAndDelete(post._id);;
+                }
             }
             prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
             await prompt.save();
@@ -365,6 +376,7 @@ async function leave(userID, groupID){
         for (let j = 0; j < group.messages.length; j++) {
             let message = group.messages[j];
             if (message.user._id === user._id.toString()) {
+                message.user.name = 'Deleted User';
                 message.user.avatar = 'https://firebasestorage.googleapis.com/v0/b/snapbattle-firebase.appspot.com/o/default-profile-picture.webp?alt=media&token=9e817ce9-4a9a-40f0-9267-696eb4791f80';
             }
         }
@@ -590,7 +602,7 @@ module.exports.transferAdmin = async (req, res) => {
         }
         if (newAdminUser) {
             // check that user did not input themselves
-            if (newAdminUser._id === userID) {
+            if (newAdminUser._id.toString() === userID) {
                 return res.status(400).json({errorMessage: "You cannot select yourself!"})
             }
             // set new admin if admin is a valid user of group
@@ -714,7 +726,8 @@ module.exports.leaveAllGroups = async(req, res) => {
                 // if you are leaving a group you are admin in
                 if (group.adminUserID._id.toString() === user._id.toString()) {
                     // set to any random person in the group
-                    group.adminUserID = group.userList.find(userL => userL.user._id.toString() !== user._id.toString());
+                    const newAdmin = group.userList.find(userL => userL.user._id.toString() !== user._id.toString());
+                    group.adminUserID = newAdmin.user;
                     group.adminName = group.adminUserID.username;
                     await group.save();
                 }
@@ -737,3 +750,4 @@ module.exports.leaveAllGroups = async(req, res) => {
 }
 
 
+module.exports.leave = leave;

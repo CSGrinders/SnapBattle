@@ -152,7 +152,7 @@ function Leaderboard({route, navigation}) {
                             paddingVertical: 5,
                         }}>
                             {rankings.map((player, index) => (
-                                <View id={index} style={[{
+                                <View id={index} key = {uuid.v4()} style={[{
                                     paddingVertical: 10,
                                     paddingHorizontal: 15,
                                     borderRadius: 5,

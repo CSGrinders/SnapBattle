@@ -6,8 +6,14 @@ const {Post} = require("../../Models/Post");
 const mongoose = require("mongoose");
 const {OPENAI_API_KEY} = process.env
 
+const Mutex = require('async-mutex').Mutex;
 
-async function updateDailyWinner(todayPrompt) {
+//mutex for handling race conditions w/ prompt
+const mutex = new Mutex()
+
+
+async function updateDailyWinner(todayPrompt, group, userIndex) {
+    console.log(group)
     const posts = todayPrompt.posts
     //no posts -> no daily winner
     if (posts.length === 0) {
@@ -34,15 +40,19 @@ async function updateDailyWinner(todayPrompt) {
     //save the winner (null if no winner exists)
     if (winner != null) {
         todayPrompt.dailyWinnerID = winner._id
+        group.userList[userIndex].points += 1;
+        console.log(winner)
+
     }
     else {
         todayPrompt.dailyWinnerID = null
     }
 
     await todayPrompt.save()
+    await group.save()
 }
 
-async function updateWeeklyWinner(group, now, weekAgo, prompts) {
+async function updateWeeklyWinner(group, now, weekAgo, prompts, userIndex) {
     let maxVotes = 0
     let winner = null
     for (let i = 0; i < prompts.length; i++) {
@@ -66,6 +76,7 @@ async function updateWeeklyWinner(group, now, weekAgo, prompts) {
     //save the winner (do nothing if no winner exists)
     if (winner != null) {
         group.weeklyWinners.push(winner._id)
+        group.userList[userIndex].points += 3;
         await group.save()
 
         winner.isWeeklyWinner = true
@@ -112,10 +123,14 @@ async function makeDummyDailyWinner(todayPrompt, dailyWinner, group) {
  */
 module.exports.getPrompt = async (req, res) => {
     const {userID, groupID} = req.params
+    const release = await mutex.acquire()
+
+
 
     //nested populate
     const group = await Group.findById(groupID)
-        .populate([{
+        .populate([
+            {
                 path: 'prompts',
                 populate: [{
                     path: 'posts',
@@ -132,20 +147,22 @@ module.exports.getPrompt = async (req, res) => {
             },
             {
                 path: 'userList.user',
-                populate: '_id'
+                select: '_id username'
             },
             {
                 path: 'weeklyWinners'
             },
         ])
     if (!group) {
+        release()
         return res.status(404).json({errorMessage: 'Group could not be found.'})
     }
     const prompts = group.prompts
 
-    const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
-    if (!isUserInGroup) {
-        return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+    const userIndex = group.userList.findIndex(item => item.user._id.toString() === userID);
+    if (userIndex === -1) {
+        release()
+        return res.status(401).json({ errorMessage: 'You don\'t belong to this group.' });
     }
 
     //parsing from group
@@ -207,6 +224,7 @@ module.exports.getPrompt = async (req, res) => {
         promptTime.setHours(promptReleaseHour)
         promptTime.setMinutes(promptReleaseMin)
         promptTime.setSeconds(0)
+        release()
         return res.status(200).json({
             promptObj: yesterdayPrompt,
             submissionAllowed: false,
@@ -252,7 +270,7 @@ module.exports.getPrompt = async (req, res) => {
         SET TO FALSE IF YOU WANT WEEKLY VOTING TO HAPPEN NORMALLY (EVERY SEVEN DAYS)
         SET TO TRUE IF YOU WANT WEEKLY VOTING TO HAPPEN TODAY (OVERRIDE)
      */
-    const weeklyVotingOverride = false
+    const weeklyVotingOverride = true
 
     //PERIOD 1 - if current time has not yet reached prompt submission time
     if (now.getTime() < promptSubmitTime.getTime()) {
@@ -261,6 +279,7 @@ module.exports.getPrompt = async (req, res) => {
         const posts = todayPrompt.posts
         for (let i = 0; i < posts.length; i++) {
             if (posts[i].owner._id.toString() === userID && posts[i].submissionNumber >= 3) {
+                release()
                 return res.status(200).json({
                     promptObj: todayPrompt,
                     submissionAllowed: false,
@@ -270,6 +289,7 @@ module.exports.getPrompt = async (req, res) => {
             }
         }
 
+        release()
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: true,
@@ -280,6 +300,7 @@ module.exports.getPrompt = async (req, res) => {
 
     //PERIOD 2 - if current time has not yet reached daily voting deadline
     else if (now.getTime() < dailyVotingTime.getTime()) {
+        release()
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
@@ -293,7 +314,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //update the daily winner for today's prompt if not yet updated
         if (todayPrompt.dailyWinnerID === undefined) {
-            await updateDailyWinner(todayPrompt)
+            await updateDailyWinner(todayPrompt, group, userIndex)
         }
 
         //need to gather all the winners from the last 7 days -> dailyWinnerPosts
@@ -326,6 +347,7 @@ module.exports.getPrompt = async (req, res) => {
          */
 
 
+        release()
         return res.status(200).json({
             dailyWinnerPosts: dailyWinnerPosts,
             submissionAllowed: false,
@@ -339,7 +361,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //update the daily winner for today's prompt if not yet updated
         if (todayPrompt.dailyWinnerID === undefined) {
-            await updateDailyWinner(todayPrompt)
+            await updateDailyWinner(todayPrompt, group, userIndex)
         }
         //update the weekly winner for the week if today is a weekly voting day, and it has not yet been updated
         if (weeklyVotingOverride || now.getDay() === weeklyVotingDay) {
@@ -347,14 +369,14 @@ module.exports.getPrompt = async (req, res) => {
 
             const weeklyWinners = group.weeklyWinners
             for (let i = 0; i < weeklyWinners.length; i++) {
-                if (weeklyWinners[i].time.getMonth() === now.time.getMonth() && weeklyWinners[i].time.getDate() === now.getDate()) {
+                if (weeklyWinners[i].time.getMonth() === now.getMonth() && weeklyWinners[i].time.getDate() === now.getDate()) {
                     //already updated the weekly winner
                     updatedWeekly = true
                 }
             }
 
             if (!updatedWeekly) {
-                await updateWeeklyWinner(group, now, weekAgo, prompts)
+                await updateWeeklyWinner(group, now, weekAgo, prompts, userIndex)
             }
         }
 
@@ -363,6 +385,7 @@ module.exports.getPrompt = async (req, res) => {
         nextPromptRelease.setHours(promptReleaseHour)
         nextPromptRelease.setMinutes(promptReleaseMin)
         nextPromptRelease.setSeconds(0)
+        release()
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
@@ -434,7 +457,7 @@ module.exports.voteWeekly = async(req, res) => {
     return res.status(200).json({differentPost: true})
 }
 
-module.exports.getDailyWinner = async(req, res) => {
+module.exports.getLastDailyWinner = async(req, res) => {
     const {userID, groupID} = req.params
 
     //nested populate
@@ -466,27 +489,34 @@ module.exports.getDailyWinner = async(req, res) => {
         return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
     }
 
-    if (prompts.length == 0) {
-        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    if (prompts.length === 0) {
+        return res.status(401).json({errorMessage: 'No daily winner.'});
     }
 
     let lastPrompt;
-    for (let i = 0; i < prompts.length; i++) {
+    for (let i = prompts.length - 1; i >= 0; i--) {
         lastPrompt = prompts[i];
         if (lastPrompt.dailyWinnerID !== undefined ) {
             break;
         }
     }
-    if (lastPrompt.dailyWinnerID === undefined ) {
-        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    if (lastPrompt.dailyWinnerID === undefined || lastPrompt.dailyWinnerID === null ) {
+        return res.status(401).json({errorMessage: 'No daily winner.'});
     }
 
     await lastPrompt.populate({path: 'dailyWinnerID', populate: [{path: 'owner'}]});
     console.log("in prompt controller, dailyWinnerPost", lastPrompt.dailyWinnerID);
 
+    //get date string for the prompt
+    const date = lastPrompt.timeEnd
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+
     return res.status(200).json({
         promptObj: lastPrompt,
         dailyWinnerPostObj: lastPrompt.dailyWinnerID,
+        dayString: year + "-" + month + "-" + day,
     })
 }
 
@@ -523,8 +553,8 @@ module.exports.getLastWeekWinner = async(req, res) => {
         return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
     }
 
-    if (weeklyWinnerPosts.length == 0) {
-        return res.status(401).json({errorMessage: 'There is no existing prompt in this group'});
+    if (weeklyWinnerPosts.length === 0) {
+        return res.status(401).json({errorMessage: 'No weekly winner'});
     }
 
     const lastPost = weeklyWinnerPosts[weeklyWinnerPosts.length - 1];
@@ -532,7 +562,24 @@ module.exports.getLastWeekWinner = async(req, res) => {
     await lastPost.populate([{path: 'prompt'}, {path: 'owner'}, {path: 'picture'}])
     console.log("in prompt controller, weekly winner post", lastPost);
 
+    const date = lastPost.time
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+
     return res.status(200).json({
         weeklyWinnerPost: lastPost,
+        dayString: year + "-" + month + "-" + day,
     })
+}
+
+module.exports.getDailyWinner = async(req, res) => {
+    const {userID, groupID, dayString} = req.params
+    console.log("getting daily winner for " + dayString)
+    return res.status(200)
+}
+module.exports.getWeeklyWinner = async(req, res) => {
+    const {userID, groupID, dayString} = req.params
+    console.log("getting weekly winner for" + dayString)
+    return res.status(200)
 }

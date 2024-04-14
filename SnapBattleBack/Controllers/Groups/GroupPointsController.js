@@ -37,38 +37,3 @@ module.exports.getListUsersPoints = async(req, res)=> {
     }
 }
 
-
-module.exports.addPoints = async(req, res)=> {
-    try {
-        const { groupID, userID, userToAdd } = req.params;
-        const {pointsToAdd} = req.body;
-
-        console.log(req.params)
-        const findUser = await User.findOne({ username: userToAdd.toLowerCase() });
-
-        if (!findUser) {
-            return res.status(404).json({errorMessage: 'User not found.'})
-        }
-
-        const group = await Group.findById(groupID)
-            .populate('userList', 'user.username points')
-        if (!group) {
-            return res.status(404).json({errorMessage: 'Group could not be found.'})
-        }
-
-        const userIndex = group.userList.findIndex(list => list.user._id.toString() === userID);
-        if (userIndex === -1) {
-            return res.status(401).json({ errorMessage: 'You don\'t belong to this group.' });
-        }
-
-
-        group.userList[userIndex].points += pointsToAdd;
-
-        await group.save();
-        return res.status(200).json({success: true})
-    } catch (error) {
-        console.log("addPoints module: " + error);
-        res.status(500).json({errorMessage: "Something went wrong..."});
-    }
-}
-
