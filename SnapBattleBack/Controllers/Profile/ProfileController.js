@@ -24,6 +24,7 @@ const {
 
 const storage = require("../../Firebase/Firebase");
 const {User} = require("../../Models/User");
+const Achievement = require('../../Models/Achievement')
 const sharp = require('sharp');
 
 /**
@@ -138,4 +139,55 @@ module.exports.getProfileInfo = async (req, res) => {
 
 module.exports.findUser = async(req, res) => {
     console.log("findUser module: request received");
+}
+
+module.exports.getAchievements = async(req, res) => {
+    try {
+        const {userID} = req.params;
+        const user = await User.findById(userID).populate('achievements');
+    
+        if (!user) {
+            console.log("getAchievement err")
+            return res.status(404).json("User not found");
+        }
+
+        return res.status(200).json({achievements: user.achievements});
+    } catch (error) {
+        console.log("getAchievement err")
+        return res.status(500).json("Server error:",error)
+    }
+}
+
+module.exports.addAchievement = async(req, res) => {
+    try {
+        const userID = req.body.userID;
+        const name = req.body.name;
+        const type = req.body.type;
+
+        const user = await User.findById(userID);
+    
+        if (!user) {
+            console.log("addAchievement err")
+            return res.status(404).json("User not found")
+        }
+
+        const achievement = new Achievement({
+            name: name,
+            user: userID,
+            type: type
+        })
+
+        await achievement.save();
+
+        user.achievements.push(achievement);
+
+        await user.save();
+
+        return res.status(200).json({
+            achievements: user.achievements
+        })
+    } catch (error) {
+        console.log("addAchievement err")
+        return res.status(500).json("Server error:",error)
+    }
 }

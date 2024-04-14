@@ -59,7 +59,11 @@ const User = new mongoose.Schema({
     numWins: {
         type: Number,
         default: 0
-    }
+    },
+    achievements: [{
+        type: mongoose.Types.ObjectId,
+        ref: 'Achievement'
+    }]
 })
 
 const Session = new mongoose.Schema({

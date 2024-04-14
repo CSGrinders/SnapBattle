@@ -20,6 +20,7 @@ import {Image} from 'expo-image';
 import {useCallback, useState} from "react";
 import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
+import AchievementsSection from "../../Components/Profile/AchievementsSection";
 
 const {EXPO_PUBLIC_API_URL} = process.env;
 
@@ -137,22 +138,24 @@ function Profile({route, navigation}) {
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.9,
-                marginLeft: 15
             }}>
                 <Text style={{
                     fontSize: 24,
                     fontWeight: 'bold',
+                    marginLeft: 15
                 }}>
                     Achievements
                 </Text>
-                <Text>{achievements}</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Achievements", {userID: userID})}>
+                    <AchievementsSection/>
+                </TouchableOpacity>
             </View>
 
             <View style={{
                 justifyContent: 'center',
                 alignItems: 'center',
                 width: width,
-                height: height * 0.5
+                height: height * 0.2
             }}>
                 <Button onPress={() => navigation.navigate("Friends", {userID: userID})}>
                     Friends
