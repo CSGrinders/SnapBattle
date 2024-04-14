@@ -188,13 +188,14 @@ function Memories({route, navigation}) {
                 }}
                 theme={{
                     backgroundColor: '#ffffff',
-                    calendarBackground: '#000000',
+                    calendarBackground: '#f2f2f2',
                     textSectionTitleColor: '#b6c1cd',
                     selectedDayBackgroundColor: '#000000',
                     selectedDayTextColor: '#ffffff',
-                    todayTextColor: '#00adf5',
-                    dayTextColor: '#2d4150',
-                    textDisabledColor: '#d9e000'
+                    todayTextColor: '#f40000',
+                    dayTextColor: '#515151',
+                    textDisabledColor: '#c6c6c6',
+                    arrowColor: '#000000'
                 }}
                 onDayPress={day => {
                     setSelected(day.dateString);
