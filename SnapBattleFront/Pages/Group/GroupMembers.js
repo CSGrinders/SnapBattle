@@ -98,7 +98,7 @@ function GroupMembers({route, navigation}) {
         )
             .then((res) => {
                 setGroupMembers(res.data.list);
-                console.log(res.data.adminUser)
+                console.log("Admin user:", res.data.adminUser)
                 setAdminUser(res.data.adminUser);
             })
             .catch((err) => {

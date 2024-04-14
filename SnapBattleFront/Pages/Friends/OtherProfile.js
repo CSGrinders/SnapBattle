@@ -11,7 +11,7 @@
  * @return {JSX.Element} Renders a view of other users' profiles.
  */
 
-import {Dimensions, Text, View} from "react-native";
+import {Dimensions, Text, TouchableOpacity, View} from "react-native";
 import {Button} from "@rneui/themed";
 import BackButton from "../../Components/Button/BackButton";
 import {useCallback, useContext, useState} from "react";
@@ -23,13 +23,14 @@ import {useFocusEffect} from "@react-navigation/native";
 import {getUserInfo} from "../../Storage/Storage";
 import {SocketContext} from "../../Storage/Socket";
 import ConfirmPrompt from "../../Components/Prompts/ConfirmPrompt";
+import AchievementsSection from "../../Components/Profile/AchievementsSection";
 
 const {EXPO_PUBLIC_API_URL} = process.env;
 
 function OtherProfile({route, navigation}) {
     const {width, height} = Dimensions.get('window'); //Get dimensions of the screen for footer
 
-    const {searchName, searchUsername, searchBio, viewType, url, requestExists, userID, token} = route.params;
+    const {searchName, searchUsername, searchID, searchBio, viewType, url, requestExists, userID, token} = route.params;
     const {socket} = useContext(SocketContext);
 
     const [image, setImage] = useState('');
@@ -262,13 +263,15 @@ function OtherProfile({route, navigation}) {
                 alignItems: 'flex-start',
                 justifyContent: 'center',
                 width: width * 0.9,
-                marginLeft: 15
             }}>
                 <Text style={{
                     fontWeight: 'bold',
                     fontSize: 24,
+                    marginLeft: 15
                 }}>Achievements</Text>
-                <Text>Winner x2</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Achievements", {userID: userID})}>
+                    <AchievementsSection/>
+                </TouchableOpacity>
             </View>
 
 

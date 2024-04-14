@@ -112,7 +112,7 @@ function Leaderboard({route, navigation}) {
                     paddingLeft: 15,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={40} navigation={navigation}/>
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 55}}>
                     <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Leaderboard</Text>
