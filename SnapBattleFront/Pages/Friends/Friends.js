@@ -80,9 +80,10 @@ function Friends({route, navigation}) {
             return;
         }
         axios.get(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search}`,
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/search/${search.toLowerCase()}`,
         )
             .then((res) => {
+                setSearch('');
                 navigation.navigate("OtherProfile", {...res.data, userID: userID, token: token});
             })
             .catch((error) => {
@@ -90,16 +91,19 @@ function Friends({route, navigation}) {
                 if (error.response) {
                     if (status !== 500) {
                         setErrorMessageServer(data.errorMessage);
+                        setSearch('');
                         setErrorServer(true);
                     } else {
                         console.log("Friends page: " + error);
                         setErrorMessageServer("Something went wrong...");
                         setErrorServer(true);
+                        setSearch('');
                     }
                 } else {
                     console.log("Friends page: " + error);
                     setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
+                    setSearch('');
                 }
             })
     }
@@ -193,6 +197,7 @@ function Friends({route, navigation}) {
     useFocusEffect(
         useCallback(() => {
             getFriends();
+            setSearch('');
             getUserInfo(EXPO_PUBLIC_USER_TOKEN).then((info) => {
                 if (info) {
                     socket.emit("friendsUpdate", info, "friendsPage");

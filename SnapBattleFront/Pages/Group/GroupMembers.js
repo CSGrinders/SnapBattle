@@ -117,6 +117,11 @@ function GroupMembers({route, navigation}) {
 
     //API call to check if user is a friend -> invites the friend to the group
     function inviteUser() {
+        if (invUser === '') {
+            setInvStatusMsg('Empty field.');
+            setInvStatusColor("red");
+            return;
+        }
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/invite`,
             {
@@ -127,6 +132,7 @@ function GroupMembers({route, navigation}) {
                 const message = res.data.message;
                 if (message) {
                     setInvStatusMsg(message);
+                    setInvUser('');
                     setInvStatusColor("green");
                 }
             }
@@ -136,15 +142,18 @@ function GroupMembers({route, navigation}) {
                 if (status !== 500) {
                     setInvStatusMsg(data.errorMessage);
                     setInvStatusColor("red")
+                    setInvUser('');
                 } else {
                     console.log("Group Settings page: " + error);
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
+                    setInvUser('');
                 }
             } else {
                 console.log("Group Settings page: " + error);
                 setErrorMessageServer("Something went wrong...");
                 setErrorServer(true);
+                setInvUser('');
             }
         })
     }
