@@ -85,10 +85,15 @@ function Memories({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-daily-winner/${dayString}`
         )
             .then((res) => {
-                console.log(res)
+                const {promptObj, dailyWinnerPostObj, dayString} = res.data
+                setDailyWinnerPrompt(promptObj);
+                setDailyWinnerPost(dailyWinnerPostObj);
+                setSelected(dayString);
             })
             .catch((e) => {
                 console.log(e.response.data)
+                setErrorMessageServer(e.response.data.errorMessage)
+                setErrorServer(true)
             })
     }
 
@@ -227,7 +232,7 @@ function Memories({route, navigation}) {
                         }
                     }}
                     markedDates={{
-                        [selected]: {selected: true, disableTouchEvent: true, selectedDotColor: 'orange'}
+                        [selected]: {selected: true, disableTouchEvent: true}
                     }}
                 />
 
