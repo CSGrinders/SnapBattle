@@ -26,6 +26,7 @@ const {sendUpdateProfileStatus} = require("../../ServerSocketControllers/Profile
 const {findUser} = require("../Profile/ProfileController");
 const Group = require("../../Models/Group");
 const Prompt = require("../../Models/Prompt");
+const {unblock} = require("sharp");
 
 /**
  * Add small desc.
@@ -55,10 +56,16 @@ module.exports.searchUser = async(req, res) => {
                 return res.status(404).json({errorMessage: "You cannot search for yourself."})
             }
 
-            const isUserBlockA = searchUser.blockedUsers.some(user => user._id.toString() === user._id.toString());
-            const isUserBlockB = user.blockedUsers.some(user => user._id.toString() === searchUser._id.toString());
-            if (isUserBlockA && !isUserBlockB) {
-                return res.status(404).json({errorMessage: "User could not be found."})
+            const isUserBlockA = searchUser.blockedUsers.some(userL => userL._id.toString() === user._id.toString());
+            const isUserBlockB = user.blockedUsers.some(userL => userL._id.toString() === searchUser._id.toString());
+            let both = false;
+            if (isUserBlockB && isUserBlockA) {
+                both = true;
+            }
+            if (!both) {
+                if (isUserBlockA) {
+                    return res.status(404).json({errorMessage: "User could not be found."});
+                }
             }
 
 
@@ -275,20 +282,31 @@ module.exports.getFriendsAndRequests = async (req, res) => {
 module.exports.getBlockedUsers = async (req, res) => {
     try {
         const {userID} = req.params;
-        const user = await User.findById(userID, 'blockedUsers').populate('blockedUsers', 'username')
+        const user = await User.findById(userID)
+        let users = [];
+        let invalidUserIds = [];
         if (user) {
-            let users = user.blockedUsers;
-            users = users.map((user) => ({
-                username: user.username,
-            }))
-            res.status(200).json({users});
+            for (const blocked of user.blockedUsers) {
+                const blockedUser = await User.findById(blocked.toString());
+                if (blockedUser) {
+                    users.push({username: blockedUser.username});
+                } else {
+                    invalidUserIds.push(blocked.toString());
+                }
+                if (invalidUserIds && invalidUserIds.length > 0) {
+                    user.blockedUsers = user.blockedUsers.filter(id => !invalidUserIds.includes(id.toString()));
+                    await user.save();
+                }
+            }
+            console.log(user);
+            return res.status(200).json({users});
         }
         else {
-            res.status(404).json({errorMessage: "User could not be found."});
+            return res.status(404).json({errorMessage: "User could not be found."});
         }
 
     } catch (error) {
-        console.log("getFriends module: " + error);
+        console.log("getBlocked module: " + error);
         res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }

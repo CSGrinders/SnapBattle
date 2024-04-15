@@ -25,6 +25,7 @@ const {Post, Comment} = require("../../Models/Post");
 const {leave} = require("../Groups/GroupActionsController");
 const {deleteImageFirebaseUrl} = require("../../Firebase/FirebaseOperations");
 const Prompt = require("../../Models/Prompt");
+const Achievement = require('../../Models/Achievement')
 
 
 /**
@@ -235,6 +236,7 @@ module.exports.deleteAccount = async (req, res) => {
 
 
             //deleting user
+            await Achievement.findOneAndDelete({user: user._id.toString()});
             await User.findByIdAndDelete(user._id.toString());
             const session = await Session.findOne({userID: userID}); //Find session
             await Session.findByIdAndDelete(session._id.toString());

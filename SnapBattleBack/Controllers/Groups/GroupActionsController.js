@@ -362,7 +362,7 @@ async function leave(userID, groupID){
                 await post.save();
                 if (post.owner._id.toString().trim() === userID) {
                     await deleteImageFirebaseUrl(post.picture);
-                    await Post.findByIdAndDelete(post._id);;
+                    await Post.findByIdAndDelete(post._id);
                 }
             }
             prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
