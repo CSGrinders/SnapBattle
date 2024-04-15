@@ -259,6 +259,10 @@ function GroupSettings({route, navigation}) {
     }
 
     function deleteGroup() {
+        if (confirmUsername === '') {
+            setConfirmStatus('Empty Field.');
+            return;
+        }
         setConfirm(false);
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/delete-group`

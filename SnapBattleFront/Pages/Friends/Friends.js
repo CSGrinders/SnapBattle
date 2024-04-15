@@ -261,6 +261,7 @@ function Friends({route, navigation}) {
             }}>
                 <Input containerStyle={{width: width * 0.8}}
                        placeholder={"username"}
+                       value={search}
                        autoCapitalize="none"
                        onChangeText={username => setSearch(username)}
                 />
