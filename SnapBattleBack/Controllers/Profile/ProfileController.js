@@ -157,37 +157,3 @@ module.exports.getAchievements = async(req, res) => {
         return res.status(500).json("Server error:",error)
     }
 }
-
-module.exports.addAchievement = async(req, res) => {
-    try {
-        const userID = req.body.userID;
-        const name = req.body.name;
-        const type = req.body.type;
-
-        const user = await User.findById(userID);
-    
-        if (!user) {
-            console.log("addAchievement err")
-            return res.status(404).json("User not found")
-        }
-
-        const achievement = new Achievement({
-            name: name,
-            user: userID,
-            type: type
-        })
-
-        await achievement.save();
-
-        user.achievements.push(achievement);
-
-        await user.save();
-
-        return res.status(200).json({
-            achievements: user.achievements
-        })
-    } catch (error) {
-        console.log("addAchievement err")
-        return res.status(500).json("Server error:",error)
-    }
-}
