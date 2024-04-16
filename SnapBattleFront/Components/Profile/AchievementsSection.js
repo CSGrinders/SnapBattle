@@ -1,12 +1,24 @@
 import { View, Text, Dimensions, FlatList } from 'react-native'
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import MedalIcon from "../../assets/medal.webp"
-import { Image } from 'expo-image'
+import TrophyIcon from "../../assets/trophy.webp"
+import SuccessIcon from "../../assets/success.webp"
+import FireIcon from "../../assets/fire.webp"
 
-const AchievementsSection = () => {
-    const displayedAchievements = [{name: "1"}, {name: "2"}, {name: "3"}, {name: "4"}, {name: "2"}, {name: "3"}, {name: "4"}]
-    const preview = displayedAchievements.splice(0,4)
+import { Image } from 'expo-image'
+import { useFocusEffect } from '@react-navigation/native'
+
+const AchievementsSection = ({achievements}) => {
+    const [preview, setPreview] = useState([])
     const {width, height} = Dimensions.get('window');
+
+    useFocusEffect(
+        useCallback(() => {
+            if (Array.isArray(achievements)) {
+                setPreview(achievements.splice(achievements.length - 4).reverse())
+            }
+        }, [achievements])
+    )
 
     const renderItem = ({item}) => (
         <View style={{
@@ -16,13 +28,36 @@ const AchievementsSection = () => {
             justifyContent: 'center',
             margin: 5
         }}>
-            <Image source={MedalIcon} style={{
-                width: 50,
-                height: 50
-            }}/>
+            {
+                item.type === 'medal' 
+                ? 
+                <Image source={MedalIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+                :
+                item.type === 'trophy'
+                ?
+                <Image source={TrophyIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+                :
+                item.type === 'success'
+                ?
+                <Image source={SuccessIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+                :
+                <Image source={FireIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+            }
             <Text style={{
                 textAlign: 'center'
-            }}>Winner of 3/19/24</Text>
+            }}>{item.name}</Text>
         </View>
     )
 
@@ -57,6 +92,7 @@ const AchievementsSection = () => {
                 justifyContent: 'center',
                 alignItems: 'flex-start',
                 paddingHorizontal: 10,
+                width: width * .88
             }}
         />
         </View>

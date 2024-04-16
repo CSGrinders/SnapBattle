@@ -64,8 +64,22 @@ function Leaderboard({route, navigation}) {
         }, [])
     )
 
-    //get user's list of groups
+    const resetPoints = () => {
+        axios.post(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/reset-points`,
+            {
+                groupID: groupID
+            }
+        )
+            .then((res) => {
+                console.log(res.data)
+            })
+            .catch((err) => {
+                console.log("error:",err)
+            })
+    }
 
+    //get user's list of groups
     function getUserListPoints() {
         return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/getListUsersPoints`,
@@ -133,7 +147,7 @@ function Leaderboard({route, navigation}) {
                     shadowOpacity: 0.2,
                     shadowRadius: 4,
                     elevation: 3,
-                    height: height * .75,
+                    height: height * .70,
                 }}>
                     <Text style={{
                         marginBottom: 10,
@@ -175,6 +189,13 @@ function Leaderboard({route, navigation}) {
                             ))}
                         </View>
                     </ScrollView>
+                </View>
+                <View style={{
+                    marginTop: 20
+                }}>
+                    <Button onPress={resetPoints}>
+                        Reset
+                    </Button>
                 </View>
             </View>
         </KeyboardAvoidingView>

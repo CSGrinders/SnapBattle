@@ -49,6 +49,8 @@ module.exports.resetPoints = async(req, res) => {
             return res.status(404).json("Group not found");
         }
     
+        let userList = group.userList
+
         // iterate through list to find user with most points
         let maxIndex = 0;
         let maxPoints = 0;
@@ -60,7 +62,7 @@ module.exports.resetPoints = async(req, res) => {
         }
 
         // winner of period
-        const winner = userList[maxIndex];
+        const winner = userList[maxIndex].user;
 
         // set winstreaks
         for (let i = 0; i < userList.length; i++) {
@@ -136,7 +138,7 @@ module.exports.resetPoints = async(req, res) => {
         }
 
         // reset points
-        const userList = group.userList;
+        userList = group.userList;
         for (let i = 0; i < userList.length; i++) {
             userList[i].points = 0;
         }
@@ -148,7 +150,7 @@ module.exports.resetPoints = async(req, res) => {
         })
     } catch (error) {
         console.log("Server err:", error)
-        return res.status(500).json("Server err:", error)
+        return res.status(500).json({error: "Server error: ", error})
     }
 }
 

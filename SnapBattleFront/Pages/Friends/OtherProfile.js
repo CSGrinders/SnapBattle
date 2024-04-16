@@ -48,6 +48,27 @@ function OtherProfile({route, navigation}) {
     const [confirmMessage, setConfirmMessage] = useState('Are you sure? You will leave all groups with this user in it.');
     const [confirmStatus, setConfirmStatus] = useState(false);
 
+    const [achievements, setAchievements] = useState([])
+
+
+    useFocusEffect(
+        useCallback(() => {
+            getAchievements();
+        }, [])
+    );
+
+    function getAchievements() {
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/get-achievements/${searchID}`
+        )
+            .then((res) => {
+                setAchievements(res.data.achievements)
+            })
+            .catch((err) => {
+                console.log("Error:", err)
+            })
+    }
+
     function sendFriendRequest() {
         axios.post(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/friends/send-request`,
@@ -269,8 +290,8 @@ function OtherProfile({route, navigation}) {
                     fontSize: 24,
                     marginLeft: 15
                 }}>Achievements</Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Achievements", {userID: userID})}>
-                    <AchievementsSection/>
+                <TouchableOpacity onPress={() => navigation.navigate("Achievements", {userID: userID, searchID: searchID})}>
+                    <AchievementsSection achievements={achievements}/>
                 </TouchableOpacity>
             </View>
 

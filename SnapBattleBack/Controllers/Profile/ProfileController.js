@@ -103,11 +103,11 @@ module.exports.getPhoto = async(req, res)=> {
 module.exports.getProfileInfo = async (req, res) => {
     try {
         const {userID} = req.params;
-        const findUser = await User.findById(userID);
+        const findUser = await User.findById(userID).populate('achievements');
         if (findUser) {
             const name = findUser.name
             const bio = findUser.biography;
-            const achievements = findUser.numWins;
+            const achievements = findUser.achievements;
             const profilePicture = findUser.profilePicture;
             const username = findUser.username;
 
@@ -143,17 +143,19 @@ module.exports.findUser = async(req, res) => {
 
 module.exports.getAchievements = async(req, res) => {
     try {
-        const {userID} = req.params;
-        const user = await User.findById(userID).populate('achievements');
-    
+        const {searchID} = req.params;
+
+        console.log("userID:", searchID)
+        const user = await User.findById(searchID).populate("achievements")
+        
         if (!user) {
             console.log("getAchievement err")
-            return res.status(404).json("User not found");
+            return res.status(404).json({error: "User not found"});
         }
 
         return res.status(200).json({achievements: user.achievements});
     } catch (error) {
         console.log("getAchievement err")
-        return res.status(500).json("Server error:",error)
+        return res.status(500).json({error: "Server error:", error})
     }
 }
