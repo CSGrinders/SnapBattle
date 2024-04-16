@@ -158,7 +158,7 @@ module.exports.editPromptTime = async(req, res) => {
             if (newHr > subHr) {
                 return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
             } else if (newHr === subHr) {
-                if (newMin > subMin) {
+                if (newMin >= subMin) {
                     return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
                 }
             }
@@ -210,7 +210,7 @@ module.exports.editSubmissionTime = async(req, res) => {
             if (newHr < startHr) {
                 return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
             } else if (newHr === startHr) {
-                if (newMin > startMin) {
+                if (newMin >= startMin) {
                     return res.status(400).json({errorMessage: "Submission time cannot start before prompt time!"});
                 }
             }

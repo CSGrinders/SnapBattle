@@ -96,7 +96,7 @@ module.exports.createGroup = async(req, res) => {
             if (newHr > subHr) {
                 return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
             } else if (newHr === subHr) {
-                if (newMin > subMin) {
+                if (newMin >= subMin) {
                     return res.status(400).json({errorMessage: "Prompt time cannot start before submission time!"});
                 }
             }
