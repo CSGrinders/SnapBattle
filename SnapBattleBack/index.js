@@ -83,7 +83,6 @@ app.use('/user/:userID/groups/:groupID', async (req, res, next) => {
             const group = await Group.findById(groupID);
             if (!group) {
                 console.log("Group not found")
-                next()
             }
 
             const currentDate = new Date();
