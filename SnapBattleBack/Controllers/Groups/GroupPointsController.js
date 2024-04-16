@@ -154,3 +154,113 @@ module.exports.resetPoints = async(req, res) => {
     }
 }
 
+module.exports.resetPointsHelper = async(groupID) => {
+    try {
+                    // find group
+                    const group = await Group.findById(groupID).populate('userList.user');
+    
+                    if (!group) {
+                        console.log("Group not found")
+                    }
+                
+                    let userList = group.userList
+            
+                    // iterate through list to find user with most points
+                    let maxIndex = 0;
+                    let maxPoints = 0;
+                    for (let i = 0; i < userList.length; i++) {
+                        if (userList[i].points > maxPoints) {
+                            maxPoints = userList[i].points;
+                            maxIndex = i;
+                        }
+                    }
+            
+                    // winner of period
+                    const winner = userList[maxIndex].user;
+            
+                    // set winstreaks
+                    for (let i = 0; i < userList.length; i++) {
+                        if (i == maxIndex) {
+                            userList[i].winStreak++;
+                        } else {
+                            userList[i].winStreak = 0;
+                        }
+                    }
+            
+                    // get date
+                    const currentDate = new Date();
+                    const year = currentDate.getFullYear();
+                    const month = String(currentDate.getMonth() + 1).padStart(2, '0'); 
+                    const day = String(currentDate.getDate()).padStart(2, '0');
+            
+                    const formattedDate = `${month}-${day}-${year}`;
+            
+                    // create achievement
+                    const medal = new Achievement({
+                        name: "Winner of " + formattedDate,
+                        user: winner._id,
+                        type: "medal"
+                    })
+            
+                    await medal.save();
+            
+            
+                    // increase winner's wins and add achievement to profile
+                    winner.numWins++;
+                    winner.achievements.push(medal);
+                    await winner.save();
+            
+                    // award achievement for 5 wins
+                    if (winner.numWins == 5) {
+                        const trophy = new Achievement({
+                            name: "5x wins!",
+                            user: winner._id,
+                            type: "trophy"
+                        })
+            
+                        await trophy.save();
+            
+                        winner.achievements.push(trophy);
+                        winner.save();
+                    }
+            
+                    // award achievement for 10 wins
+                    if (winner.numWins == 10) {
+                        const success = new Achievement({
+                            name: "10x wins!",
+                            user: winner._id,
+                            type: "success"
+                        })
+            
+                        await success.save();
+            
+                        winner.achievements.push(success);
+                        winner.save();
+                    }
+            
+                    if (userList[maxIndex].winStreak == 3) {
+                        const streak = new Achievement({
+                            name: "3x wins in a row",
+                            user: winner._id,
+                            type: "streak"
+                        })
+            
+                        await streak.save();
+            
+                        winner.achievements.push(streak);
+                        winner.save();
+                    }
+            
+                    // reset points
+                    userList = group.userList;
+                    for (let i = 0; i < userList.length; i++) {
+                        userList[i].points = 0;
+                    }
+            
+                    await group.save();
+            
+                    console.log("Success!")
+    } catch (error) {
+        console.log("Middleware reset points error")
+    }
+}

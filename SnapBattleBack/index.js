@@ -33,6 +33,8 @@ const {groupUpdates} = require("./ServerSocketControllers/GroupMainSocket");
 const {friendUpdates} = require("./ServerSocketControllers/FriendsSocket");
 const {otherUpdates} = require("./ServerSocketControllers/ProfileSocket");
 const {groupHomeUpdates} = require("./ServerSocketControllers/GroupHomeSocket");
+const Group = require("./Models/Group");
+const { resetPointsHelper } = require("./Controllers/Groups/GroupPointsController");
 const app = express()
 const server = createServer(app);
 const io = socketIo(server);
@@ -57,7 +59,6 @@ server.listen(PORT, () => {
 
 
 
-
 // Configure CORS middleware
 app.use(
     cors({
@@ -71,6 +72,41 @@ app.use(
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
+// middleware for checking time based events
+app.use('/user/:userID/groups/:groupID', async (req, res, next) => {
+    try {
+            // GET request
+    if (req.method === 'GET') {
+        const {groupID, userID} = req.params;
+        console.log("userID:", userID,"GroupID:",groupID)   
+        if (groupID !== undefined) {
+            const group = await Group.findById(groupID);
+            if (!group) {
+                console.log("Group not found")
+                next()
+            }
+
+            const currentDate = new Date();
+            const targetDate = group.lastPeriod
+
+            targetDate.setDate(targetDate.getDate() + 2);
+            console.log(currentDate.getTime(), targetDate.getTime())
+            if (currentDate.getTime() > targetDate.getTime()) {
+                console.log("current date is 2 days after groups.lastPeriod")
+                resetPointsHelper(groupID)
+                group.lastPeriod = new Date();
+                group.save();
+            }
+        }
+    }
+    console.log('Middleware executed before routes from groupsRouter');
+    // Call next() to continue with the route handling
+    next();
+    } catch (error) {
+        console.log(error)
+        next()
+    }
+});
 
 // Routes
 app.use("/auth", authRouter)

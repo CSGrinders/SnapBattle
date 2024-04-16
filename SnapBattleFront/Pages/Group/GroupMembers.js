@@ -94,7 +94,7 @@ function GroupMembers({route, navigation}) {
     //get user's list of groups
     function getGroupMembers() {
         return axios.get(
-            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/list-users/${groupID}`
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/list-users`
         )
             .then((res) => {
                 setGroupMembers(res.data.list);
