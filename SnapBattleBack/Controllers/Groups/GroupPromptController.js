@@ -645,5 +645,102 @@ module.exports.getDailyWinner = async(req, res) => {
 module.exports.getWeeklyWinner = async(req, res) => {
     const {userID, groupID, dayString} = req.params
     console.log("getting weekly winner for" + dayString)
-    return res.status(200)
+
+    //nested populate
+    const group = await Group.findById(groupID)
+        .populate([{
+                path: 'prompts',
+                populate: {
+                    path: 'posts',
+                    populate: {
+                        path: 'owner',
+                        select: '_id name username profilePicture',
+                    }
+                }
+            },
+                {
+                    path: 'userList.user',
+                    populate: '_id'
+                }
+            ]
+        )
+    if (!group) {
+        return res.status(404).json({errorMessage: 'Group could not be found.'})
+    }
+
+    const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
+    if (!isUserInGroup) {
+        return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+    }
+
+    await group.populate({path: 'weeklyWinners'});
+    const weeklyWinnerPosts = group.weeklyWinners;
+
+    if (weeklyWinnerPosts.length === 0) {
+        return res.status(401).json({errorMessage: 'No weekly winner'});
+    }
+
+    // get the bounds of the week (start date, end date)
+    console.log(dayString)
+    const selectedDate = new Date(dayString);
+    selectedDate.setHours(0);
+    selectedDate.setDate(selectedDate.getDate() + 1)
+    console.log("selected date: " + selectedDate.toString())
+    let start = null;
+    let end = null;
+
+    // if selected day is the weekly voting day
+    if (selectedDate.getDay() === group.weeklyVotingDay) {
+        start = new Date(selectedDate);
+        start.setDate(start.getDate() - 6);
+
+        end = new Date(selectedDate);
+    } else if (selectedDate.getDay() > group.weeklyVotingDay) { // if after the voting day
+        end = new Date(selectedDate);
+        end.setDate(end.getDate() - (selectedDate.getDay() - group.weeklyVotingDay) + 7);
+
+        start = new Date(end)
+        start.setDate(start.getDate() - 6);
+    } else { // before the voting day
+        end = new Date(selectedDate);
+        end.setDate(end.getDate() + (group.weeklyVotingDay - selectedDate.getDay()));
+
+        start = new Date(end)
+        start.setDate(start.getDate() - 6)
+    }
+    start.setHours(0)
+    end.setHours(0)
+    console.log("start of week: " + start.toString())
+    console.log("end of week: " + end.toString())
+
+    let returnPost = null;
+
+    for (let i = 0; i < weeklyWinnerPosts.length; i++) {
+        console.log("post submission time: " + weeklyWinnerPosts[i].time.toString());
+        console.log()
+        const dateToCheckTime = weeklyWinnerPosts[i].time.getTime();
+        const startDateTIme = start.getTime();
+        const endDateTIme = end.getTime();
+
+        if (dateToCheckTime >= startDateTIme && dateToCheckTime <= endDateTIme) {
+            returnPost = weeklyWinnerPosts[i];
+            break;
+        }
+    }
+
+    if (returnPost === null) {
+        return res.status(401).json({errorMessage: 'No weekly winner'});
+    }
+
+    await returnPost.populate([{path: 'prompt'}, {path: 'owner'}, {path: 'picture'}])
+
+    const date = returnPost.time
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+
+    return res.status(200).json({
+        weeklyWinnerPost: returnPost,
+        dayString: year + "-" + month + "-" + day,
+    })
 }

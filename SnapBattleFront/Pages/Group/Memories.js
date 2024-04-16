@@ -103,10 +103,14 @@ function Memories({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-weekly-winner/${dayString}`
         )
             .then((res) => {
-                console.log(res)
+                const {weeklyWinnerPost} = res.data
+                setWeeklyWinnerPost(weeklyWinnerPost);
+                setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
             })
             .catch((e) => {
-                console.log(e.response.data)
+                console.log(e.response.data);
+                setErrorMessageServer(e.response.data.errorMessage)
+                setErrorServer(true)
             })
     }
 
@@ -135,7 +139,7 @@ function Memories({route, navigation}) {
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'flex-start',
+                justifyContent: 'space-between',
                 marginTop: 70,
                 marginBottom: 5
             }}>
@@ -145,9 +149,46 @@ function Memories({route, navigation}) {
                 }}>
                     <BackButton size={40} navigation={navigation}/>
                 </View>
-                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingRight: 55}}>
+                <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingLeft: 32}}>
                     <Text style={{fontSize: 30, /*fontFamily: 'OpenSans'*/}}>Memories</Text>
                 </View>
+                {dailySelected ? (
+                    <Button
+                        onPress={() => getLastDailyWinner()}
+                        type="outline"
+                        title="Most Recent"
+                        titleStyle={{ fontSize: 10, fontWeight: 'bold' }}
+                        buttonStyle={{
+                            width: 80,
+                            height: 35,
+                            borderRadius: 40,
+                        }}
+                        containerStyle={{
+                            marginTop: 2,
+                            marginRight: 10,
+                            marginBottom: 2,
+                            width: 80,
+                            height: 45,
+                        }} />
+                ) : (
+                    <Button
+                        onPress={() => getLastWeeklyWinner()}
+                        type="outline"
+                        title="Most Recent"
+                        titleStyle={{ fontSize: 10, fontWeight: 'bold' }}
+                        buttonStyle={{
+                            width: 80,
+                            height: 35,
+                            borderRadius: 40,
+                        }}
+                        containerStyle={{
+                            marginTop: 2,
+                            marginRight: 10,
+                            marginBottom: 2,
+                            width: 80,
+                            height: 45,
+                        }}/>
+                )}
             </View>
             <View style={{
                 flexDirection: 'row',
@@ -195,17 +236,7 @@ function Memories({route, navigation}) {
                     onPress={() => setDailySelected(false)}
                 />
             </View>
-            <View style={{marginBottom: 10}}>
-                {dailySelected ? (
-                    <Button onPress={() => getLastDailyWinner()}>
-                        View last daily winner
-                    </Button>
-                ) : (
-                    <Button onPress={() => getLastWeeklyWinner()}>
-                        View last weekly winner
-                    </Button>
-                )}
-            </View>
+
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollViewRef} style={{marginBottom: 10}}>
                 <Calendar
                     style={{
@@ -224,6 +255,7 @@ function Memories({route, navigation}) {
                     }}
                     onDayPress={day => {
                         setSelected(day.dateString);
+                        console.log(selected.toString())
                         if (dailySelected) {
                             getDailyWinner(day.dateString)
                         }
