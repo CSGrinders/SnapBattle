@@ -43,7 +43,7 @@ router.get("/:groupID/getListUsersPoints", getListUsersPoints)
 
 router.post('/create', createGroup)
 
-router.get('/list-users/:groupID', listUsers);
+router.get('/:groupID/list-users', listUsers);
 
 router.post('/:groupID/invite', inviteToGroup);
 
