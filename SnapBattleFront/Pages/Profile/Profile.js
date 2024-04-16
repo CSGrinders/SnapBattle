@@ -17,7 +17,7 @@ import ProfilePicture from "../../Components/Profile/ProfilePicture";
 import BackButton from "../../Components/Button/BackButton";
 import SettingIcon from '../../assets/profile-setting-icon.webp';
 import {Image} from 'expo-image';
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import axios from "axios";
 import {useFocusEffect} from "@react-navigation/native";
 import AchievementsSection from "../../Components/Profile/AchievementsSection";
@@ -46,6 +46,7 @@ function Profile({route, navigation}) {
         }, [])
     );
 
+
     function getUserInfo() {
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/getProfileInfo`
@@ -54,11 +55,7 @@ function Profile({route, navigation}) {
                 const {name, username, profilePicture, achievements, bio} = res.data
                 setName(name)
                 setUsername(username)
-                if (achievements === 0) {
-                    setAchievements("No Achievements Yet!");
-                } else {
-                    setAchievements(achievements);
-                }
+                setAchievements(achievements)
                 setBio(bio);
             })
             .catch((error) => {
@@ -146,8 +143,8 @@ function Profile({route, navigation}) {
                 }}>
                     Achievements
                 </Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Achievements", {userID: userID})}>
-                    <AchievementsSection/>
+                <TouchableOpacity onPress={() => navigation.navigate("Achievements", {userID: userID, searchID: userID})}>
+                    <AchievementsSection achievements={achievements}/>
                 </TouchableOpacity>
             </View>
 

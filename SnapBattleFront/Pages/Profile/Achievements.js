@@ -1,13 +1,41 @@
 import { View, Text, Dimensions, KeyboardAvoidingView, FlatList } from 'react-native'
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import BackButton from '../../Components/Button/BackButton'
 import { Image } from 'expo-image'
 import MedalIcon from "../../assets/medal.webp"
+import TrophyIcon from "../../assets/trophy.webp"
+import SuccessIcon from "../../assets/success.webp"
+import FireIcon from "../../assets/fire.webp"
+import { useFocusEffect } from '@react-navigation/native'
+import axios from 'axios'
+
+const {EXPO_PUBLIC_API_URL} = process.env;
+
 
 
 function Achievements({route, navigation}) {
     const {width, height} = Dimensions.get('window')
-    const displayedAchievements = [{name: "1"}, {name: "2"}, {name: "3"}, {name: "4"}, {name: "2"}, {name: "3"}, {name: "4"}]
+    const [displayedAchievements, setDisplayedAchievements] = useState([])
+    const {userID, searchID} = route.params; // actually route/params does not pass username and name from group page
+
+    useFocusEffect(
+        useCallback(() => {
+            getAchievements();
+        }, [])
+    );
+
+    function getAchievements() {
+        axios.get(
+            `${EXPO_PUBLIC_API_URL}/user/${userID}/profile/get-achievements/${searchID}`
+        )
+            .then((res) => {
+                setDisplayedAchievements(res.data.achievements.reverse())
+            })
+            .catch((err) => {
+                console.log("Error:", err)
+            })
+    }
+    
 
     const renderItem = ({item}) => (
         <View style={{
@@ -17,13 +45,36 @@ function Achievements({route, navigation}) {
             justifyContent: 'center',
             margin: 5
         }}>
-            <Image source={MedalIcon} style={{
-                width: 50,
-                height: 50
-            }}/>
+{
+                item.type === 'medal' 
+                ? 
+                <Image source={MedalIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+                :
+                item.type === 'trophy'
+                ?
+                <Image source={TrophyIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+                :
+                item.type === 'success'
+                ?
+                <Image source={SuccessIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+                :
+                <Image source={FireIcon} style={{
+                    width: 50,
+                    height: 50
+                }}/>
+            }
             <Text style={{
                 textAlign: 'center'
-            }}>Winner of 3/19/24</Text>
+            }}>{item.name}</Text>
         </View>
     )
   return (

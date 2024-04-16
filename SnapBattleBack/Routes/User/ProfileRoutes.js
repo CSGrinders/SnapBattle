@@ -22,7 +22,7 @@
 const router = require("express").Router( { mergeParams: true });
 
 
-const {uploadPhoto} = require("../../Controllers/Profile/ProfileController");
+const {uploadPhoto, getAchievements} = require("../../Controllers/Profile/ProfileController");
 const {getPhoto} = require("../../Controllers/Profile/ProfileController");
 const {signOut} = require("../../Controllers/Auth/AuthController");
 const {getProfileInfo} = require("../../Controllers/Profile/ProfileController");
@@ -36,5 +36,6 @@ router.post('/delete', deleteAccount)
 router.post('/changename', changeName)
 router.post('/changebio', changeBio);
 router.post('/changepassword', changePassword);
+router.get('/get-achievements/:searchID', getAchievements)
 
 module.exports = router
