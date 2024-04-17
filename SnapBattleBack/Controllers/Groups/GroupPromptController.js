@@ -12,8 +12,7 @@ const Mutex = require('async-mutex').Mutex;
 const mutex = new Mutex()
 
 
-async function updateDailyWinner(todayPrompt, group, userIndex) {
-    console.log(group)
+async function updateDailyWinner(todayPrompt, group) {
     const posts = todayPrompt.posts
     //no posts -> no daily winner
     if (posts.length === 0) {
@@ -25,23 +24,26 @@ async function updateDailyWinner(todayPrompt, group, userIndex) {
     //find post with highest number of votes
     let maxVotes = 0;
     let winner = null
+    let winningUser = null
     for (let i = 0; i < posts.length; i++) {
         if (posts[i].dailyVotes.length > maxVotes) {
             maxVotes = posts[i].dailyVotes.length
             winner = posts[i]
+            winningUser = posts[i].owner
         }
 
         //tie exists -> no winner
         else if (posts[i].dailyVotes.length === maxVotes) {
             winner = null
+            winningUser = null
         }
     }
 
     //save the winner (null if no winner exists)
     if (winner != null) {
         todayPrompt.dailyWinnerID = winner._id
+        const userIndex = group.userList.findIndex(item => item.user._id.toString() === winningUser._id.toString());
         group.userList[userIndex].points += 1;
-        console.log(winner)
 
     }
     else {
@@ -52,7 +54,7 @@ async function updateDailyWinner(todayPrompt, group, userIndex) {
     await group.save()
 }
 
-async function updateWeeklyWinner(group, now, weekAgo, prompts, userIndex) {
+async function updateWeeklyWinner(group, now, weekAgo, prompts) {
     let maxVotes = 0
     let winner = null
     for (let i = 0; i < prompts.length; i++) {
@@ -75,7 +77,9 @@ async function updateWeeklyWinner(group, now, weekAgo, prompts, userIndex) {
 
     //save the winner (do nothing if no winner exists)
     if (winner != null) {
+        winner = await Post.findById(winner)
         group.weeklyWinners.push(winner._id)
+        const userIndex = group.userList.findIndex(item => item.user._id.toString() === winner.owner._id.toString());
         group.userList[userIndex].points += 3;
         await group.save()
 
@@ -164,6 +168,7 @@ module.exports.getPrompt = async (req, res) => {
         release()
         return res.status(401).json({ errorMessage: 'You don\'t belong to this group.' });
     }
+    //console.log("HERE: " + group.userList[userIndex])
 
     //parsing from group
     const promptReleaseHour = parseInt(group.timeStart.substring(0, 2))
@@ -314,7 +319,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //update the daily winner for today's prompt if not yet updated
         if (todayPrompt.dailyWinnerID === undefined) {
-            await updateDailyWinner(todayPrompt, group, userIndex)
+            await updateDailyWinner(todayPrompt, group)
         }
 
         //need to gather all the winners from the last 7 days -> dailyWinnerPosts
@@ -328,6 +333,10 @@ module.exports.getPrompt = async (req, res) => {
                 }
 
                 dailyWinner = await Post.findById(prompts[i].dailyWinnerID).populate('prompt owner')
+                /*
+                console.log("DAILY WINNER")
+                console.log(dailyWinner)
+                 */
 
                 //attach the prompt as a field of the post
                 dailyWinnerPosts.push(dailyWinner)
@@ -361,7 +370,7 @@ module.exports.getPrompt = async (req, res) => {
 
         //update the daily winner for today's prompt if not yet updated
         if (todayPrompt.dailyWinnerID === undefined) {
-            await updateDailyWinner(todayPrompt, group, userIndex)
+            await updateDailyWinner(todayPrompt, group)
         }
         //update the weekly winner for the week if today is a weekly voting day, and it has not yet been updated
         if (weeklyVotingOverride || now.getDay() === weeklyVotingDay) {
@@ -376,7 +385,7 @@ module.exports.getPrompt = async (req, res) => {
             }
 
             if (!updatedWeekly) {
-                await updateWeeklyWinner(group, now, weekAgo, prompts, userIndex)
+                await updateWeeklyWinner(group, now, weekAgo, prompts)
             }
         }
 
@@ -436,13 +445,13 @@ module.exports.voteWeekly = async(req, res) => {
 
         //user is trying to vote for the same post
         if (userIndex !== -1 && posts[i]._id.toString() === votePostID) {
-            //console.log("user is trying to vote for same post twice")
+            console.log("user is trying to vote for same post twice")
             return res.status(200).json({differentPost: false})
         }
 
         //remove weekly vote from any other post that the user has already voted for
         if (userIndex !== -1) {
-            //console.log("removing user's previous daily vote")
+            console.log("removing user's previous daily vote")
             const p = await Post.findById(posts[i]._id)
             p.weeklyVotes.splice(userIndex, 1)
             await p.save()
@@ -453,6 +462,7 @@ module.exports.voteWeekly = async(req, res) => {
     const votePost = await Post.findById(votePostID)
     votePost.weeklyVotes.push(userID)
     await votePost.save()
+    console.log("VOTE POST")
     console.log(votePost)
     return res.status(200).json({differentPost: true})
 }

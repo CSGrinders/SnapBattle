@@ -118,6 +118,7 @@ function GroupHome({route, navigation}) {
                 //if in weekly voting period, promptObj is not used but dailyWinningPosts is used
                 //otherwise, promptObj is used but dailyWinningPosts is not used
                 const {promptObj, dailyWinnerPosts, submissionAllowed, period, timeEnd} = res.data
+                console.log("success res")
 
                 setPeriod(period)
                 setTimeEnd(timeEnd)
@@ -145,7 +146,7 @@ function GroupHome({route, navigation}) {
                     }
                 }
 
-                //weekly voting procedure (or waiting period after weekly voting day?)
+                //weekly voting procedure
                 else if (period === 3) {
                     setPosts(dailyWinnerPosts)
 
@@ -155,15 +156,17 @@ function GroupHome({route, navigation}) {
                         setPromptID("")
                     }
                     else {
-                        setPrompt(dailyWinnerPosts[activeIndex].prompt.prompt)
-                        setPromptID(dailyWinnerPosts[activeIndex].prompt._id)
+                        console.log(dailyWinnerPosts)
+                        setActiveIndex(0)
+                        setPrompt(dailyWinnerPosts[0].prompt.prompt)
+                        setPromptID(dailyWinnerPosts[0].prompt._id)
                     }
                 }
             })
             .catch((err) => {
                 console.log("Group Home page: " + err);
-                const {data} = err.response;
-                if (err.response) {
+                if (err && err.response) {
+                    const {data} = err.response
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
                     leaveRoom(userID, groupID);
