@@ -423,7 +423,7 @@ function Memories({route, navigation}) {
                                     justifyContent: 'flex-end',
                                     gap: 5
                                 }}>
-                                    <Text>{weeklyWinnerPost.dailyVotes.length} Votes</Text>
+                                    <Text>{weeklyWinnerPost.weeklyVotes.length} Votes</Text>
                                     <TouchableOpacity onPress={() => onShare(weeklyWinnerPost.picture)}>
                                         <Image
                                             source={ShareIcon}
