@@ -25,7 +25,8 @@ const DailyPrompt = ({prompt, days, hours, minutes, seconds, period}) => {
     else {
         periodText = "WAITING PERIOD"
     }
-
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
     return (
         <View style={{
             width: width * 0.9,
@@ -59,7 +60,7 @@ const DailyPrompt = ({prompt, days, hours, minutes, seconds, period}) => {
                     fontWeight: 'bold',
                     fontSize: 20,
                 }}>
-                    Time left: {hours}:{minutes}:{seconds}
+                    Time left: {hours}:{formattedMinutes}:{formattedSeconds}
                 </Text>
             }
 
