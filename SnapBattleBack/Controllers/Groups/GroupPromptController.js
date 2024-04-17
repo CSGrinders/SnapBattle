@@ -22,7 +22,7 @@ async function updateDailyWinner(todayPrompt, group) {
     }
 
     //find post with highest number of votes
-    let maxVotes = 0;
+    let maxVotes = -1;
     let winner = null
     let winningUser = null
     for (let i = 0; i < posts.length; i++) {
@@ -55,7 +55,7 @@ async function updateDailyWinner(todayPrompt, group) {
 }
 
 async function updateWeeklyWinner(group, now, weekAgo, prompts) {
-    let maxVotes = 0
+    let maxVotes = -1
     let winner = null
     for (let i = 0; i < prompts.length; i++) {
         if (prompts[i].timeEnd.getTime() >= weekAgo.getTime() && prompts[i].timeEnd.getTime() <= now.getTime()) {
@@ -515,7 +515,7 @@ module.exports.getLastDailyWinner = async(req, res) => {
     }
 
     await lastPrompt.populate({path: 'dailyWinnerID', populate: [{path: 'owner'}]});
-    console.log("in prompt controller, dailyWinnerPost", lastPrompt.dailyWinnerID);
+    //console.log("in prompt controller, dailyWinnerPost", lastPrompt.dailyWinnerID);
 
     //get date string for the prompt
     const date = lastPrompt.timeEnd
@@ -570,7 +570,7 @@ module.exports.getLastWeekWinner = async(req, res) => {
     const lastPost = weeklyWinnerPosts[weeklyWinnerPosts.length - 1];
 
     await lastPost.populate([{path: 'prompt'}, {path: 'owner'}, {path: 'picture'}])
-    console.log("in prompt controller, weekly winner post", lastPost);
+    //console.log("in prompt controller, weekly winner post", lastPost);
 
     const date = lastPost.time
     const year = date.getFullYear()

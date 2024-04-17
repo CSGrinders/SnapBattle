@@ -94,6 +94,8 @@ function Memories({route, navigation}) {
                 console.log(e.response.data)
                 setErrorMessageServer(e.response.data.errorMessage)
                 setErrorServer(true)
+                setDailyWinnerPost(null)
+                setDailyWinnerPrompt(null)
             })
     }
 
@@ -111,6 +113,8 @@ function Memories({route, navigation}) {
                 console.log(e.response.data);
                 setErrorMessageServer(e.response.data.errorMessage)
                 setErrorServer(true)
+                setWeeklyWinnerPost(null)
+                setWeeklyWinnerPrompt(null)
             })
     }
 
@@ -214,7 +218,14 @@ function Memories({route, navigation}) {
                         height: 45,
                     }}
                     titleStyle={{ fontSize: 15, fontWeight: 'bold', /*fontFamily: 'OpenSansBold'*/ }}
-                    onPress={() => setDailySelected(true)}
+                    onPress={() => {
+                        setDailySelected(true)
+                        setSelected("")
+                        setDailyWinnerPrompt(null)
+                        setDailyWinnerPost(null)
+                        setWeeklyWinnerPrompt(null)
+                        setWeeklyWinnerPost(null)
+                    }}
                 />
                 <Button
                     title="Weekly"
@@ -233,7 +244,14 @@ function Memories({route, navigation}) {
                         height: 45,
                     }}
                     titleStyle={{ fontSize: 15, fontWeight: 'bold', /*fontFamily: 'OpenSans'*/ }}
-                    onPress={() => setDailySelected(false)}
+                    onPress={() => {
+                        setDailySelected(false)
+                        setSelected("")
+                        setDailyWinnerPrompt(null)
+                        setDailyWinnerPost(null)
+                        setWeeklyWinnerPrompt(null)
+                        setWeeklyWinnerPost(null)
+                    }}
                 />
             </View>
 
