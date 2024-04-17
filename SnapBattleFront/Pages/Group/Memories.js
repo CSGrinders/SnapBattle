@@ -4,9 +4,10 @@ import {
 import {Calendar} from 'react-native-calendars';
 import {Image} from "expo-image";
 import {Button} from "@rneui/themed";
-import React, {useCallback, useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import axios from "axios";
 import {useRef} from 'react'
+import scrollUp from "../../assets/sendMessage.webp";
 
 
 const {EXPO_PUBLIC_API_URL} = process.env
@@ -42,6 +43,17 @@ function Memories({route, navigation}) {
     const [weeklyWinnerPost, setWeeklyWinnerPost] = useState(null);
     const [weeklyWinnerPrompt, setWeeklyWinnerPrompt] = useState(null);
     const {leaveRoom} = useContext(SocketContext);
+    const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+    const handleScroll = (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        setShowScrollToTop(offsetY > 200);
+    };
+
+    const scrollToTop = () => {
+        scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    };
+
 
     function getLastDailyWinner() {
         axios.get(
@@ -170,6 +182,16 @@ function Memories({route, navigation}) {
         }
     };
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const amPm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12; // Converts 0 to 12 for 12-hour format
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+        return `${formattedHours}:${formattedMinutes} ${amPm}`;
+    };
+
     return (
         <SafeAreaView style={{flex: 1}}>
         <View style={{
@@ -275,7 +297,9 @@ function Memories({route, navigation}) {
             <ScrollView
                 contentContainerStyle={{ flexGrow: 1 }}
                 ref={scrollViewRef}
+                onScroll={handleScroll}
                 style={{marginBottom: 10}}
+                scrollEventThrottle={16}
                 showsVerticalScrollIndicator={false}
                 showsHorizontalScrollIndicator={false}
             >
@@ -355,7 +379,7 @@ function Memories({route, navigation}) {
                             height: "100%",
                             borderRadius: 25,
                             marginTop: 20,
-                            marginBottom: height * 0.3
+                            marginBottom: height * 0.2
                         }}>
                             <View style={{
                                 flexDirection: 'row',
@@ -376,7 +400,7 @@ function Memories({route, navigation}) {
                                     <OtherProfilePicture size={50} imageUrl={dailyWinnerPost.owner.profilePicture}/>
                                     <View style={{flexDirection: 'column'}}>
                                         <Text>{dailyWinnerPost.owner.username}</Text>
-                                        <Text>{new Date(dailyWinnerPost.time).getHours() + ":" + new Date(dailyWinnerPost.time).getMinutes()}</Text>
+                                        <Text>{formatDate(dailyWinnerPost.time)}</Text>
                                     </View>
                                     <View style={{
                                         flex: 1,
@@ -401,7 +425,6 @@ function Memories({route, navigation}) {
                             <Image
                                 source={{uri: dailyWinnerPost.picture}}
                                 style={{
-                                    width: width * 0.9 - 10,
                                     height: (1.2) * (width * 0.9 - 10),
                                 }}
                             />
@@ -416,7 +439,7 @@ function Memories({route, navigation}) {
                         height: "100%",
                         borderRadius: 25,
                         marginTop: 20,
-                        marginBottom: height * 0.3
+                        marginBottom: height * 0.2
                     }}>
                         <View style={{
                             flexDirection: 'row',
@@ -437,7 +460,7 @@ function Memories({route, navigation}) {
                                 <OtherProfilePicture size={50} imageUrl={weeklyWinnerPost.owner.profilePicture}/>
                                 <View style={{flexDirection: 'column'}}>
                                     <Text>{weeklyWinnerPost.owner.username}</Text>
-                                    <Text>{new Date(weeklyWinnerPost.time).getHours() + ":" + new Date(weeklyWinnerPost.time).getMinutes()}</Text>
+                                    <Text>{formatDate(weeklyWinnerPost.time)}</Text>
                                 </View>
                                 <View style={{
                                     flex: 1,
@@ -462,8 +485,7 @@ function Memories({route, navigation}) {
                         <Image
                             source={{uri: weeklyWinnerPost.picture}}
                             style={{
-                                width: width * 0.9 - 10,
-                                height: (1.2) * (width * 0.9 - 10),
+                                height: (1.2) * (width * 0.9 - 2),
                             }}
                         />
                     </View>
@@ -478,6 +500,30 @@ function Memories({route, navigation}) {
                 <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
             </ScrollView>
         </View>
+            {showScrollToTop &&
+            <TouchableOpacity
+                onPress={scrollToTop}
+                style={{
+                    position: 'absolute',
+                    bottom: 20,
+                    alignSelf: 'center',
+                    width: 50,
+                    height: 50,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 25,
+                    shadowOffset: { width: 1, height: 1 },
+                    shadowColor: 'black',
+                    shadowOpacity: 0.3,
+                    shadowRadius: 3,
+                }}
+            >
+                <Image
+                    source={scrollUp}
+                    style={{ width: 50, height: 50 }}
+                />
+            </TouchableOpacity>
+            }
         </SafeAreaView>
     )
 }
