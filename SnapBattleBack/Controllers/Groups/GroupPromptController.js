@@ -698,7 +698,7 @@ module.exports.getDailyWinner = async (req, res) => {
 
         const prompts = group.prompts;
         if (prompts.length === 0) {
-            return res.status(401).json({errorMessage: 'No daily winner'});
+            return res.status(401).json({errorMessage: 'No daily winner.'});
         }
 
         let prompt = null;
@@ -719,7 +719,7 @@ module.exports.getDailyWinner = async (req, res) => {
 
         if (prompt === null || prompt.dailyWinnerID === undefined ||
             prompt.dailyWinnerID === null) {
-            return res.status(401).json({errorMessage: 'No daily winner'});
+            return res.status(401).json({errorMessage: 'No daily winner.'});
         }
 
         await prompt.populate({path: 'dailyWinnerID', populate: [{path: 'owner'}]});
@@ -824,7 +824,7 @@ module.exports.getWeeklyWinner = async (req, res) => {
         }
 
         if (returnPost === null) {
-            return res.status(401).json({errorMessage: 'No weekly winner'});
+            return res.status(401).json({errorMessage: 'No weekly winner.'});
         }
 
         await returnPost.populate([{path: 'prompt'}, {path: 'owner'}, {path: 'picture'}])
