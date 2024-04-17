@@ -123,8 +123,8 @@ function ProfileSettings({route, navigation}) {
                 }, 2000);
             }
         }).catch((error) => {
-            const {status, data} = error.response;
-            if (error.response) { //Error
+            if (error && error.response) { //Error
+                const {status, data} = error.response;
                 if (status !== 500) {
                     setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
@@ -168,8 +168,8 @@ function ProfileSettings({route, navigation}) {
                 }, 2000);
             }
         }).catch((error) => {
-            const {status, data} = error.response;
-            if (error.response) { //Error
+            if (error && error.response) { //Error
+                const {status, data} = error.response;
                 if (status !== 500) {
                     setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
@@ -209,8 +209,8 @@ function ProfileSettings({route, navigation}) {
                 }
             }).catch((error) => {
                 setNewName(name);
-                const {status, data} = error.response;
-                if (error.response) { //Error
+                if (error && error.response) { //Error
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setErrorMessageName(data.errorMessage);
                     } else {
@@ -246,8 +246,8 @@ function ProfileSettings({route, navigation}) {
                     setErrorMessageName('');
                 }
             }).catch((error) => {
-                const {status, data} = error.response;
-                if (error.response) { //Error
+                if (error && error.response) { //Error
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setErrorMessageBio(data.errorMessage);
                     } else {
@@ -282,8 +282,8 @@ function ProfileSettings({route, navigation}) {
             }
         }).catch((error) => {
             console.log("Profile settings page: " + error);
-            const {status, data} = error.response;
-            if (error.response) { //Error
+            if (error && error.response) { //Error
+                const {status, data} = error.response;
                 if (status !== 500) {
                     setErrorMessagePassword(data.errorMessage);
                 } else {

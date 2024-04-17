@@ -4,7 +4,7 @@ import {
 import {Calendar} from 'react-native-calendars';
 import {Image} from "expo-image";
 import {Button} from "@rneui/themed";
-import React, {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useContext, useEffect, useState} from "react";
 import axios from "axios";
 import {useRef} from 'react'
 
@@ -15,6 +15,7 @@ import BackButton from "../../Components/Button/BackButton";
 import InfoPrompt from "../../Components/Prompts/InfoPrompt";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
 import ShareIcon from "../../assets/share.webp";
+import {SocketContext} from "../../Storage/Socket";
 
 function Memories({route, navigation}) {
 
@@ -40,6 +41,7 @@ function Memories({route, navigation}) {
     const [dailyWinnerPost, setDailyWinnerPost] = useState(null);
     const [weeklyWinnerPost, setWeeklyWinnerPost] = useState(null);
     const [weeklyWinnerPrompt, setWeeklyWinnerPrompt] = useState(null);
+    const {leaveRoom} = useContext(SocketContext);
 
     function getLastDailyWinner() {
         axios.get(
@@ -51,10 +53,19 @@ function Memories({route, navigation}) {
                 setDailyWinnerPost(dailyWinnerPostObj);
                 setSelected(dayString);
             })
-            .catch((e) => {
-                console.log(e.response.data)
-                setErrorMessageServer(e.response.data.errorMessage)
-                setErrorServer(true)
+            .catch((err) => {
+                console.log("Memories page: " + err);
+                if (err && err.response) {
+                    const {data, status} = err.response;
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
+                }
             })
     }
 
@@ -72,10 +83,19 @@ function Memories({route, navigation}) {
                 setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
                 setSelected(dayString)
             })
-            .catch((e) => {
-                console.log(e.response.data);
-                setErrorMessageServer(e.response.data.errorMessage)
-                setErrorServer(true)
+            .catch((err) => {
+                console.log("Memories page: " + err);
+                if (err && err.response) {
+                    const {data, status} = err.response;
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
+                }
             })
     }
 
@@ -90,12 +110,19 @@ function Memories({route, navigation}) {
                 setDailyWinnerPost(dailyWinnerPostObj);
                 setSelected(dayString);
             })
-            .catch((e) => {
-                console.log(e.response.data)
-                setErrorMessageServer(e.response.data.errorMessage)
-                setErrorServer(true)
-                setDailyWinnerPost(null)
-                setDailyWinnerPrompt(null)
+            .catch((err) => {
+                console.log("Memories page: " + err);
+                if (err && err.response) {
+                    const {data, status} = err.response;
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
+                }
             })
     }
 
@@ -109,12 +136,19 @@ function Memories({route, navigation}) {
                 setWeeklyWinnerPost(weeklyWinnerPost);
                 setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
             })
-            .catch((e) => {
-                console.log(e.response.data);
-                setErrorMessageServer(e.response.data.errorMessage)
-                setErrorServer(true)
-                setWeeklyWinnerPost(null)
-                setWeeklyWinnerPrompt(null)
+            .catch((err) => {
+                console.log("Memories page: " + err);
+                if (err && err.response) {
+                    const {data, status} = err.response;
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
+                }
             })
     }
 

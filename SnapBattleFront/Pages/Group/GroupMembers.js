@@ -103,14 +103,16 @@ function GroupMembers({route, navigation}) {
             })
             .catch((err) => {
                 console.log("Members Home page: " + err);
-                if (err.response) {
-                    const {data} = err.response;
+                if (err && err.response) {
+                    const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }
@@ -137,8 +139,8 @@ function GroupMembers({route, navigation}) {
                 }
             }
         ).catch((error) => {
-            const {status, data} = error.response;
-            if (error.response) {
+            if (error && error.response) {
+                const {status, data} = error.response;
                 if (status !== 500) {
                     setInvStatusMsg(data.errorMessage);
                     setInvStatusColor("red")
@@ -175,9 +177,9 @@ function GroupMembers({route, navigation}) {
                 setSuccessMessage(kickUser + " has ben kicked successfully.");
             }
         }).catch((error) => {
-            console.log(error)
-            let {status, data} = error.response;
-            if (error.response) {
+            console.log("Group member page: " + error)
+            if (error && error.response) {
+                let {status, data} = error.response;
                 if (status === 404) {
                     setGroupMembers(groupMembers.filter(member => member.username !== kickUser));
                 }

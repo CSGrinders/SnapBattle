@@ -30,6 +30,11 @@ module.exports.createPost = async(req, res) => {
             return res.status(404).json({errorMessage: 'Group could not be found.'})
         }
 
+        const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
+        if (!isUserInGroup) {
+            return res.status(401).json({errorMessage: 'You don\'t belong to this group.'});
+        }
+
         const prompts = group.prompts
         for (let i = 0; i < prompts.length; i++) {
 
@@ -49,7 +54,7 @@ module.exports.createPost = async(req, res) => {
 
                 //user already submitted 3 times
                 if (nextSubmissionNum > 3) {
-                    return res.status(401).json({errorMessage: "Already submitted 3 times"})
+                    return res.status(401).json({errorMessage: "Already submitted 3 times."})
                 }
 
                 //upload photo to firebase
@@ -97,7 +102,7 @@ module.exports.createPost = async(req, res) => {
         }
 
         //no prompt was found
-        return res.status(404).json({errorMessage: "prompt could not be found"})
+        return res.status(404).json({errorMessage: "Prompt could not be found."})
 
     } catch (error) {
         console.log("createPost module: " + error);

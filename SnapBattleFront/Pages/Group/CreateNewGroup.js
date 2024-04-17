@@ -126,16 +126,18 @@ function CreateNewGroup({route, navigation}) {
                     }, 2000);
                 }
             }).catch((error) => {
-                const {status, data} = error.response;
-                if (status === 400) {
-                    setErrorMessagePromptTime(data.errorMessage)
-                    setErrorMessageSubmissionTime(data.errorMessage)
-                } else if (status === 402) {
-                    setLengthError(data.errorMessage)
-                } else {
-                    setErrorMessageServer("Something went wrong...");
-                    setErrorServer(true);
-                    console.log("CreateGroup page: " + error);
+                if (error && error.response) {
+                    const {status, data} = error.response;
+                    if (status === 400) {
+                        setErrorMessagePromptTime(data.errorMessage)
+                        setErrorMessageSubmissionTime(data.errorMessage)
+                    } else if (status === 402) {
+                        setLengthError(data.errorMessage)
+                    } else {
+                        setErrorMessageServer("Something went wrong...");
+                        setErrorServer(true);
+                        console.log("CreateGroup page: " + error);
+                    }
                 }
             })
         }

@@ -87,8 +87,8 @@ function Friends({route, navigation}) {
                 navigation.navigate("OtherProfile", {...res.data, userID: userID, token: token});
             })
             .catch((error) => {
-                const {status, data} = error.response;
-                if (error.response) {
+                if (error && error.response) {
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setErrorMessageServer(data.errorMessage);
                         setSearch('');
@@ -121,8 +121,8 @@ function Friends({route, navigation}) {
                 navigation.navigate("OtherProfile", {...res.data, ...route.params, viewType: viewType, token: token});
             })
             .catch((error) => {
-                const {status, data} = error.response;
-                if (error.response) {
+                if (error && rror.response) {
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setErrorMessageServer(data.errorMessage);
                         setErrorServer(true);
@@ -150,7 +150,7 @@ function Friends({route, navigation}) {
             })
             .catch((error) => {
                 console.log("Friends page: " + error);
-                if (error.response) {
+                if (error && error.response) {
                     setErrorMessageServer(error.response.data.errorMessage);
                     setErrorServer(true);
                 }
@@ -169,7 +169,7 @@ function Friends({route, navigation}) {
             setFriends(friends);
         }).catch((error) => {
             console.log("Friends page: " + error);
-            if (error.response) {
+            if (error && error.response) {
                 setErrorMessageServer(error.response.data.errorMessage);
                 setErrorServer(true);
             }
@@ -187,7 +187,7 @@ function Friends({route, navigation}) {
             setFriendReqs(requests);
         }).catch((error) => {
             console.log("Friends page: " + error);
-            if (error.response) {
+            if (error && error.response) {
                 setErrorMessageServer(error.response.data.errorMessage);
                 setErrorServer(true);
             }

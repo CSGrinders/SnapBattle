@@ -59,7 +59,7 @@ function Profile({route, navigation}) {
                 setBio(bio);
             })
             .catch((error) => {
-                if (error.response) {
+                if (error && error.response) {
                     setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
                 } else {

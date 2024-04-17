@@ -105,7 +105,13 @@ function SubmissionCamera({route, navigation}) {
                         navigation.goBack()
                     })
                     .catch((err) => {
-                        console.log(err)
+                        console.log("Camara  page: " + err);
+                        if (err && err.response) {
+                            leaveRoom(userID, groupID);
+                            setTimeout(() => {
+                                navigation.navigate("Main", {userID: userID})
+                            }, 1500)
+                        }
                     })
             }
         })

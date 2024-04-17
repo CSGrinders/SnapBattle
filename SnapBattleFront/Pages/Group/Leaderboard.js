@@ -80,14 +80,16 @@ function Leaderboard({route, navigation}) {
             })
             .catch((err) => {
                 console.log("Leaderboard page: " + err);
-                const {data} = err.response;
-                if (err.response) {
+                if (err && err.response) {
+                    const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }
@@ -107,14 +109,16 @@ function Leaderboard({route, navigation}) {
             })
             .catch((err) => {
                 console.log("LeaderHome page: " + err);
-                const {data} = err.response;
-                if (err.response) {
+                if (err && err.response) {
+                    const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }

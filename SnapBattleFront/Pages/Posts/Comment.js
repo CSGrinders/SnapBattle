@@ -16,7 +16,6 @@ import {Input} from '@rneui/themed';
 import sendMessage from "../../assets/sendMessage.webp";
 import HeartIcon from "../../assets/heart.webp";
 import OtherProfilePicture from "../../Components/Profile/OtherProfilePicture";
-import CommentItem from "../../Components/DailyPrompt/CommentItem";
 import {useFocusEffect} from "@react-navigation/native";
 import {SocketContext} from "../../Storage/Socket";
 import ErrorPrompt from "../../Components/Prompts/ErrorPrompt";
@@ -66,14 +65,16 @@ const Comment = ({size, route, navigation}) => {
                 setLoading(false);
             })
             .catch((err) => {
-                const {data} = err.response;
-                if (err.response) {
+                if (err && err.response) {
+                    const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }
@@ -91,14 +92,16 @@ const Comment = ({size, route, navigation}) => {
                 }
             })
             .catch((err) => {
-                const {data} = err.response;
-                if (err.response) {
+                if (err && err.response) {
+                    const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }
@@ -120,19 +123,16 @@ const Comment = ({size, route, navigation}) => {
                 setComments(res.data.comments);
             })
             .catch((err) => {
-                console.log(err)
-                const {status, data} = err.response;
-                if (err.response) { //Error
-                    if (status !== 500) {
-                        setErrorMessageServer("Something went wrong...");
-                        setErrorServer(true);
-                    } else {
-                        setErrorMessageServer("Something went wrong...");
-                        setErrorServer(true);
-                    }
-                } else {
-                    setErrorMessageServer("Something went wrong...");
+                if (err && err.response) {
+                    const {data, status} = err.response;
+                    setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }
@@ -167,7 +167,17 @@ const Comment = ({size, route, navigation}) => {
                     setComments(res.data.comments);
                 })
                 .catch((err) => {
-                    console.log(err)
+                    if (err && err.response) {
+                        const {data, status} = err.response;
+                        setErrorMessageServer(data.errorMessage);
+                        setErrorServer(true);
+                        if (status === 404) {
+                            leaveRoom(userID, groupID);
+                            setTimeout(() => {
+                                navigation.navigate("Main", {userID: userID})
+                            }, 1500)
+                        }
+                    }
                 })
         }
         setEditComment(false)
@@ -188,15 +198,16 @@ const Comment = ({size, route, navigation}) => {
                 setCommentTyped('');
             })
             .catch((err) => {
-                console.log(err)
-                // something went wrong popup TODO
-                const {status, data} = err.response;
-                if (err.response) { //Error
+                if (err && err.response) {
+                    const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
-                } else {
-                    setErrorMessageServer("Something went wrong...");
-                    setErrorServer(true);
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }
@@ -214,7 +225,17 @@ const Comment = ({size, route, navigation}) => {
                     setComments(res.data.comments);
                 })
                 .catch((err) => {
-                    console.log(err)
+                    if (err && err.response) {
+                        const {data, status} = err.response;
+                        setErrorMessageServer(data.errorMessage);
+                        setErrorServer(true);
+                        if (status === 404) {
+                            leaveRoom(userID, groupID);
+                            setTimeout(() => {
+                                navigation.navigate("Main", {userID: userID})
+                            }, 1500)
+                        }
+                    }
                 })
         }
 
@@ -228,7 +249,17 @@ const Comment = ({size, route, navigation}) => {
                     setComments(res.data.comments);
                 })
                 .catch((err) => {
-                    console.log(err)
+                    if (err && err.response) {
+                        const {data, status} = err.response;
+                        setErrorMessageServer(data.errorMessage);
+                        setErrorServer(true);
+                        if (status === 404) {
+                            leaveRoom(userID, groupID);
+                            setTimeout(() => {
+                                navigation.navigate("Main", {userID: userID})
+                            }, 1500)
+                        }
+                    }
                 })
         }
 
