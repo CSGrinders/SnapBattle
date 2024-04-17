@@ -76,26 +76,26 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use('/user/:userID/groups/:groupID', async (req, res, next) => {
     try {
             // GET request
-    if (req.method === 'GET') {
-        const {groupID, userID} = req.params;
-        console.log("userID:", userID,"GroupID:",groupID)   
-        if (groupID !== undefined) {
-            const group = await Group.findById(groupID);
-            if (!group) {
-                console.log("Group not found")
-            }
+        if (req.method === 'GET') {
+            const {groupID, userID} = req.params;
+            console.log("userID:", userID,"GroupID:",groupID)   
+            if (groupID !== undefined) {
+                const group = await Group.findById(groupID);
+                if (!group) {
+                    console.log("Group not found")
+                }
 
-            const currentDate = new Date();
-            const targetDate = group.lastPeriod
+                const currentDate = new Date();
+                const targetDate = group.lastPeriod
 
-            targetDate.setDate(targetDate.getDate() + 2);
-            console.log(currentDate.getTime(), targetDate.getTime())
-            if (currentDate.getTime() > targetDate.getTime()) {
-                console.log("current date is 2 days after groups.lastPeriod")
-                resetPointsHelper(groupID)
-                group.lastPeriod = new Date();
-                group.save();
-            }
+                targetDate.setDate(targetDate.getDate() + 2);
+                console.log(currentDate.getTime(), targetDate.getTime())
+                if (currentDate.getTime() > targetDate.getTime()) {
+                    console.log("current date is 2 days after groups.lastPeriod")
+                    await resetPointsHelper(groupID)
+                    group.lastPeriod = new Date();
+                    await group.save();
+                }
         }
     }
     console.log('Middleware executed before routes from groupsRouter');
