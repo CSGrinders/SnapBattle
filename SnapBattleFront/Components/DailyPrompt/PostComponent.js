@@ -106,6 +106,12 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
 
     //each item is a post w/ the same attributes as a post object in MongoDB
     function renderItem({item, index}) {
+        const date = new Date(item.time);
+        const hours = date.getHours();
+        const minutes = date.getMinutes();
+        const amPm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12;
+        const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
         return (
             <View style={{
                 height: "100%",
@@ -130,7 +136,7 @@ const PostComponent = ({posts, route, navigation, activeIndex, setActiveIndex, s
                         <OtherProfilePicture size={50} imageUrl={item.owner.profilePicture}/>
                         <View style={{flexDirection: 'column'}}>
                             <Text>{item.owner.username}</Text>
-                            <Text>{new Date(item.time).getHours() + ":" + new Date(item.time).getMinutes()}</Text>
+                            <Text>{`${formattedHours}:${formattedMinutes} ${amPm}`}</Text>
                         </View>
                         <View style={{
                             flex: 1,
