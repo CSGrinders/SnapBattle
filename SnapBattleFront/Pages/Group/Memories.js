@@ -1,5 +1,5 @@
 import {
-    Dimensions, Text, View, TouchableOpacity, Share, ScrollView,
+    Dimensions, Text, View, TouchableOpacity, Share, ScrollView, SafeAreaView,
 } from "react-native";
 import {Calendar} from 'react-native-calendars';
 import {Image} from "expo-image";
@@ -137,28 +137,29 @@ function Memories({route, navigation}) {
     };
 
     return (
+        <SafeAreaView style={{flex: 1}}>
         <View style={{
             alignItems: 'center',
         }}>
             <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                marginTop: 70,
+                justifyContent: 'flex-start',
                 marginBottom: 5
             }}>
                 <View style={{
                     paddingLeft: 15,
+                    paddingTop: 5,
                     alignItems: 'flex-start'
                 }}>
-                    <BackButton size={40} navigation={navigation}/>
+                    <BackButton size={50} navigation={navigation}/>
                 </View>
                 <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', paddingLeft: 32}}>
-                    <Text style={{fontSize: 30, /*fontFamily: 'OpenSans'*/}}>Memories</Text>
+                    <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Memories</Text>
                 </View>
-                {dailySelected ? (
+                <View style={{paddingTop: 20}}>
                     <Button
-                        onPress={() => getLastDailyWinner()}
+                        onPress={() => dailySelected ? getLastDailyWinner() : getLastWeeklyWinner()}
                         type="outline"
                         title="Most Recent"
                         titleStyle={{ fontSize: 10, fontWeight: 'bold' }}
@@ -174,25 +175,7 @@ function Memories({route, navigation}) {
                             width: 80,
                             height: 45,
                         }} />
-                ) : (
-                    <Button
-                        onPress={() => getLastWeeklyWinner()}
-                        type="outline"
-                        title="Most Recent"
-                        titleStyle={{ fontSize: 10, fontWeight: 'bold' }}
-                        buttonStyle={{
-                            width: 80,
-                            height: 35,
-                            borderRadius: 40,
-                        }}
-                        containerStyle={{
-                            marginTop: 2,
-                            marginRight: 10,
-                            marginBottom: 2,
-                            width: 80,
-                            height: 45,
-                        }}/>
-                )}
+                </View>
             </View>
             <View style={{
                 flexDirection: 'row',
@@ -255,7 +238,13 @@ function Memories({route, navigation}) {
                 />
             </View>
 
-            <ScrollView contentContainerStyle={{ flexGrow: 1 }} ref={scrollViewRef} style={{marginBottom: 10}}>
+            <ScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
+                ref={scrollViewRef}
+                style={{marginBottom: 10}}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+            >
                 <Calendar
                     style={{
                         width: width * 0.9,
@@ -455,6 +444,7 @@ function Memories({route, navigation}) {
                 <InfoPrompt Message={successMessage} state={successState} setEnable={setSuccessState}></InfoPrompt>
             </ScrollView>
         </View>
+        </SafeAreaView>
     )
 }
 
