@@ -174,8 +174,10 @@ module.exports.deleteAccount = async (req, res) => {
                     populate: [
                         {
                             path: 'user',
-                        }]}
+                        }]
+                }
                 ]}); //Find user
+        //console.log(user);
         if (user) {
             //Delete Friends/Reqs/remove blocks (fix remove blocks later) (Done with friends)
             //Fix delete WeeklyDaily (Done)
@@ -211,13 +213,16 @@ module.exports.deleteAccount = async (req, res) => {
             if (groups && groups.length > 0) {
                 for (const group of groups) {
                     //console.log(group);
-                    if (group.adminUserID._id.toString() === user._id.toString()) {
-                        // set to any random person in the group
-                        const newAdmin = group.userList.find(userL => userL.user._id.toString() !== user._id.toString());
-                        group.adminUserID = newAdmin.user;
-                        group.adminName = group.adminUserID.username;
-                        console.log(group);
-                        await group.save();
+                    if (group.userList.length > 1) {
+                        if (group.adminUserID._id.toString() === user._id.toString()) {
+                            // set to any random person in the group
+                            const newAdmin = group.userList.find(userL => userL.user._id.toString() !== user._id.toString());
+                            console.log(newAdmin);
+                            group.adminUserID = newAdmin.user;
+                            group.adminName = group.adminUserID.username;
+                            console.log(group);
+                            await group.save();
+                        }
                     }
                     let leaveSuccess = await leave(user._id.toString(), group._id.toString());
                     if (!leaveSuccess) {
