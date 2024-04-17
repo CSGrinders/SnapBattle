@@ -89,8 +89,8 @@ function GroupSettings({route, navigation}) {
                     }
                 })
                 .catch((error) => {
-                    const {status, data} = error.response;
-                    if (error.response) {
+                    if (error && error.response) {
+                        const {status, data} = error.response;
                         if (status !== 500) {
                             setGroupNameError(data.errorMessage);
                         } else {
@@ -129,8 +129,8 @@ function GroupSettings({route, navigation}) {
                     }
                 })
                 .catch((error) => {
-                    const {status, data} = error.response;
-                    if (error.response) {
+                    if (error && error.response) {
+                        const {status, data} = error.response;
                         if (status !== 500) {
                             setGroupNameError(data.errorMessage);
                         } else {
@@ -166,8 +166,8 @@ function GroupSettings({route, navigation}) {
                     }
                 })
                 .catch((error) => {
-                    const {status, data} = error.response;
-                    if (error.response) {
+                    if (error && error.response) {
+                        const {status, data} = error.response;
                         if (status !== 500) {
                             setPromptTimeError(data.errorMessage);
                         } else {
@@ -203,8 +203,8 @@ function GroupSettings({route, navigation}) {
                     }
                 })
                 .catch((error) => {
-                    const {status, data} = error.response;
-                    if (error.response) {
+                    if (error && error.response) {
+                        const {status, data} = error.response;
                         if (status !== 500) {
                             setSubmissionTimeError(data.errorMessage);
                         } else {
@@ -240,8 +240,8 @@ function GroupSettings({route, navigation}) {
                     }
                 })
                 .catch((error) => {
-                    const {status, data} = error.response;
-                    if (error.response) {
+                    if (error && error.response) {
+                        const {status, data} = error.response;
                         if (status !== 500) {
                             setLengthError(data.errorMessage);
                         } else {
@@ -275,10 +275,8 @@ function GroupSettings({route, navigation}) {
                 }, 2000);
             })
             .catch((error) => {
-                const {status, data} = error.response;
-                console.log(status)
-                console.log(data)
-                if (error.response) {
+                if (error && error.response) {
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setGroupNameError(data.errorMessage);
                     } else {

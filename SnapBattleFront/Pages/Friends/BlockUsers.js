@@ -82,8 +82,8 @@ function BlockUsers({route, navigation}) {
             })
             .catch((error) => {
                 console.log("Block page: " + error);
-                const {data, status} = error.response;
-                if (error.response) {
+                if (error && error.response) {
+                    const {data, status} = error.response;
                     setErrorMessageServer(error.response.data.errorMessage);
                     setErrorServer(true);
                 }
@@ -105,8 +105,8 @@ function BlockUsers({route, navigation}) {
                 navigation.navigate("OtherProfile", {...res.data, ...route.params, token: token});
             })
             .catch((error) => {
-                const {status, data} = error.response;
-                if (error.response) {
+                if (error && error.response) {
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setErrorMessageServer(data.errorMessage);
                         setErrorServer(true);

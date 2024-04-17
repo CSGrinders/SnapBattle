@@ -138,8 +138,8 @@ function Groups({route, navigation}) {
                 setGroupInvites(invites);
             })
             .catch((error) => {
-                const {status, data} = error.response;
-                if (error.response) {
+                if (error && error.response) {
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setErrorMessageServer("Something went wrong...");
                         setErrorServer(true);
@@ -164,8 +164,8 @@ function Groups({route, navigation}) {
             setGroups(groups)
             setGroupInvites(invites)
         }).catch(error => {
-            const {status, data} = error.response;
-            if (error.response) {
+            if (error && error.response) {
+                const {status, data} = error.response;
                 if (status !== 500) {
                     setErrorMessageServer(errorMessageServer);
                     setErrorServer(true);
@@ -191,8 +191,8 @@ function Groups({route, navigation}) {
             setGroups(groups)
             setGroupInvites(invites)
         }).catch(error => {
-            const {status, data} = error.response;
-            if (error.response) {
+            if (error && error.response) {
+                const {status, data} = error.response;
                 if (status !== 500) {
                     setErrorMessageServer("Something went wrong...");
                     setErrorServer(true);
@@ -219,8 +219,8 @@ function Groups({route, navigation}) {
                 setInfoMessage("You left the group.");
             })
             .catch((error) => {
-                const {status, data} = error.response;
-                if (error.response) {
+                if (error && error.response) {
+                    const {status, data} = error.response;
                     if (status !== 500) {
                         setGroups(groups.filter(group => group.groupID !== groupID));
                         setErrorMessageServer(data.errorMessage);
@@ -248,10 +248,12 @@ function Groups({route, navigation}) {
                     leaveGroup(confirmGroup);
                 }
             }).catch((error) => {
-            const {status, data} = error.response;
-            console.log("Main Group page: " + error);
-            setErrorMessageServer(data.errorMessage);
-            setErrorServer(true);
+            if (error && error.response) {
+                const {status, data} = error.response;
+                console.log("Main Group page: " + error);
+                setErrorMessageServer(data.errorMessage);
+                setErrorServer(true);
+            }
         })
     }
 
@@ -265,12 +267,14 @@ function Groups({route, navigation}) {
                 leaveGroup(confirmGroup);
             }
         }).catch((error) => {
-            const {status, data} = error.response;
-            if (status === 400 || status === 404) {
-                setTransferError(data.errorMessage);
-            } else {
-                setErrorServer(true);
-                setErrorMessageServer(data.errorMessage);
+            if (error && error.response) {
+                const {status, data} = error.response;
+                if (status === 400 || status === 404) {
+                    setTransferError(data.errorMessage);
+                } else {
+                    setErrorServer(true);
+                    setErrorMessageServer(data.errorMessage);
+                }
             }
         })
     }

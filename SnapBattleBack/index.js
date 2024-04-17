@@ -92,7 +92,7 @@ app.use('/user/:userID/groups/:groupID', async (req, res, next) => {
                 //console.log(currentDate.getTime(), targetDate.getTime())
                 if (currentDate.getTime() > targetDate.getTime()) {
                     console.log("current date is 2 weeks after groups.lastPeriod")
-                    await resetPointsHelper(groupID)
+                    await resetPointsHelper(groupID, userID)
                     group.lastPeriod = new Date();
                     await group.save();
                 }

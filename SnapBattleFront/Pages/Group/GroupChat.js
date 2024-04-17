@@ -52,14 +52,16 @@ function GroupChat({route, navigation}) {
                 })
                 .catch((err) => {
                     console.log("Group Home page: " + err);
-                    if (err.response) {
-                        const {data} = err.response;
+                    if (err && err.response) {
+                        const {data, status} = err.response;
                         setErrorMessageServer(data.errorMessage);
                         setErrorServer(true);
-                        leaveRoom(userID, groupID);
-                        setTimeout(() => {
-                            navigation.navigate("Main", {userID: userID})
-                        }, 1500)
+                        if (status === 404) {
+                            leaveRoom(userID, groupID);
+                            setTimeout(() => {
+                                navigation.navigate("Main", {userID: userID})
+                            }, 1500)
+                        }
                     } else {
                         setErrorMessageServer("Something went wrong...");
                         setErrorServer(true);

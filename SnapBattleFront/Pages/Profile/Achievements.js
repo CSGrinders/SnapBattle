@@ -77,6 +77,7 @@ function Achievements({route, navigation}) {
             }}>{item.name}</Text>
         </View>
     )
+
   return (
 <View style={{flex: 1, alignItems: "center"}}>
             <View style={{
@@ -96,6 +97,20 @@ function Achievements({route, navigation}) {
                     <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Achievements</Text>
                 </View>
             </View>
+    {displayedAchievements.length === 0 ?
+        <>
+            <View style={{
+                flex: 0.8,
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+                <Text style={{
+                    color: 'grey',
+                    fontWeight: 'bold',
+                    fontSize: 25,
+                }}>No Achievements</Text>
+            </View>
+        </> :
             <FlatList
             data={displayedAchievements}
             renderItem={renderItem}
@@ -108,6 +123,7 @@ function Achievements({route, navigation}) {
                 paddingHorizontal: 10,
             }}
         />
+    }
         </View>
   )
 }

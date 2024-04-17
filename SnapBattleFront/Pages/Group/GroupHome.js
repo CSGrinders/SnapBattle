@@ -31,6 +31,7 @@ import {SocketContext} from "../../Storage/Socket";
 import GroupBackButton from "../../Components/Button/GroupBackButton";
 import CloseButton from "../../assets/close.webp";
 import ProfilePicture from "../../Components/Profile/ProfilePicture";
+
 const {EXPO_PUBLIC_API_URL, EXPO_PUBLIC_USER_INFO, EXPO_PUBLIC_USER_TOKEN} = process.env;
 
 function GroupHome({route, navigation}) {
@@ -55,6 +56,7 @@ function GroupHome({route, navigation}) {
 
     //boolean whose change will refresh the page
     const [refresh, setRefresh] = useState(false)
+
     function handleRefresh() {
         setRefresh((refresh) => !refresh)
     }
@@ -75,7 +77,7 @@ function GroupHome({route, navigation}) {
     //variables for the info pop-up
     const [infoMessage, setInfoMessage] = useState("")
     const [infoState, setInfoState] = useState(false)
-    const {leaveRoom } = useContext(SocketContext);
+    const {leaveRoom} = useContext(SocketContext);
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
 
@@ -122,8 +124,7 @@ function GroupHome({route, navigation}) {
                 setTimeEnd(timeEnd)
                 if (submissionAllowed) {
                     setCamOpacity(1)
-                }
-                else {
+                } else {
                     setCamOpacity(0.5)
                 }
 
@@ -132,8 +133,7 @@ function GroupHome({route, navigation}) {
                 if (period !== 3) {
                     if (promptObj === null) {
                         setPrompt("Prompt has not been released yet")
-                    }
-                    else {
+                    } else {
                         setPrompt(promptObj.prompt)
                         setPromptID(promptObj._id)
                         setPosts(promptObj.posts)
@@ -152,14 +152,12 @@ function GroupHome({route, navigation}) {
                     if (dailyWinnerPosts.length === 0) {
                         setPrompt("No daily winners in the past 7 days :(")
                         setPromptID("")
-                    }
-                    else {
+                    } else {
                         if (activeIndex < dailyWinnerPosts.length) {
                             setPrompt(dailyWinnerPosts[activeIndex].prompt.prompt)
                             setPromptID(dailyWinnerPosts[activeIndex].prompt._id)
                             setActivePostID(dailyWinnerPosts[activeIndex]._id)
-                        }
-                        else {
+                        } else {
                             setActiveIndex(0)
                             setPrompt(dailyWinnerPosts[0].prompt.prompt)
                             setPromptID(dailyWinnerPosts[0].prompt._id)
@@ -172,13 +170,15 @@ function GroupHome({route, navigation}) {
             .catch((err) => {
                 console.log("Group Home page: " + err);
                 if (err && err.response) {
-                    const {data} = err.response
+                    const {data, status} = err.response
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
-                    leaveRoom(userID, groupID);
-                    setTimeout(() => {
-                        navigation.navigate("Main", {userID: userID})
-                    }, 1500)
+                    if (status === 404) {
+                        leaveRoom(userID, groupID);
+                        setTimeout(() => {
+                            navigation.navigate("Main", {userID: userID})
+                        }, 1500)
+                    }
                 }
             })
     }
@@ -188,8 +188,7 @@ function GroupHome({route, navigation}) {
         if (camOpacity === 0.5) {
             setInfoMessage("You used all 3 submissions already")
             setInfoState(true)
-        }
-        else {
+        } else {
             navigation.navigate('Camera', route.params)
         }
     }
@@ -216,11 +215,23 @@ function GroupHome({route, navigation}) {
                 console.log("user tried to vote for the same post")
                 setErrorMessageServer("You cannot vote for the same post twice");
                 setErrorServer(true);
-            }
-            else {
+            } else {
                 //reload page with new vote counts
                 console.log("reloading page with new vote counts")
                 getPrompts()
+            }
+        }).catch((err) => {
+            console.log("Group Home page: " + err);
+            if (err && err.response) {
+                const {data, status} = err.response
+                setErrorMessageServer(data.errorMessage);
+                setErrorServer(true);
+                if (status === 404) {
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             }
         })
     }
@@ -246,11 +257,23 @@ function GroupHome({route, navigation}) {
                 console.log("user tried to vote for the same post")
                 setErrorMessageServer("You cannot vote for the same post twice");
                 setErrorServer(true);
-            }
-            else {
+            } else {
                 //reload page with new vote counts
                 console.log("reloading page with new vote counts")
                 getPrompts()
+            }
+        }).catch((err) => {
+            console.log("Group Home page: " + err);
+            if (err && err.response) {
+                const {data, status} = err.response
+                setErrorMessageServer(data.errorMessage);
+                setErrorServer(true);
+                if (status === 404) {
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             }
         })
     }
@@ -269,7 +292,8 @@ function GroupHome({route, navigation}) {
                     width: width * 0.15,
                     paddingBottom: 20,
                 }}>
-                    <GroupBackButton size={50} navigation={navigation} userID={userID} leaveRoom={leaveRoom} groupID={groupID}/>
+                    <GroupBackButton size={50} navigation={navigation} userID={userID} leaveRoom={leaveRoom}
+                                     groupID={groupID}/>
                 </View>
                 <View style={{width: width * 0.7, justifyContent: 'center', alignItems: 'center'}}>
                     <Image style={{
@@ -293,7 +317,8 @@ function GroupHome({route, navigation}) {
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <DailyPrompt prompt={prompt} period={period} days={days} hours={hours} minutes={minutes} seconds={seconds}/>
+                <DailyPrompt prompt={prompt} period={period} days={days} hours={hours} minutes={minutes}
+                             seconds={seconds}/>
             </View>
             <ScrollView
                 refreshControl={
@@ -308,8 +333,10 @@ function GroupHome({route, navigation}) {
                     alignItems: 'center',
                     height: height * 0.55
                 }}>
-                    <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
-                                   setActivePostID={setActivePostID} setPrompt={setPrompt} setPromptID={setPromptID} period={period} loading={loading}/>
+                    <PostComponent posts={posts} route={route} navigation={navigation} activeIndex={activeIndex}
+                                   setActiveIndex={setActiveIndex}
+                                   setActivePostID={setActivePostID} setPrompt={setPrompt} setPromptID={setPromptID}
+                                   period={period} loading={loading}/>
                 </View>
             </ScrollView>
             <View style={{

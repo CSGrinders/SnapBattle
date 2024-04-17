@@ -80,8 +80,8 @@ function OtherProfile({route, navigation}) {
             setExistRqFriend(true);
             setInfoMessage(res.data.message);
         }).catch((error) => {
-            const {status, data} = error.response;
-            if (error.response) {
+            if (error && error.response) {
+                const {status, data} = error.response;
                 if (status !== 500) {
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);

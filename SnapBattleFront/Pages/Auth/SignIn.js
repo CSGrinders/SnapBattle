@@ -108,8 +108,8 @@ function SignIn({navigation}) {
                     navigation.navigate('Main', {userID: userID}); //Success and navigating to groups screen
                 }
             }).catch((error) => {
-                const {status, data} = error.response;
-                if (error.response) {
+                if (error && error.response) {
+                    const {status, data} = error.response;
                     if (status === 401) {
                         setErrorMessageUsername(data.errorMessage);
                         setErrorMessagePassword(data.errorMessage);
@@ -164,7 +164,7 @@ function SignIn({navigation}) {
                         })
                         .catch((error) => {
                             resetFields();
-                            if (error.response) {
+                            if (error && error.response) {
                                 const {status} = error.response;
                                 //setTimeout(null, 3000
                                 setLoading(false);

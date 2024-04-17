@@ -159,7 +159,7 @@ function SignUp({navigation}) {
                     }
                 }
             ).catch((error) => { //There was an error in fields or server connection
-                if (error.response) {
+                if (error && error.response) {
                     const {status, data} = error.response;
                     if (status === 400 || status === 409) { //Wrong syntax or No access
                         if (data.errorMessage.toLowerCase().includes("password")) {
