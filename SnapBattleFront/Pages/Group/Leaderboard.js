@@ -72,10 +72,23 @@ function Leaderboard({route, navigation}) {
             }
         )
             .then((res) => {
-                console.log(res.data)
+                const updatedList = groupMembers.map(member => ({
+                    ...member,
+                    points: 0
+                }));
+                setGroupMembers(updatedList);
             })
             .catch((err) => {
-                console.log("error:",err)
+                console.log("Leaderboard page: " + err);
+                const {data} = err.response;
+                if (err.response) {
+                    setErrorMessageServer(data.errorMessage);
+                    setErrorServer(true);
+                    leaveRoom(userID, groupID);
+                    setTimeout(() => {
+                        navigation.navigate("Main", {userID: userID})
+                    }, 1500)
+                }
             })
     }
 
@@ -93,7 +106,7 @@ function Leaderboard({route, navigation}) {
                 }
             })
             .catch((err) => {
-                console.log("Group Home page: " + err);
+                console.log("LeaderHome page: " + err);
                 const {data} = err.response;
                 if (err.response) {
                     setErrorMessageServer(data.errorMessage);
