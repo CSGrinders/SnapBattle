@@ -97,7 +97,7 @@ function Achievements({route, navigation}) {
                     <Text style={{fontSize: 30, fontFamily: 'OpenSansBold'}}>Achievements</Text>
                 </View>
             </View>
-    {displayedAchievements ?
+    {displayedAchievements.length === 0 ?
         <>
             <View style={{
                 flex: 0.8,

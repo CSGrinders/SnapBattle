@@ -83,7 +83,7 @@ const AchievementsSection = ({achievements}) => {
                 <View style={{
                     alignItems: 'center'
                 }}>
-                    {preview ?
+                    {preview.length === 0 ?
                         <View style={{
                             justifyContent: 'center',
                             alignItems: 'center',
