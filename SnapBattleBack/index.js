@@ -78,7 +78,7 @@ app.use('/user/:userID/groups/:groupID', async (req, res, next) => {
             // GET request
         if (req.method === 'GET') {
             const {groupID, userID} = req.params;
-            console.log("userID:", userID,"GroupID:",groupID)   
+            //console.log("userID:", userID,"GroupID:",groupID)
             if (groupID !== undefined) {
                 const group = await Group.findById(groupID);
                 if (!group) {
@@ -88,17 +88,17 @@ app.use('/user/:userID/groups/:groupID', async (req, res, next) => {
                 const currentDate = new Date();
                 const targetDate = group.lastPeriod
 
-                targetDate.setDate(targetDate.getDate() + 2);
-                console.log(currentDate.getTime(), targetDate.getTime())
+                targetDate.setDate(targetDate.getDate() + 14);
+                //console.log(currentDate.getTime(), targetDate.getTime())
                 if (currentDate.getTime() > targetDate.getTime()) {
-                    console.log("current date is 2 days after groups.lastPeriod")
+                    console.log("current date is 2 weeks after groups.lastPeriod")
                     await resetPointsHelper(groupID)
                     group.lastPeriod = new Date();
                     await group.save();
                 }
         }
     }
-    console.log('Middleware executed before routes from groupsRouter');
+    //console.log('Middleware executed before routes from groupsRouter');
     // Call next() to continue with the route handling
     next();
     } catch (error) {

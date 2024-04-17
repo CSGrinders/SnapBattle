@@ -64,12 +64,14 @@ async function updateWeeklyWinner(group, now, weekAgo, prompts) {
             }
 
             if (prompts[i].dailyWinnerID.weeklyVotes.length > maxVotes) {
-                maxVotes = prompts[i].dailyWinnerID.weeklyVotes
+                //console.log("WINNER")
+                maxVotes = prompts[i].dailyWinnerID.weeklyVotes.length
                 winner = prompts[i].dailyWinnerID
             }
 
             //tie exists -> no winner
             else if (prompts[i].dailyWinnerID.weeklyVotes.length === maxVotes) {
+                //console.log("TIE")
                 winner = null
             }
         }
@@ -98,6 +100,7 @@ async function makeDummyDailyWinner(todayPrompt, dailyWinner, group) {
     await newPrompt.save()
 
     group.prompts.push(newPrompt)
+    //console.log(group.prompts)
     await group.save()
 
     let newPost = new Post({
@@ -242,6 +245,7 @@ module.exports.getPrompt = async (req, res) => {
     for (let i = 0; i < prompts.length; i++) {
         if (prompts[i].timeEnd.getMonth() === now.getMonth() && prompts[i].timeEnd.getDay() === now.getDay()) {
             todayPrompt = prompts[i]
+            break
         }
     }
 
@@ -356,6 +360,7 @@ module.exports.getPrompt = async (req, res) => {
          */
 
 
+
         release()
         return res.status(200).json({
             dailyWinnerPosts: dailyWinnerPosts,
@@ -367,6 +372,7 @@ module.exports.getPrompt = async (req, res) => {
 
     //PERIOD 4 - waiting for next day
     else {
+        //console.log(todayPrompt.prompt)
 
         //update the daily winner for today's prompt if not yet updated
         if (todayPrompt.dailyWinnerID === undefined) {
@@ -395,6 +401,7 @@ module.exports.getPrompt = async (req, res) => {
         nextPromptRelease.setMinutes(promptReleaseMin)
         nextPromptRelease.setSeconds(0)
         release()
+        //console.log(todayPrompt.prompt)
         return res.status(200).json({
             promptObj: todayPrompt,
             submissionAllowed: false,
@@ -462,8 +469,8 @@ module.exports.voteWeekly = async(req, res) => {
     const votePost = await Post.findById(votePostID)
     votePost.weeklyVotes.push(userID)
     await votePost.save()
-    console.log("VOTE POST")
-    console.log(votePost)
+    //console.log("VOTE POST")
+    //console.log(votePost)
     return res.status(200).json({differentPost: true})
 }
 

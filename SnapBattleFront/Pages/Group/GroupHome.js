@@ -109,7 +109,6 @@ function GroupHome({route, navigation}) {
     )
 
     function getPrompts() {
-        console.log("getting prompt call")
         return axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-prompt`
         )
@@ -118,7 +117,6 @@ function GroupHome({route, navigation}) {
                 //if in weekly voting period, promptObj is not used but dailyWinningPosts is used
                 //otherwise, promptObj is used but dailyWinningPosts is not used
                 const {promptObj, dailyWinnerPosts, submissionAllowed, period, timeEnd} = res.data
-                console.log("success res")
 
                 setPeriod(period)
                 setTimeEnd(timeEnd)
@@ -156,10 +154,18 @@ function GroupHome({route, navigation}) {
                         setPromptID("")
                     }
                     else {
-                        console.log(dailyWinnerPosts)
-                        setActiveIndex(0)
-                        setPrompt(dailyWinnerPosts[0].prompt.prompt)
-                        setPromptID(dailyWinnerPosts[0].prompt._id)
+                        if (activeIndex < dailyWinnerPosts.length) {
+                            setPrompt(dailyWinnerPosts[activeIndex].prompt.prompt)
+                            setPromptID(dailyWinnerPosts[activeIndex].prompt._id)
+                            setActivePostID(dailyWinnerPosts[activeIndex]._id)
+                        }
+                        else {
+                            setActiveIndex(0)
+                            setPrompt(dailyWinnerPosts[0].prompt.prompt)
+                            setPromptID(dailyWinnerPosts[0].prompt._id)
+                            setActivePostID(dailyWinnerPosts[0]._id)
+                        }
+
                     }
                 }
             })
