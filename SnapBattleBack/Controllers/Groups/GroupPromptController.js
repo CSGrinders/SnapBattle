@@ -652,9 +652,44 @@ module.exports.getLastWeekWinner = async (req, res) => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0')
         const day = date.getDate().toString().padStart(2, '0')
 
+        let start = null;
+        let end = null;
+
+        if (date.getDay() === group.weeklyVotingDay) {
+            start = new Date(date);
+            start.setDate(start.getDate() - 6);
+
+            end = new Date(date);
+        } else if (date.getDay() > group.weeklyVotingDay) { // if after the voting day
+            end = new Date(date);
+            end.setDate(end.getDate() - (date.getDay() - group.weeklyVotingDay) + 7);
+
+            start = new Date(end)
+            start.setDate(start.getDate() - 6);
+        } else { // before the voting day
+            end = new Date(date);
+            end.setDate(end.getDate() + (group.weeklyVotingDay - date.getDay()));
+
+            start = new Date(end)
+            start.setDate(start.getDate() - 6)
+        }
+        start.setHours(0)
+        end.setHours(0)
+
+
+        const year_start = start.getFullYear()
+        const month_start = (start.getMonth() + 1).toString().padStart(2, '0')
+        const day_start = start.getDate().toString().padStart(2, '0')
+
+        const year_end = end.getFullYear()
+        const month_end = (end.getMonth() + 1).toString().padStart(2, '0')
+        const day_end = end.getDate().toString().padStart(2, '0')
+
         return res.status(200).json({
             weeklyWinnerPost: lastPost,
             dayString: year + "-" + month + "-" + day,
+            startString: year_start + "-" + month_start + "-" + day_start,
+            endString: year_end + "-" + month_end + "-" + day_end,
         })
     } catch (error) {
         console.log("getLastWeekly module: " + error);
