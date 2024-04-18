@@ -60,9 +60,7 @@ module.exports.changePassword = async (req, res) => {
             await user.save();
             res.status(200).json({passChanged: true});
         } else {
-            res.status(500).json({
-                errorMessage: "Something went wrong...",
-            });
+            return res.status(404).json({errorMessage: "User could not be found."});
         }
     } catch (error) {
         console.log("changePassword module: " + error);
@@ -102,7 +100,7 @@ module.exports.changeName = async (req, res) => {
             console.log(user);
             res.status(200).json({nameChanged: true});
         } else { //user not found
-            res.status(404).json({errorMessage: "Something went wrong..."});
+            return res.status(404).json({errorMessage: "User could not be found."});
         }
 
     } catch (error) { //Server error
@@ -142,7 +140,7 @@ module.exports.changeBio = async (req, res) => {
             await user.save();
             res.status(200).json({bioChanged: true});
         } else { //User not found send error
-            res.status(404).json({errorMessage: "Something went wrong..."});
+            return res.status(404).json({errorMessage: "User could not be found."});
         }
 
     } catch (error) { //Server error

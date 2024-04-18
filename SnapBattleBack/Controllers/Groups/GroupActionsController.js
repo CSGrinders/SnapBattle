@@ -272,7 +272,7 @@ module.exports.leaveGroup = async(req, res, next) => {
         // Check if user exists
         if (!user) {
             console.log("leaveGroup module: user not found");
-            return res.status(404).json({errorMessage: "User not found"});
+            return res.status(404).json({errorMessage: "User could not be found."});
         }
 
         // Check if group exists
@@ -331,6 +331,9 @@ async function leave(userID, groupID){
         ]);
 
         if (!group) {
+            return false;
+        }
+        if (!user) {
             return false;
         }
 
@@ -638,7 +641,7 @@ module.exports.kickUser = async (req, res) => {
         if (!group) {
             return res.status(404).json({errorMessage: "Group could not be found."});
         }
-        console.log(group)
+
         const {kickUsername} = req.body;
         const kickUser = await User.findOne({username: kickUsername});
         const isUserInGroup = group.userList.some(list => list.user._id.toString() === userID);
