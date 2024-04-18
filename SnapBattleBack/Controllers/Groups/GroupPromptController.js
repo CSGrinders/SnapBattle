@@ -805,8 +805,6 @@ module.exports.getWeeklyWinner = async (req, res) => {
         }
         start.setHours(0)
         end.setHours(0)
-        console.log("start of week: " + start.toString())
-        console.log("end of week: " + end.toString())
 
         let returnPost = null;
 
@@ -834,9 +832,23 @@ module.exports.getWeeklyWinner = async (req, res) => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0')
         const day = date.getDate().toString().padStart(2, '0')
 
+        console.log("start of week: " + start.toString())
+        console.log("end of week: " + end.toString())
+
+
+        const year_start = start.getFullYear()
+        const month_start = (start.getMonth() + 1).toString().padStart(2, '0')
+        const day_start = start.getDate().toString().padStart(2, '0')
+
+        const year_end = end.getFullYear()
+        const month_end = (end.getMonth() + 1).toString().padStart(2, '0')
+        const day_end = end.getDate().toString().padStart(2, '0')
+
         return res.status(200).json({
             weeklyWinnerPost: returnPost,
             dayString: year + "-" + month + "-" + day,
+            startString: year_start + "-" + month_start + "-" + day_start,
+            endString: year_end + "-" + month_end + "-" + day_end,
         })
     } catch (error) {
         console.log("getWeeklyWinner module: " + error);

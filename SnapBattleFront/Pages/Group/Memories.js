@@ -30,6 +30,10 @@ function Memories({route, navigation}) {
 
     const [selected, setSelected] = useState('');
 
+    const [startWeek, setStartWeek] = useState('');
+
+    const [endWeek, setEndWeek] = useState('');
+
     //Server error messages
     const [errorMessageServer, setErrorMessageServer] = useState('');
     const [errorServer, setErrorServer] = useState(false);
@@ -56,6 +60,8 @@ function Memories({route, navigation}) {
 
 
     function getLastDailyWinner() {
+        setDailyWinnerPost(null);
+        setDailyWinnerPrompt(null);
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-daily-winner`
         )
@@ -86,6 +92,8 @@ function Memories({route, navigation}) {
     }, [dailyWinnerPrompt, weeklyWinnerPrompt])
 
     function getLastWeeklyWinner(){
+        setWeeklyWinnerPost(null);
+        setWeeklyWinnerPrompt(null);
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-weekly-winner`
         )
@@ -101,6 +109,8 @@ function Memories({route, navigation}) {
                     const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
+                    setWeeklyWinnerPost(null);
+                    setWeeklyWinnerPrompt(null);
                     if (status === 404) {
                         leaveRoom(userID, groupID);
                         setTimeout(() => {
@@ -112,6 +122,8 @@ function Memories({route, navigation}) {
     }
 
     function getDailyWinner(dayString) {
+        setDailyWinnerPrompt(null);
+        setDailyWinnerPost(null);
         console.log("getting daily winner for " + dayString);
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-daily-winner/${dayString}`
@@ -128,6 +140,8 @@ function Memories({route, navigation}) {
                     const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
+                    setDailyWinnerPost(null);
+                    setDailyWinnerPrompt(null);
                     if (status === 404) {
                         leaveRoom(userID, groupID);
                         setTimeout(() => {
@@ -139,14 +153,18 @@ function Memories({route, navigation}) {
     }
 
     function getWeeklyWinner(dayString) {
+        setWeeklyWinnerPrompt(null);
+        setWeeklyWinnerPost(null);
         console.log("getting weekly winner for " + dayString);
         axios.get(
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-weekly-winner/${dayString}`
         )
             .then((res) => {
-                const {weeklyWinnerPost} = res.data
+                const {weeklyWinnerPost, startString, endString} = res.data
                 setWeeklyWinnerPost(weeklyWinnerPost);
                 setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
+                setStartWeek(startString);
+                setEndWeek(endString);
             })
             .catch((err) => {
                 console.log("Memories page: " + err);
@@ -154,6 +172,8 @@ function Memories({route, navigation}) {
                     const {data, status} = err.response;
                     setErrorMessageServer(data.errorMessage);
                     setErrorServer(true);
+                    setWeeklyWinnerPost(null);
+                    setWeeklyWinnerPrompt(null);
                     if (status === 404) {
                         leaveRoom(userID, groupID);
                         setTimeout(() => {
@@ -349,6 +369,12 @@ function Memories({route, navigation}) {
                         }}>
                             {dailyWinnerPrompt.prompt}
                         </Text>
+                        <Text style={{
+                            fontWeight: 'bold',
+                            fontSize: 17,
+                        }}>
+                            DAY: {selected}
+                        </Text>
                     </View>
                     ) : (<></>)
                 }
@@ -369,6 +395,12 @@ function Memories({route, navigation}) {
                         }}>
                             {weeklyWinnerPrompt.prompt}
                         </Text>
+                        <Text style={{
+                            fontWeight: 'bold',
+                            fontSize: 17,
+                        }}>
+                            WEEK: {startWeek} - {endWeek}
+                        </Text>
                     </View>
                     ) : (<></>)
                 }
@@ -379,7 +411,7 @@ function Memories({route, navigation}) {
                             height: "100%",
                             borderRadius: 25,
                             marginTop: 20,
-                            marginBottom: height * 0.2
+                            marginBottom: height * 0.18
                         }}>
                             <View style={{
                                 flexDirection: 'row',
@@ -439,7 +471,7 @@ function Memories({route, navigation}) {
                         height: "100%",
                         borderRadius: 25,
                         marginTop: 20,
-                        marginBottom: height * 0.2
+                        marginBottom: height * 0.18
                     }}>
                         <View style={{
                             flexDirection: 'row',
