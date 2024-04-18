@@ -129,7 +129,7 @@ module.exports.removeRequest = async(req, res) => {
 
         const userReq = await User.findOne({username: usernameReq}).populate('requests');
         if (!userReq) {
-            return res.status(404).json({errorMessage: "User could not be found."});
+            return res.status(404).json({errorMessage: "User could not be found.", goBack: true});
         }
 
         userReq.requests = userReq.requests.filter(user => user._id.toString() !== userID);
@@ -196,7 +196,7 @@ module.exports.sendFriendRequest = async(req, res) => {
             }
         }
         else {
-            res.status(404).json({errorMessage: "User could not be found."});
+            return res.status(404).json({errorMessage: "User could not be found.", goBack: true});
         }
 
 
@@ -228,7 +228,7 @@ module.exports.unblock = async(req, res) => {
             await user.save();
             res.status(200).json({message: "User has been unblocked."});
         } else {
-            res.status(404).json({errorMessage: "User could not be found."})
+            return res.status(404).json({errorMessage: "User could not be found.", goBack: true});
         }
     } catch (error) {
         console.log("unblock module: " + error);
@@ -468,6 +468,9 @@ module.exports.removeFriend = async (req, res, next) => {
         //user B
         const {removeUsername} = req.body
         let userB = await User.findOne({username: removeUsername}).populate('friends')
+        if (!userB) {
+            return res.status(404).json({errorMessage: "User could not be found.", goBack: true});
+        }
         let BFriends = userB.friends
 
         //ensure that user A and user B are friends
@@ -558,6 +561,9 @@ module.exports.removeFriendBlock = async (req, res, next) => {
         //user B
         const {blockUsername} = req.body
         let userB = await User.findOne({username: blockUsername}).populate('friends').populate('requests', '_id username');
+        if (!userB) {
+            return res.status(404).json({errorMessage: "User could not be found.", goBack: true});
+        }
         let BFriends = userB.friends
 
         //ensure that user A and user B are friends

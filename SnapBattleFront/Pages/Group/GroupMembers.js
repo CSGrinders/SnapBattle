@@ -165,6 +165,10 @@ function GroupMembers({route, navigation}) {
         setInvBoxVisibility(false);
     }
 
+    function setPrompt(errorMessage) {
+        setErrorServer(true);
+        setErrorMessageServer(errorMessage)
+    }
 
     function kickFunc() {
         axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/kick-user`, {
@@ -299,7 +303,10 @@ function GroupMembers({route, navigation}) {
                                     setSuccess={successState}
                                     setSuccessMessage={setSuccessMessage}
                                     setKickUser={setKickUser}
+                                    setGroupMembers={setGroupMembers}
+                                    groupMembers={groupMembers}
                                     setKick={setConfirmStatus}
+                                    setPrompt={setPrompt}
                                 />
                             </View>
                         )

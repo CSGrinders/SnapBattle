@@ -17,12 +17,14 @@ function GroupMemberInfo({navigation,
                              adminPerms,
                              pfpURL,
                              token,
-                             setError,
-                             setErrorMessage,
                              setKickUser,
-                             setKick
+                             setKick,
+                             setPrompt,
+                             setGroupMembers,
+                             groupMembers,
 }) {
     function handleOnPress() {
+        console.log("HERE>");
         try {
             axios.post(`${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/visit-member-profile`, {
                 searchID: searchID
@@ -42,11 +44,16 @@ function GroupMemberInfo({navigation,
                         token: token,
                     })
                 }
+            }).catch((error) => {
+                console.log("Members Home page: " + error);
+                if (error && error.response) {
+                    const {data} = error.response;
+                    setGroupMembers(groupMembers.filter(member => member.username !== searchUsername));
+                    setPrompt(data.errorMessage);
+                }
             })
         } catch (error) {
-            let {status, data} = error;
-            setError(true);
-            setErrorMessage(data.errorMessage);
+            console.log("Members Home page: " + error);
         }
     }
 

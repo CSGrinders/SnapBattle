@@ -150,12 +150,12 @@ module.exports.getAchievements = async(req, res) => {
         
         if (!user) {
             console.log("getAchievement err")
-            return res.status(404).json({error: "User not found"});
+            return res.status(404).json({errorMessage: "User could not be found."});
         }
 
         return res.status(200).json({achievements: user.achievements});
     } catch (error) {
         console.log("getAchievement err")
-        return res.status(500).json({error: "Server error:", error})
+        return res.status(500).json({errorMessage: "Something went wrong..."});
     }
 }
