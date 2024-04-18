@@ -98,10 +98,12 @@ function Memories({route, navigation}) {
             `${EXPO_PUBLIC_API_URL}/user/${userID}/groups/${groupID}/get-last-weekly-winner`
         )
             .then((res) => {
-                const {weeklyWinnerPost, dayString} = res.data
+                const {weeklyWinnerPost, dayString, startString, endString} = res.data
                 setWeeklyWinnerPost(weeklyWinnerPost);
                 setWeeklyWinnerPrompt(weeklyWinnerPost.prompt);
                 setSelected(dayString)
+                setStartWeek(startString);
+                setEndWeek(endString);
             })
             .catch((err) => {
                 console.log("Memories page: " + err);
