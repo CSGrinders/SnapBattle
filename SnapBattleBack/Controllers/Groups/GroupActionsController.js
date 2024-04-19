@@ -361,26 +361,30 @@ async function leave(userID, groupID){
             }
             for (let j = 0; j < prompt.posts.length; j++) {
                 // delete comments of that user
-                const post = await Post.findById(prompt.posts[j]).populate('_id comments picture').populate('owner');
+                const post = await Post.findById(prompt.posts[j]).populate('_id comments picture').populate('owner', '_id');
                 // don't bother going through comments if there are no comments
                 console.log(post)
-                for (let k = 0; k < post.comments.length; k++) {
-                    const comment = await Comment.findById(post.comments[k]);
-                    // comment could be "null" if it was a reply and alr got booted
-                    if (comment !== null) {
-                        if (comment.userID.toString() === user._id.toString()) {
-                            await deleteComment(comment._id);
+                if (post.comments.length !== 0) {
+                    for (let k = 0; k < post.comments.length; k++) {
+                        const comment = await Comment.findById(post.comments[k]);
+                        // comment could be "null" if it was a reply and alr got booted
+                        if (comment !== null) {
+                            if (comment.userID.toString() === user._id.toString()) {
+                                await deleteComment(comment._id);
+                            }
                         }
                     }
+                    post.comments = post.comments.filter((comment) => comment.userID.toString() !== userID.toString())
+                    await post.save();
                 }
-                post.comments = post.comments.filter((comment) => comment.userID.toString() !== userID.toString())
-                await post.save();
-                if (post.owner._id.toString().trim() === userID) {
-                    await deleteImageFirebaseUrl(post.picture);
-                    await Post.findByIdAndDelete(post._id);
+                if (prompt.prompt !== "dummy prompt") {
+                    if (post.owner._id.toString().trim() === userID) {
+                        await deleteImageFirebaseUrl(post.picture);
+                        await Post.findByIdAndDelete(post._id);
+                    }
                 }
             }
-            prompt.posts = prompt.posts.filter((post) => post.owner.toString() !== userID.toString())
+            prompt.posts = prompt.posts.filter((post) => post.owner._id.toString() !== userID.toString())
             await prompt.save();
         }
 
