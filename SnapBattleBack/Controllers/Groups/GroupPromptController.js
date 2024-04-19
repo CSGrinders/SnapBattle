@@ -90,11 +90,10 @@ async function updateWeeklyWinner(group, now, weekAgo, prompts) {
 }
 
 async function makeDummyDailyWinner(todayPrompt, dailyWinner, group) {
-    const oneDay = 24 * 60 * 60 * 1000;
     let newPrompt = new Prompt({
         prompt: "dummy prompt",
-        timeStart: new Date(todayPrompt.timeStart - oneDay),
-        timeEnd: new Date(todayPrompt.timeEnd - oneDay),
+        timeStart: todayPrompt.timeStart,
+        timeEnd: todayPrompt.timeEnd,
         dailyWinnerID: null
     })
     await newPrompt.save()
@@ -102,14 +101,13 @@ async function makeDummyDailyWinner(todayPrompt, dailyWinner, group) {
     group.prompts.unshift(newPrompt)
     //console.log(group.prompts)
     await group.save()
-    const oneDayBefore = new Date(dailyWinner.time - oneDay);
 
     let newPost = new Post({
         prompt: newPrompt._id,
         picture: "https://cdn-media-2.freecodecamp.org/w1280/5f9c9819740569d1a4ca1826.jpg",
         owner: dailyWinner.owner,
         submissionNumber: 3,
-        time: oneDayBefore,
+        time: dailyWinner.time,
         dailyVotes: [],
         weeklyVotes: []
     })
@@ -245,7 +243,7 @@ module.exports.getPrompt = async (req, res) => {
         }
 
         //Any other period needs today's prompt -> generate if nonexistent
-        for (let i = 0; i < prompts.length; i++) {
+        for (let i = prompts.length - 1; i >= 0; i--) {
             if (prompts[i].timeEnd.getMonth() === now.getMonth() && prompts[i].timeEnd.getDay() === now.getDay()) {
                 todayPrompt = prompts[i]
                 break
