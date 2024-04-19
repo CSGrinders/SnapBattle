@@ -214,11 +214,21 @@ module.exports.acceptGroupInvite = async(req, res, next) => {
             return;
         }
 
+
+        const isUserInGroup = group.userList.some(list => list.user.toString() === userID);
+        if (isUserInGroup) {
+            next();
+            return;
+        }
+
+
+
         //add user to group
         if (group.userList.length < group.maxUsers) {
             group.userList.push({ user: userID, points: 0 });
             await group.save();
         }
+
         else {
             console.log("acceptGroupsInvite module: group has max number of users")
             return res.status(404).json({errorMessage: "You cannot join because the group has the max number of users"})
@@ -344,14 +354,16 @@ async function leave(userID, groupID){
         // delete posts from user
         for (let i = 0; i < group.prompts.length; i++) {
             const prompt = await Prompt.findById(group.prompts[i]).populate('posts').populate('dailyWinnerID', 'owner')
+            console.log(prompt + "DELETE PROMPT")
             if (prompt.dailyWinnerID && prompt.dailyWinnerID.owner._id.toString() === user._id.toString()) {
                 prompt.dailyWinnerID = null;
                 await prompt.save();
             }
             for (let j = 0; j < prompt.posts.length; j++) {
                 // delete comments of that user
-                const post = await Post.findById(prompt.posts[j]).populate('_id comments picture').populate('owner', '_id');
+                const post = await Post.findById(prompt.posts[j]).populate('_id comments picture').populate('owner');
                 // don't bother going through comments if there are no comments
+                console.log(post)
                 for (let k = 0; k < post.comments.length; k++) {
                     const comment = await Comment.findById(post.comments[k]);
                     // comment could be "null" if it was a reply and alr got booted
