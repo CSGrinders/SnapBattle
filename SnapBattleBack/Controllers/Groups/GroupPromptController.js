@@ -25,9 +25,7 @@ async function updateDailyWinner(todayPrompt, group) {
     let maxVotes = -1;
     let winner = null
     let winningUser = null
-    console.log(posts + "LINE 28")
     for (let i = 0; i < posts.length; i++) {
-        console.log (posts[i].dailyVotes.length + "LINE 29")
         if (posts[i].dailyVotes.length > maxVotes) {
             maxVotes = posts[i].dailyVotes.length
             winner = posts[i]
@@ -58,7 +56,6 @@ async function updateDailyWinner(todayPrompt, group) {
 async function updateWeeklyWinner(group, now, weekAgo, prompts) {
     let maxVotes = -1
     let winner = null
-    console.log(prompts + "LINE 59")
     for (let i = 0; i < prompts.length; i++) {
         if (prompts[i].timeEnd.getTime() >= weekAgo.getTime() && prompts[i].timeEnd.getTime() <= now.getTime()) {
             if (prompts[i].dailyWinnerID === undefined || prompts[i].dailyWinnerID === null) {
@@ -226,7 +223,6 @@ module.exports.getPrompt = async (req, res) => {
             const yesterday = new Date(now)
             yesterday.setDate(now.getDate() - 1)
 
-            console.log(prompts + "LINE 225");
             for (let i = 0; i < prompts.length; i++) {
                 if (prompts[i].timeEnd.getMonth() === yesterday.getMonth() && prompts[i].timeEnd.getDate() === yesterday.getDate()) {
                     yesterdayPrompt = prompts[i]
@@ -248,7 +244,6 @@ module.exports.getPrompt = async (req, res) => {
             })
         }
 
-        console.log(prompts + "LINE 247");
         //Any other period needs today's prompt -> generate if nonexistent
         for (let i = 0; i < prompts.length; i++) {
             if (prompts[i].timeEnd.getMonth() === now.getMonth() && prompts[i].timeEnd.getDay() === now.getDay()) {
@@ -295,7 +290,6 @@ module.exports.getPrompt = async (req, res) => {
             //checking # of submissions by the user
             const posts = todayPrompt.posts
 
-            console.log(posts + " LINE 294");
             for (let i = 0; i < posts.length; i++) {
                 if (posts[i].owner._id.toString() === userID && posts[i].submissionNumber >= 3) {
                     release()
@@ -340,8 +334,6 @@ module.exports.getPrompt = async (req, res) => {
             const dailyWinnerPosts = []
             let dailyWinner
 
-            console.log(prompts)
-            console.log("LINE 340")
             for (let i = 0; i < prompts.length; i++) {
                 if (prompts[i].timeEnd.getTime() >= weekAgo.getTime() && prompts[i].timeEnd.getTime() <= now.getTime()) {
                     if (prompts[i].dailyWinnerID === undefined || prompts[i].dailyWinnerID === null) {
@@ -368,7 +360,7 @@ module.exports.getPrompt = async (req, res) => {
             console.log("DUMMY POST")
             if (dailyWinnerPosts.length === 1) {
                 const dummy = await makeDummyDailyWinner(todayPrompt, dailyWinner, group)
-                dailyWinnerPosts.push(dummy)
+                dailyWinnerPosts.unshift(dummy)
             }
 
 
@@ -395,8 +387,6 @@ module.exports.getPrompt = async (req, res) => {
                 let updatedWeekly = false
 
                 const weeklyWinners = group.weeklyWinners
-                console.log(weeklyWinners);
-                console.log("LINE 395")
                 for (let i = 0; i < weeklyWinners.length; i++) {
                     if (weeklyWinners[i].time.getMonth() === now.getMonth() && weeklyWinners[i].time.getDate() === now.getDate()) {
                         //already updated the weekly winner
