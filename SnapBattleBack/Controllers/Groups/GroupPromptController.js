@@ -121,6 +121,7 @@ async function makeDummyDailyWinner(todayPrompt, dailyWinner, group) {
     await Post.populate(newPost, {path: "prompt"})
 
     newPrompt.dailyWinnerID = newPost._id
+    newPrompt.posts.push(newPost._id)
     await newPrompt.save()
 
     return newPost
