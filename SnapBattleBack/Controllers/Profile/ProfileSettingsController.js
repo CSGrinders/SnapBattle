@@ -210,12 +210,20 @@ module.exports.deleteAccount = async (req, res) => {
             let groups = user.groups;
             if (groups && groups.length > 0) {
                 for (const group of groups) {
-                    //console.log(group);
+                    console.log(group);
                     if (group.userList.length > 1) {
                         if (group.adminUserID._id.toString() === user._id.toString()) {
                             // set to any random person in the group
+                            console.log(group.userList);
                             const newAdmin = group.userList.find(userL => userL.user._id.toString() !== user._id.toString());
                             console.log(newAdmin);
+                            if (newAdmin === null) {
+                                for (const prompt of group.prompts) {
+                                    await Prompt.findByIdAndDelete(prompt._id.toString());
+                                }
+                                await Group.findByIdAndDelete(group._id);
+                                continue;
+                            }
                             group.adminUserID = newAdmin.user;
                             group.adminName = group.adminUserID.username;
                             console.log(group);
