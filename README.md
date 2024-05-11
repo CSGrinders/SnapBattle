@@ -2,8 +2,9 @@
 ## Introduction
 SnapBattle is an innovative mobile application designed to keep friend groups connected through the fun and engaging activity of photo-sharing based on daily prompts. Developed as a project for CS307: Software Engineering I, SnapBattle breaks down the challenge of maintaining close friendships in the middle of the distractions of broader social media platforms.
 
-
-<img align="center" alt="img" src="https://imgur.com/jygLm9D.png" width="50%" height="auto" />
+<div align="center">
+  <img alt="img" src="https://imgur.com/jygLm9D.png" width="25%" height="auto" />
+</div>
 
 
 ## Features
